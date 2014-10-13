@@ -4,10 +4,13 @@
  * and open the template in the editor.
  */
 package reaper;
+
 /**
  *
- * @author zaraka
+ * @author nikita.vanku
  */
-public class Document {
-    String path;
+public class ErrorGetDocumentException extends Exception{
+    public ErrorGetDocumentException(String message){
+        super(message);
+    }
 }

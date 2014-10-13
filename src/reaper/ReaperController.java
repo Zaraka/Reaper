@@ -12,6 +12,8 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TreeView;
 
 /**
  *
@@ -19,13 +21,14 @@ import javafx.scene.control.Label;
  */
 public class ReaperController implements Initializable {
     
-    @FXML
-    private Label label;
+    @FXML private TextField domain;
+    @FXML private TreeView resourceTree;
+    @FXML private Label url;
     
     @FXML
     private void handleButtonAction(ActionEvent event) {
-        System.out.println("You clicked me!");
-        label.setText("Hello World!");
+        domain.getText();
+        
     }
     
     @Override
