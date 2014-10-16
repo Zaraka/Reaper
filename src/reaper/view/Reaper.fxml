@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="reaper.view.ReaperController">
+   <children>
+      <SplitPane dividerPositions="0.7006688963210702" orientation="VERTICAL" prefHeight="600.0" prefWidth="800.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+               <children>
+                  <SplitPane dividerPositions="0.29797979797979796" prefHeight="600.0" prefWidth="800.0">
+                    <items>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                           <children>
+                              <VBox prefHeight="600.0" prefWidth="235.0">
+                                 <children>
+                                    <HBox prefHeight="24.0" prefWidth="200.0">
+                                       <children>
+                                          <Button id="domainButton" mnemonicParsing="false" onAction="#handleButtonAction" text="Button" />
+                                          <TextField id="domain" fx:id="domain" prefHeight="25.0" prefWidth="181.0" />
+                                       </children>
+                                    </HBox>
+                                    <TreeView fx:id="resourceTree" prefHeight="577.0" prefWidth="235.0" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </AnchorPane>
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                           <children>
+                              <Label fx:id="url" layoutX="14.0" layoutY="14.0" prefHeight="17.0" prefWidth="95.0" />
+                           </children>
+                        </AnchorPane>
+                    </items>
+                  </SplitPane>
+               </children>
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="233.0" prefWidth="798.0">
+               <children>
+                  <TextFlow fx:id="console" layoutX="174.0" layoutY="56.0" prefHeight="296.0" prefWidth="798.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+               </children>
+            </AnchorPane>
+        </items>
+      </SplitPane>
+   </children>
+</AnchorPane>

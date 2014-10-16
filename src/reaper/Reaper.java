@@ -11,21 +11,32 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import reaper.model.Domain;
+import reaper.view.ReaperController;
 
 /**
- *
+ * Is this the place where I should put all my business logic?
  * @author zaraka
  */
 public class Reaper extends Application {
+    private Domain domain;
+    
+    Reaper(){
+        
+    }
     
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("Reaper.fxml"));
+        FXMLLoader loader = new FXMLLoader();
+        Parent root = loader.load(getClass().getResource("Reaper.fxml"));
         
         Scene scene = new Scene(root);
         
         stage.setScene(scene);
         stage.show();
+        
+        ReaperController controller = loader.getController();
+        controller.setReaper(this);
     }
 
     /**
@@ -33,6 +44,10 @@ public class Reaper extends Application {
      */
     public static void main(String[] args) {
         launch(args);
+    }
+    
+    public Domain getDomain(){
+        return this.domain;
     }
     
 }
