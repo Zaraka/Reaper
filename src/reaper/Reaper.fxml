@@ -16,7 +16,7 @@
                      <children>
                         <HBox prefHeight="24.0" prefWidth="200.0">
                            <children>
-                              <Button id="domainButton" mnemonicParsing="false" onAction="#handleButtonAction" text="Button" />
+                              <Button id="domainButton" mnemonicParsing="false" onAction="#handleButtonAction" text="Sent" />
                               <TextField id="domain" fx:id="domain" prefHeight="25.0" prefWidth="181.0" />
                            </children>
                         </HBox>
