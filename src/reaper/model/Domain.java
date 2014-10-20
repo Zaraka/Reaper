@@ -1,17 +1,21 @@
 package reaper.model;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import reaper.Reaper;
 
 /**
  *
  * @author zaraka
  */
 public class Domain {
+    private static final Logger logger = Logger.getLogger(Reaper.class.getName());
     
     private final ObservableList<Resource> resources;
     private final StringProperty hostname;
@@ -33,6 +37,7 @@ public class Domain {
     }
     
     public void mine(){
+        logger.log(Level.INFO, "Data mining start");
         //try just one page for start
         Resource page = new Resource(this.hostname.get());
         resources.add(page);
@@ -42,11 +47,11 @@ public class Domain {
         return this.resources;
     }
 
-    public String getHostname(){
+    public final String getHostname(){
         return this.hostname.get();
     }
     
-    public void setHostname(String hostname){
+    public final void setHostname(String hostname){
         this.hostname.set(hostname);
     }
     

@@ -6,8 +6,12 @@
 
 package reaper;
 
+import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -19,23 +23,28 @@ import reaper.view.ReaperController;
  * @author zaraka
  */
 public class Reaper extends Application {
-    private Domain domain;
     
-    Reaper(){
-        
-    }
+    private static final Logger logger = Logger.getLogger(Reaper.class.getName());
+    private Domain domain;
     
     @Override
     public void start(Stage stage) throws Exception {
+        logger.setLevel(Level.ALL);
+        
+        URL location = getClass().getResource("view/Reaper.fxml");
         FXMLLoader loader = new FXMLLoader();
-        Parent root = loader.load(getClass().getResource("Reaper.fxml"));
+        loader.setLocation(location);
+        loader.setBuilderFactory(new JavaFXBuilderFactory());
+        
+        Parent root = (Parent) loader.load(location.openStream());
         
         Scene scene = new Scene(root);
-        
         stage.setScene(scene);
         stage.show();
         
-        ReaperController controller = loader.getController();
+        this.initialize();
+        
+        ReaperController controller = (ReaperController)loader.getController();
         controller.setReaper(this);
     }
 
@@ -48,6 +57,10 @@ public class Reaper extends Application {
     
     public Domain getDomain(){
         return this.domain;
+    }
+    
+    private void initialize(){
+        this.domain = new Domain();
     }
     
 }
