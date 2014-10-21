@@ -14,12 +14,15 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeView;
 import javafx.scene.text.TextFlow;
 import reaper.model.Resource;
 import reaper.Reaper;
 import reaper.model.Domain;
+import reaper.model.Link;
 
 /**
  *
@@ -35,6 +38,8 @@ public class ReaperController implements Initializable {
     @FXML private TreeView resourceTree;
     @FXML private Label url;
     @FXML private TextFlow console;
+    @FXML private TableView<Link> urlTable;
+    @FXML private TableColumn<Link, String> urlColumn;
     
     @FXML
     private void handleButtonAction(ActionEvent event) {
@@ -42,6 +47,7 @@ public class ReaperController implements Initializable {
         if(!"".equals(hostname.getText())){
             data.setHostname(hostname.getText());
             data.mine();
+            this.showResource(this.reaper.getDomain().getResource().get(0));
         }
     }
     
@@ -59,4 +65,13 @@ public class ReaperController implements Initializable {
         this.reaper = reaper;
     }
     
+    private void showResource(Resource resource){
+        if(resource != null){
+            url.setText(resource.getPath());
+            urlTable.setItems(resource.getLinks());
+            urlColumn.setCellValueFactory(cellData -> cellData.getValue().getToPathProperty());
+        } else {
+            url.setText("");
+        }
+    }
 }
