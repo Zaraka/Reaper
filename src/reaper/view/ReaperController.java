@@ -8,6 +8,8 @@ package reaper.view;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -25,9 +27,11 @@ import reaper.model.Domain;
  */
 public class ReaperController implements Initializable {
     
+    private static final Logger logger = Logger.getLogger(Reaper.class.getName());
+    
     Reaper reaper;
     
-    @FXML private TextField domain;
+    @FXML private TextField hostname;
     @FXML private TreeView resourceTree;
     @FXML private Label url;
     @FXML private TextFlow console;
@@ -35,14 +39,16 @@ public class ReaperController implements Initializable {
     @FXML
     private void handleButtonAction(ActionEvent event) {
         Domain data = reaper.getDomain();
-        
-        data.setHostname(domain.getText());
-        data.mine();
+        if(!"".equals(hostname.getText())){
+            data.setHostname(hostname.getText());
+            data.mine();
+        }
     }
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
+        logger.addHandler(new FlowHandler(this.console));
+        logger.log(Level.INFO, "Starting");
     }    
     
     private void showResourceDetails(Resource res){

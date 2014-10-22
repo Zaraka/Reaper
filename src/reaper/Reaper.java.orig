@@ -7,8 +7,11 @@
 package reaper;
 
 import java.net.URL;
+<<<<<<< HEAD
+=======
 import java.util.logging.Level;
 import java.util.logging.Logger;
+>>>>>>> bbb53d4b0995d78d1f79bc338b5bcc4078fefc02
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.JavaFXBuilderFactory;
@@ -16,13 +19,26 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import reaper.model.Domain;
-import reaper.view.ReaperController;
 
 /**
  * Is this the place where I should put all my business logic?
  * @author zaraka
  */
 public class Reaper extends Application {
+<<<<<<< HEAD
+    private Domain domain;
+
+    
+    @Override
+    public void start(Stage stage) throws Exception {
+        URL location = getClass().getResource("Reaper.fxml");
+        
+        FXMLLoader fxmlLoader = new FXMLLoader();
+        fxmlLoader.setLocation(location);
+        fxmlLoader.setBuilderFactory(new JavaFXBuilderFactory());
+
+        Parent root = (Parent) fxmlLoader.load(location.openStream());
+=======
     
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
     private Domain domain;
@@ -35,6 +51,7 @@ public class Reaper extends Application {
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(location);
         loader.setBuilderFactory(new JavaFXBuilderFactory());
+>>>>>>> bbb53d4b0995d78d1f79bc338b5bcc4078fefc02
         
         Parent root = (Parent) loader.load(location.openStream());
         
@@ -42,10 +59,15 @@ public class Reaper extends Application {
         stage.setScene(scene);
         stage.show();
         
+<<<<<<< HEAD
+        //ReaperController controller = fxmlLoader.getController();
+        //controller.setReaper(this);
+=======
         this.initialize();
         
         ReaperController controller = (ReaperController)loader.getController();
         controller.setReaper(this);
+>>>>>>> bbb53d4b0995d78d1f79bc338b5bcc4078fefc02
     }
 
     /**
