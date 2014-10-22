@@ -12,8 +12,11 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -33,28 +36,40 @@ public class Resource {
     private IntegerProperty code;
     private Document doc;
     private ResourceState state;
-    private ArrayList<String> links;
+    private final ObservableList<Link> links;
+    private final IntegerProperty depth;
+    
+    private final ObservableList<Resource> resources;
 
     
     Resource() {
         this.path = new SimpleStringProperty("undefined");
         this.state = ResourceState.UNITIALIZED;
-        this.links = new ArrayList<>();
+        this.links = FXCollections.observableArrayList();
+        this.resources = FXCollections.observableArrayList();
+        this.depth = new SimpleIntegerProperty(0);
     }
 
     Resource(String path) {
         this.path = new SimpleStringProperty(path);
         this.state = ResourceState.UNITIALIZED;
-        this.links = new ArrayList<>();
+        this.links =  FXCollections.observableArrayList();
+        this.resources = FXCollections.observableArrayList();
+        this.depth = new SimpleIntegerProperty(0);
         this.load();
     }
 
     private void retrieveLinks() {
+        this.retrieveHrefs();
+    }
+    
+    private void retrieveHrefs(){
         //Element content = this.doc.getE("content");
         Elements docLinks = this.doc.getElementsByTag("a");
         for (Element link : docLinks) {
             String href = link.attr("href");
-            this.links.add(href);
+            Link newLink = new Link(this.getPath(), href, this);
+            this.links.add(newLink);
             logger.log(Level.FINE, href);
         }
     }
@@ -81,7 +96,7 @@ public class Resource {
         this.retrieveLinks();
     }
     
-    public List<String> getLinks(){
+    public ObservableList<Link> getLinks(){
         return this.links;
     }
 
@@ -91,5 +106,17 @@ public class Resource {
 
     public void setPath(String path) {
         this.path.set(path);
+    }
+    
+    public void setDepth(int depth){
+        this.depth.set(depth);
+    }
+    
+    public int getDepth(){
+        return this.depth.get();
+    }
+    
+    public IntegerProperty getDepthProperty(){
+        return this.depth;
     }
 }
