@@ -40,12 +40,14 @@ public class Resource {
     private final IntegerProperty depth;
     
     private final ObservableList<Resource> resources;
+    private final ObservableList<Form> forms;
 
     
     Resource() {
         this.path = new SimpleStringProperty("undefined");
         this.state = ResourceState.UNITIALIZED;
         this.links = FXCollections.observableArrayList();
+        this.forms = FXCollections.observableArrayList();
         this.resources = FXCollections.observableArrayList();
         this.depth = new SimpleIntegerProperty(0);
     }
@@ -54,6 +56,7 @@ public class Resource {
         this.path = new SimpleStringProperty(path);
         this.state = ResourceState.UNITIALIZED;
         this.links =  FXCollections.observableArrayList();
+        this.forms = FXCollections.observableArrayList();
         this.resources = FXCollections.observableArrayList();
         this.depth = new SimpleIntegerProperty(0);
         this.load();
@@ -72,6 +75,10 @@ public class Resource {
             this.links.add(newLink);
             logger.log(Level.FINE, href);
         }
+    }
+    
+    private void retrieveForms(){
+        
     }
 
     private void load() {

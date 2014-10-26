@@ -37,10 +37,18 @@ public class Domain {
     }
     
     public void mine(){
+        this.clearData();
+        
         logger.log(Level.INFO, "Data mining start");
         //try just one page for start
         Resource page = new Resource(this.hostname.get());
         resources.add(page);
+    }
+    
+    private void clearData(){
+        logger.log(Level.INFO, "Clearing data");
+        this.hostname.set("");
+        this.resources.clear();
     }
     
     public ObservableList<Resource> getResource() {

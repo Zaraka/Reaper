@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import javafx.scene.web.*?>
 <?import javafx.scene.text.*?>
 <?import java.lang.*?>
@@ -8,7 +9,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="reaper.view.ReaperController">
+<AnchorPane id="AnchorPane" prefHeight="652.0" prefWidth="830.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="reaper.view.ReaperController">
    <children>
       <VBox prefHeight="611.0" prefWidth="815.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
@@ -23,52 +24,84 @@
                   </HBox>
               </items>
             </ToolBar>
-            <SplitPane dividerPositions="0.7006688963210702" orientation="VERTICAL">
+            <SplitPane dividerPositions="0.766721044045677" orientation="VERTICAL" VBox.vgrow="ALWAYS">
               <items>
                 <AnchorPane>
                      <children>
-                        <SplitPane dividerPositions="0.29797979797979796" prefHeight="402.0" prefWidth="813.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                          <items>
-                            <AnchorPane>
-                                 <children>
-                                    <TreeView fx:id="resourceTree" prefHeight="389.0" prefWidth="239.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                 </children>
-                              </AnchorPane>
-                            <AnchorPane prefHeight="382.0" prefWidth="557.0">
-                                 <children>
-                                    <GridPane layoutX="14.0" layoutY="14.0">
-                                      <columnConstraints>
-                                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="202.0" minWidth="10.0" prefWidth="39.0" />
-                                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="379.0" minWidth="10.0" prefWidth="376.0" />
-                                      </columnConstraints>
-                                      <rowConstraints>
-                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                      </rowConstraints>
+                        <TabPane prefHeight="303.0" prefWidth="828.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                          <tabs>
+                            <Tab text="Resource">
+                              <content>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                        <children>
-                                          <Label fx:id="url" prefHeight="17.0" prefWidth="95.0" GridPane.columnIndex="1" />
-                                          <Label text="Path" />
+                                          <SplitPane dividerPositions="0.29797979797979796" prefHeight="402.0" prefWidth="813.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                            <items>
+                                              <AnchorPane>
+                                                   <children>
+                                                      <TreeView fx:id="resourceTree" prefHeight="389.0" prefWidth="239.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                   </children>
+                                                </AnchorPane>
+                                              <AnchorPane prefHeight="382.0" prefWidth="557.0">
+                                                   <children>
+                                                      <VBox prefHeight="424.0" prefWidth="576.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                         <children>
+                                                            <GridPane>
+                                                              <columnConstraints>
+                                                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="202.0" minWidth="10.0" prefWidth="60.0" />
+                                                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="516.0" minWidth="10.0" prefWidth="516.0" />
+                                                              </columnConstraints>
+                                                              <rowConstraints>
+                                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                              </rowConstraints>
+                                                               <children>
+                                                                  <Label fx:id="url" prefHeight="17.0" prefWidth="256.0" GridPane.columnIndex="1" />
+                                                                  <Label text="Path" />
+                                                               </children>
+                                                               <VBox.margin>
+                                                                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                                               </VBox.margin>
+                                                            </GridPane>
+                                                            <TableView fx:id="urlTable" prefHeight="200.0" prefWidth="509.0">
+                                                              <columns>
+                                                                <TableColumn fx:id="urlColumn" prefWidth="197.0" text="Path" />
+                                                              </columns>
+                                                            </TableView>
+                                                         </children>
+                                                      </VBox>
+                                                   </children>
+                                                </AnchorPane>
+                                            </items>
+                                          </SplitPane>
                                        </children>
-                                    </GridPane>
-                                    <TableView fx:id="urlTable" layoutX="14.0" layoutY="152.0" prefHeight="200.0" prefWidth="509.0">
-                                      <columns>
-                                        <TableColumn fx:id="urlColumn" prefWidth="197.0" text="Path" />
-                                      </columns>
-                                    </TableView>
-                                 </children>
-                              </AnchorPane>
-                          </items>
-                        </SplitPane>
+                                    </AnchorPane>
+                              </content>
+                            </Tab>
+                            <Tab text="Sitemap">
+                              <content>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                       <children>
+                                          <WebView fx:id="sitemap" layoutX="115.0" layoutY="43.0" prefHeight="433.0" prefWidth="828.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                       </children></AnchorPane>
+                              </content>
+                            </Tab>
+                              <Tab text="Options">
+                                 <content>
+                                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                                 </content>
+                              </Tab>
+                          </tabs>
+                        </TabPane>
                      </children>
                   </AnchorPane>
                 <AnchorPane>
                      <children>
-                        <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="166.0" prefWidth="813.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="167.0" prefWidth="813.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <content>
                             <AnchorPane>
                                  <children>
-                                    <TextFlow fx:id="console" prefHeight="0.0" prefWidth="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                    <TextFlow fx:id="console" prefHeight="165.0" prefWidth="811.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                                  </children>
                               </AnchorPane>
                           </content>
