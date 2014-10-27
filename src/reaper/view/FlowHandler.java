@@ -37,9 +37,9 @@ public class FlowHandler extends Handler {
         if(record.getLevel() == Level.SEVERE){
             msg.setFill(Color.RED);
         } else if(record.getLevel() == Level.WARNING){
-            msg.setFill(Color.ORANGE);
+            msg.setFill(Color.DARKORANGE);
         } else if (record.getLevel() == Level.FINE){
-            msg.setFill(Color.GRAY);
+            //msg.setFill(Color.DARKGRAY);
         } else {
             msg.setFill(Color.BLACK);
         }

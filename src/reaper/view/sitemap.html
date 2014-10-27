@@ -14,28 +14,44 @@
                 height: 100%;
             }
         </style>
-
+        <script type="text/javascript">
+            //nodes
+            function addResourceIfNotExists(name){
+                if(nodes.get(name) === null){
+                    nodes.add([{id:name, label:name}]);
+                }
+            }
+            
+            function removeResource(name){
+                nodes.remove(name);
+            }
+            
+            //edges
+            function addEdgeIfNotExists(id, from, to){
+                if(edges.get(id) === null){
+                    edges.add([{id:id, from:from, to:to}]);
+                }
+            }
+            
+            function removeEdge(id){
+                edges.remove(id);
+            }
+        </script>
     </head>
     <body>
         <div id="container"></div>
-                <script type="text/javascript">
-            var edges = new vis.DataSet();
-            edges.add([{from: '1', to: '2'}]);
+        <script type="text/javascript">
+        var edges = new vis.DataSet();
+        var nodes = new vis.DataSet();
 
-            var nodes = new vis.DataSet();
-            nodes.add([
-                {id: '1', label: 'Node 1'},
-                {id: '2', label: 'Node 2'}
-            ]);
-
-  // create a network
-            var container = document.getElementById('container');
-  var data = {
-    nodes: nodes,
-    edges: edges
-  };
-            var options = {};
-            var network = new vis.Network(container, data, options);
+        // create a network
+        var container = document.getElementById('container');
+        var data = {
+            nodes: nodes,
+            edges: edges
+        };
+        var options = {};
+        var network = new vis.Network(container, data, options);
         </script>
         
     </body>

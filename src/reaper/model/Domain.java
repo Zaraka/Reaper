@@ -18,19 +18,22 @@ public class Domain {
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
     
     private final ObservableList<Resource> resources;
+    private final ObservableList<Link> links;
     private final StringProperty hostname;
     private final IntegerProperty maxDownloads;
     private final IntegerProperty maxDepth;
     
     public Domain() {
         this.resources = FXCollections.observableArrayList();
+        this.links = FXCollections.observableArrayList();
         this.hostname = new SimpleStringProperty("");
-        this.maxDepth = new SimpleIntegerProperty(5);
+        this.maxDepth = new SimpleIntegerProperty(1);
         this.maxDownloads = new SimpleIntegerProperty(5);
     }
     
     public Domain(String hostname, int maxDownloads, int maxDepth){
         this.resources = FXCollections.observableArrayList();
+        this.links = FXCollections.observableArrayList();
         this.hostname = new SimpleStringProperty(hostname);
         this.maxDepth = new SimpleIntegerProperty(maxDepth);
         this.maxDownloads = new SimpleIntegerProperty(maxDownloads);
@@ -41,17 +44,20 @@ public class Domain {
         
         logger.log(Level.INFO, "Data mining start");
         //try just one page for start
-        Resource page = new Resource(this.hostname.get());
-        resources.add(page);
+        
+        String url = this.hostname.get();
+        if(!url.matches("^.*:\\/\\/.*$")){
+            url = "http://" + url;
+        }
+        Resource page = new ResourceDom(url, 0, this.maxDepth.get(), this.resources, this.links);
     }
     
     private void clearData(){
         logger.log(Level.INFO, "Clearing data");
-        this.hostname.set("");
         this.resources.clear();
     }
     
-    public ObservableList<Resource> getResource() {
+    public ObservableList<Resource> resources() {
         return this.resources;
     }
 
@@ -63,19 +69,27 @@ public class Domain {
         this.hostname.set(hostname);
     }
     
-    public int getMaxDownloads(){
+    public final int getMaxDownloads(){
         return this.maxDownloads.get();
     }
     
-    public void setMaxDownloads(int maxDownloads){
+    public final void setMaxDownloads(int maxDownloads){
         this.maxDownloads.set(maxDownloads);
     }
     
-    public int getMaxDepth(){
+    public IntegerProperty maxDownloadsProperty(){
+        return this.maxDownloads;
+    }
+    
+    public IntegerProperty maxDepthProperty(){
+        return this.maxDepth;
+    }
+    
+    public final int getMaxDepth(){
         return this.maxDepth.get();
     }
     
-    public void setMaxDepth(int maxDepth){
+    public final void setMaxDepth(int maxDepth){
         this.maxDepth.set(maxDepth);
     }
     
