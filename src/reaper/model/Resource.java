@@ -12,15 +12,15 @@ import javafx.collections.ObservableList;
  *
  * @author zaraka
  */
-abstract class Resource {
+abstract class Resource implements ResourceInterface{
     protected ResourceType type;
     private final StringProperty path;
     protected IntegerProperty code;
     protected ResourceState state;
     private final IntegerProperty depth;
     private final IntegerProperty maxDepth;
-    protected final ObservableList<Resource> masterResources;
-    protected final ObservableList<Link> masterLinks;
+    protected final ObservableList<ResourceInterface> masterResources;
+    protected final ObservableList<Link> links;
 
 
     Resource() {
@@ -29,16 +29,16 @@ abstract class Resource {
         this.depth = new SimpleIntegerProperty(0);
         this.maxDepth = new SimpleIntegerProperty(0);
         this.masterResources = FXCollections.observableArrayList();
-        this.masterLinks = FXCollections.observableArrayList();
+        this.links = FXCollections.observableArrayList();
     }
     
-    Resource(String path, int depth, int maxDepth, ObservableList<Resource> masterResources, ObservableList<Link> masterLinks) {
+    Resource(String path, int depth, int maxDepth, ObservableList<ResourceInterface> masterResources) {
         this.path = new SimpleStringProperty(path);
         this.state = ResourceState.UNITIALIZED;
         this.depth = new SimpleIntegerProperty(depth);
         this.maxDepth = new SimpleIntegerProperty(maxDepth);
         this.masterResources = masterResources;
-        this.masterLinks = masterLinks;
+        this.links = FXCollections.observableArrayList();
     }
 
     public String getPath() {
@@ -68,4 +68,10 @@ abstract class Resource {
     public void setMaxDepth(int maxDepth){
         this.maxDepth.set(maxDepth);
     }
+    
+    @Override
+    public ObservableList<Link> links(){
+        return this.links;
+    }
+    
 }

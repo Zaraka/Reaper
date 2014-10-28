@@ -27,7 +27,6 @@ import javafx.scene.web.WebErrorEvent;
 import javafx.scene.web.WebView;
 import javafx.util.converter.NumberStringConverter;
 import netscape.javascript.JSException;
-import reaper.model.Resource;
 import reaper.Reaper;
 import reaper.model.Domain;
 import reaper.model.Link;

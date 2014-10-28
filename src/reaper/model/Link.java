@@ -19,8 +19,8 @@ public class Link {
 
     private final StringProperty fromPath;
     private final StringProperty toPath;
-    private Resource fromResource;
-    private Resource toResource;
+    private ResourceInterface fromResource;
+    private ResourceInterface toResource;
 
     Link() {
         this.fromPath = new SimpleStringProperty("undefined");
@@ -89,19 +89,19 @@ public class Link {
         return this.toPath;
     }
 
-    public Resource getFromResource() {
+    public ResourceInterface getFromResource() {
         return this.fromResource;
     }
 
-    public void setFromResource(Resource res) {
+    public void setFromResource(ResourceInterface res) {
         this.fromResource = res;
     }
 
-    public Resource getToResource() {
+    public ResourceInterface getToResource() {
         return this.toResource;
     }
 
-    public void setToResource(Resource to) {
+    public void setToResource(ResourceInterface to) {
         this.toResource = to;
     }
 

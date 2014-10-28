@@ -27,23 +27,17 @@ public class ResourceDom extends Resource {
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
 
     private Document doc;
-    private final ObservableList<Resource> resources;
     private final ObservableList<Form> forms;
-    private final ObservableList<Link> links;
 
     ResourceDom() {
         super();
         
-        this.resources = FXCollections.observableArrayList();
         this.forms = FXCollections.observableArrayList();
-        this.links = FXCollections.observableArrayList();
     }
     
-    ResourceDom(String path, int depth, int maxDepth, ObservableList<Resource> masterResources, ObservableList<Link> masterLinks) {
-        super(path, depth, maxDepth, masterResources, masterLinks);
-        this.links = FXCollections.observableArrayList();
+    ResourceDom(String path, int depth, int maxDepth, ObservableList<ResourceInterface> masterResources) {
+        super(path, depth, maxDepth, masterResources);
         this.forms = FXCollections.observableArrayList();
-        this.resources = FXCollections.observableArrayList();
         this.load();
         this.masterResources.add(this);
         this.loadChilds();
@@ -102,14 +96,9 @@ public class ResourceDom extends Resource {
             if (this.getDepth() < this.getMaxDepth()) {
                 int childDepth = this.getDepth() + 1;
                 for (Link link : this.links) {
-                    Resource child = new ResourceDom(link.getToPath(), childDepth, this.getMaxDepth(), this.masterResources, this.masterLinks);
-                    this.resources.add(child);
+                    ResourceDom child = new ResourceDom(link.getToPath(), childDepth, this.getMaxDepth(), this.masterResources);
                 }
             }
         }
-    }
-
-    public ObservableList<Link> getLinks() {
-        return this.links;
     }
 }

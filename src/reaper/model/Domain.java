@@ -17,15 +17,13 @@ import reaper.Reaper;
 public class Domain {
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
     
-    private final ObservableList<Resource> resources;
-    private final ObservableList<Link> links;
+    private final ObservableList<ResourceInterface> resources;
     private final StringProperty hostname;
     private final IntegerProperty maxDownloads;
     private final IntegerProperty maxDepth;
     
     public Domain() {
         this.resources = FXCollections.observableArrayList();
-        this.links = FXCollections.observableArrayList();
         this.hostname = new SimpleStringProperty("");
         this.maxDepth = new SimpleIntegerProperty(1);
         this.maxDownloads = new SimpleIntegerProperty(5);
@@ -33,7 +31,6 @@ public class Domain {
     
     public Domain(String hostname, int maxDownloads, int maxDepth){
         this.resources = FXCollections.observableArrayList();
-        this.links = FXCollections.observableArrayList();
         this.hostname = new SimpleStringProperty(hostname);
         this.maxDepth = new SimpleIntegerProperty(maxDepth);
         this.maxDownloads = new SimpleIntegerProperty(maxDownloads);
@@ -49,7 +46,7 @@ public class Domain {
         if(!url.matches("^.*:\\/\\/.*$")){
             url = "http://" + url;
         }
-        Resource page = new ResourceDom(url, 0, this.maxDepth.get(), this.resources, this.links);
+        ResourceDom page = new ResourceDom(url, 0, this.maxDepth.get(), this.resources);
     }
     
     private void clearData(){
@@ -57,7 +54,7 @@ public class Domain {
         this.resources.clear();
     }
     
-    public ObservableList<Resource> resources() {
+    public ObservableList<ResourceInterface> resources() {
         return this.resources;
     }
 
