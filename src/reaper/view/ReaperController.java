@@ -30,6 +30,7 @@ import netscape.javascript.JSException;
 import reaper.Reaper;
 import reaper.model.Domain;
 import reaper.model.Link;
+import reaper.model.Resource;
 
 /**
  *
@@ -131,8 +132,8 @@ public class ReaperController implements Initializable {
     private void showResource(Resource resource) {
         if (resource != null) {
             url.setText(resource.getPath());
-            urlTable.setItems(resource.getLinks());
-            urlColumn.setCellValueFactory(cellData -> cellData.getValue().toPathProperty());
+            urlTable.setItems(resource.links());
+            urlColumn.setCellValueFactory(cellData -> cellData.getValue().linkProperty());
         } else {
             url.setText("");
         }

@@ -1,5 +1,6 @@
 package reaper.model;
 
+import java.net.MalformedURLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.IntegerProperty;
@@ -8,6 +9,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.jsoup.UnsupportedMimeTypeException;
 import reaper.Reaper;
 
 /**
@@ -17,7 +19,7 @@ import reaper.Reaper;
 public class Domain {
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
     
-    private final ObservableList<ResourceInterface> resources;
+    private final ObservableList<Resource> resources;
     private final StringProperty hostname;
     private final IntegerProperty maxDownloads;
     private final IntegerProperty maxDepth;
@@ -39,22 +41,29 @@ public class Domain {
     public void mine(){
         this.clearData();
         
-        logger.log(Level.INFO, "Data mining start");
+        logger.log(Level.INFO, "Data mining "+this.getHostname()+" STARTED");
         //try just one page for start
         
         String url = this.hostname.get();
         if(!url.matches("^.*:\\/\\/.*$")){
             url = "http://" + url;
+            logger.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
         }
-        ResourceDom page = new ResourceDom(url, 0, this.maxDepth.get(), this.resources);
+        try {
+            ResourceDom page = new ResourceDom(url, 0, this.maxDepth.get(), this.resources, null);
+        } catch (UnsupportedMimeTypeException ex) {
+            logger.log(Level.SEVERE, "Root webpage isn't text/html or text/xml");
+        } catch (MalformedURLException ex) {
+            logger.log(Level.SEVERE, "URL is malformed");
+        }
     }
     
     private void clearData(){
-        logger.log(Level.INFO, "Clearing data");
+        logger.log(Level.FINE, "Clearing data");
         this.resources.clear();
     }
     
-    public ObservableList<ResourceInterface> resources() {
+    public ObservableList<Resource> resources() {
         return this.resources;
     }
 
