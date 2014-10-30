@@ -20,7 +20,6 @@ abstract class ResourceAbstract implements Resource{
     private final IntegerProperty depth;
     private final IntegerProperty maxDepth;
     protected URL url;
-    protected final ObservableList<Resource> masterResources;
     protected final ObservableList<Link> links;
 
 
@@ -29,13 +28,12 @@ abstract class ResourceAbstract implements Resource{
         this.state = ResourceState.UNITIALIZED;
         this.depth = new SimpleIntegerProperty(0);
         this.maxDepth = new SimpleIntegerProperty(0);
-        this.masterResources = FXCollections.observableArrayList();
         this.links = FXCollections.observableArrayList();
         this.type = ResourceType.UNDEFINED;
         this.code = new SimpleIntegerProperty(0);
     }
     
-    ResourceAbstract(String path, int depth, int maxDepth, ObservableList<Resource> masterResources, URL parentURL) throws MalformedURLException {
+    ResourceAbstract(String path, int depth, int maxDepth, URL parentURL) throws MalformedURLException {
         if(parentURL == null){
             this.url = new URL(path);
         } else {
@@ -45,7 +43,6 @@ abstract class ResourceAbstract implements Resource{
         this.state = ResourceState.UNITIALIZED;
         this.depth = new SimpleIntegerProperty(depth);
         this.maxDepth = new SimpleIntegerProperty(maxDepth);
-        this.masterResources = masterResources;
         this.links = FXCollections.observableArrayList();
         this.type = ResourceType.UNDEFINED;
         this.code = new SimpleIntegerProperty(0);
@@ -74,6 +71,7 @@ abstract class ResourceAbstract implements Resource{
         this.depth.set(depth);
     }
 
+    @Override
     public int getDepth() {
         return this.depth.get();
     }
@@ -105,6 +103,11 @@ abstract class ResourceAbstract implements Resource{
     
     public IntegerProperty codeProperty(){
         return this.code;
+    }
+    
+    @Override
+    public ResourceType getType(){
+        return this.type;
     }
     
 }

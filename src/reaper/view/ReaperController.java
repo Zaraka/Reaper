@@ -69,7 +69,7 @@ public class ReaperController implements Initializable {
         if (!"".equals(hostname.getText())) {
             data.setHostname(hostname.getText());
             data.mine();
-            this.showResource(data.resources().get(0));
+            //this.showResource(data.resources().get(0));
         }
     }
 
@@ -110,18 +110,15 @@ public class ReaperController implements Initializable {
         this.maxDownloads.textProperty().bindBidirectional(dom.maxDownloadsProperty(), new NumberStringConverter());
         this.maxDepth.textProperty().bindBidirectional(dom.maxDepthProperty(), new NumberStringConverter());
         
-        dom.resources().addListener(new ListChangeListener<Resource>() {
-            @Override
-            public void onChanged(ListChangeListener.Change<? extends Resource> change) {
-                while (change.next()) {
-                    if (change.wasAdded()) {
-                        for (Resource res : change.getAddedSubList()) {
-                            addSitemapNode(res);
-                        }
-                    } else if (change.wasRemoved()) {
-                        for (Resource res : change.getRemoved()) {
-                            removeSitemapNode(res);
-                        }
+        dom.resources().addListener((ListChangeListener.Change<? extends Resource> change) -> {
+            while (change.next()) {
+                if (change.wasAdded()) {
+                    for (Resource res : change.getAddedSubList()) {
+                        addSitemapNode(res);
+                    }
+                } else if (change.wasRemoved()) {
+                    for (Resource res : change.getRemoved()) {
+                        removeSitemapNode(res);
                     }
                 }
             }
@@ -140,11 +137,11 @@ public class ReaperController implements Initializable {
     }
 
     private void addSitemapNode(Resource resource) {
-        String script = "addResourceIfNotExists('" + resource.getPath() + "');";
+        String script = "addResourceIfNotExists('" + resource.getPath() + "', '"+resource.getType().getGroup()+"');";
         try {
             this.sitemap.getEngine().executeScript(script);
         } catch (JSException ex) {
-            logger.log(Level.WARNING, "JS:"+ex.getMessage());
+            logger.log(Level.WARNING, ex.toString());
         }
     }
 
@@ -153,7 +150,7 @@ public class ReaperController implements Initializable {
         try {
             this.sitemap.getEngine().executeScript(script);
         } catch (JSException ex) {
-            logger.log(Level.WARNING, "JS:"+ex.getMessage());
+            logger.log(Level.WARNING, ex.toString());
         }
     }
 

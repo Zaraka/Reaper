@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>bhb</title>
+        <title></title>
         <script src="./vis.min.js"></script>
         <script src="./vis.min.css"></script>
         <style type="text/css">
@@ -16,13 +16,19 @@
         </style>
         <script type="text/javascript">
             //nodes
-            function addResourceIfNotExists(name){
+            function addResourceIfNotExists(name, group){
+                if(name === ""){
+                    name = "root";
+                }
                 if(nodes.get(name) === null){
-                    nodes.add([{id:name, label:name}]);
+                    nodes.add([{id:name, label:name, group: group}]);
                 }
             }
             
             function removeResource(name){
+                if(name === ""){
+                    name = "root";
+                }
                 nodes.remove(name);
             }
             
@@ -40,7 +46,7 @@
     </head>
     <body>
         <div id="container"></div>
-        <script type="text/javascript">
+        <script type="text/javascript">            
         var edges = new vis.DataSet();
         var nodes = new vis.DataSet();
 
@@ -50,7 +56,24 @@
             nodes: nodes,
             edges: edges
         };
-        var options = {};
+        var options = {
+            groups: {
+                dom: {
+                    shape: 'circle',
+                    color: {
+                        border: '#2B7CE9',
+                        background: "#97C2FC"
+                    }
+                },
+                file: {
+                    shape: 'circle',
+                    color: {
+                        border: "#FF6600",
+                        background: '#FFCC99'
+                    }
+                }
+            }
+        };
         var network = new vis.Network(container, data, options);
         </script>
         

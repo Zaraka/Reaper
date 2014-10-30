@@ -35,18 +35,17 @@ public class ResourceDom extends ResourceAbstract {
         this.type = ResourceType.DOM;
     }
 
-    ResourceDom(String path, int depth, int maxDepth, ObservableList<Resource> masterResources, URL parentURL) throws UnsupportedMimeTypeException, MalformedURLException {
-        super(path, depth, maxDepth, masterResources, parentURL);
+    ResourceDom(String path, int depth, int maxDepth, URL parentURL) throws UnsupportedMimeTypeException, MalformedURLException {
+        super(path, depth, maxDepth, parentURL);
         this.forms = FXCollections.observableArrayList();
         this.type = ResourceType.DOM;
-        logger.log(Level.FINE, "dom creation");
+        System.out.println("dom creation");
         try {
             this.load();
         } catch (UnsupportedMimeTypeException ex) {
             throw ex;
         }
-        this.masterResources.add(this);
-        this.loadChilds();
+        //this.loadChilds();
     }
 
     private void retrieveLinks() {
@@ -68,7 +67,7 @@ public class ResourceDom extends ResourceAbstract {
 
     private void load() throws UnsupportedMimeTypeException {
         this.state = ResourceState.PROCESSING;
-        logger.log(Level.FINE, "resource loading start");
+        System.out.println("Resource " + this.url.toString() + " loading START");
         try {
             Connection.Response response = Jsoup.connect(this.url.toString()).execute();
             this.code.set(response.statusCode());
@@ -77,25 +76,23 @@ public class ResourceDom extends ResourceAbstract {
             throw ex;
         } catch (HttpStatusException ex) {
             //I dont give a fuuuck
-            logger.log(Level.INFO, "URL " + ex.getUrl() + " code: " + ex.getStatusCode());
+            System.out.println("URL " + ex.getUrl() + " code: " + ex.getStatusCode());
             this.state = ResourceState.ERROR;
         } catch (UnknownHostException ex) {
-            logger.log(Level.SEVERE, "Cannot reach host " + url, ex);
+            System.out.println("Cannot reach host " + url);
             this.state = ResourceState.ERROR;
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
+            System.out.println(ex);
             this.state = ResourceState.ERROR;
         }
 
         if (this.state == ResourceState.PROCESSING) {
             this.state = ResourceState.FINISHED;
-            logger.log(Level.FINE, "Loading finished.");
-
             this.retrieveLinks();
         }
     }
 
-    private void loadChilds() {
+    /*private void loadChilds() {
         if (this.state == ResourceState.FINISHED) {
             if (this.getDepth() < this.getMaxDepth()) {
                 int childDepth = this.getDepth() + 1;
@@ -114,7 +111,7 @@ public class ResourceDom extends ResourceAbstract {
                 }
             }
         }
-    }
+    }*/
 
     private boolean validateLink(String link) {
         if (link.equals("")) {

@@ -12,4 +12,6 @@ public interface Resource {
     public String getPath();
     public URL getURL();
     public String getAbsoluteURL();
+    public int getDepth();
+    public ResourceType getType();
 }

@@ -34,6 +34,7 @@ public class Reaper extends Application {
         
         Scene scene = new Scene(root);
         stage.setScene(scene);
+        stage.setTitle("Reaper - Web Crawler");
         stage.show();
         
         this.initialize();
