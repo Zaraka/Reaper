@@ -64,12 +64,11 @@ public class Link {
         this.toResource = to;
     }
 
-    /*
+    
     public String getEdgeFormat() {
-        List<String> sorting = new ArrayList<>();
-        sorting.add(this.fromPath.get());
-        sorting.add(this.toPath.get());
-        Collections.sort(sorting, String.CASE_INSENSITIVE_ORDER);
-        return sorting.get(0) + "-" + sorting.get(1);
-    }*/
+        if(this.fromResource != null && this.toResource != null){
+            return this.fromResource.getPath()+"@"+this.toResource.getPath();
+        }
+        return null;
+    }
 }

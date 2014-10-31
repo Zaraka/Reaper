@@ -79,23 +79,24 @@ public class ReaperController implements Initializable {
         logger.log(Level.INFO, "Starting");
 
         WebEngine engine = sitemap.getEngine();
-        engine.setOnError(new EventHandler<WebErrorEvent>() {
-
-            @Override
-            public void handle(WebErrorEvent event) {
-                logger.log(Level.WARNING, "WebError: " + event.getMessage());
-            }
+        engine.setOnError((WebErrorEvent event) -> {
+            logger.log(Level.WARNING, "WebError: " + event.getMessage());
         });
 
         String sitemapURL = Reaper.class.getResource("view/sitemap.html").toExternalForm();
         engine.load(sitemapURL);
-        this.console.getChildren().addListener(new ListChangeListener<Node>(){
+        this.console.getChildren().addListener(new ListChangeListener<Node>() {
 
             @Override
             public void onChanged(ListChangeListener.Change<? extends Node> c) {
                 consoleScroll.setVvalue(consoleScroll.getVmax());
             }
         });
+        engine.setOnError((WebErrorEvent event) -> {
+            logger.log(Level.WARNING, event.toString());
+        });
+        this.enableFirebug();
+        
     }
 
     private void showResourceDetails(Resource res) {
@@ -106,10 +107,10 @@ public class ReaperController implements Initializable {
         //bind data
         this.reaper = reaper;
         Domain dom = this.reaper.getDomain();
-        
+
         this.maxDownloads.textProperty().bindBidirectional(dom.maxDownloadsProperty(), new NumberStringConverter());
         this.maxDepth.textProperty().bindBidirectional(dom.maxDepthProperty(), new NumberStringConverter());
-        
+
         dom.resources().addListener((ListChangeListener.Change<? extends Resource> change) -> {
             while (change.next()) {
                 if (change.wasAdded()) {
@@ -137,11 +138,21 @@ public class ReaperController implements Initializable {
     }
 
     private void addSitemapNode(Resource resource) {
-        String script = "addResourceIfNotExists('" + resource.getPath() + "', '"+resource.getType().getGroup()+"');";
+        String script = "addResourceIfNotExists('" + resource.getPath() + "', '" + resource.getType().getGroup() + "');";
         try {
             this.sitemap.getEngine().executeScript(script);
         } catch (JSException ex) {
             logger.log(Level.WARNING, ex.toString());
+        }
+        for (Link link : resource.links()) {
+            if (link.getEdgeFormat() != null) {
+                String edge = "addEdgeIfNotExists('" + link.getEdgeFormat() + "', '"+link.getFromResource().getPath()+"', '"+link.getToResource().getPath()+"');";
+                try {
+                    this.sitemap.getEngine().executeScript(edge);
+                } catch (JSException ex) {
+                    logger.log(Level.WARNING, ex.toString());
+                }
+            }
         }
     }
 
@@ -152,6 +163,17 @@ public class ReaperController implements Initializable {
         } catch (JSException ex) {
             logger.log(Level.WARNING, ex.toString());
         }
+        for (Link link : resource.links()) {
+            String edge = "removeEdge('" + link.getEdgeFormat() + "');";
+            try {
+                this.sitemap.getEngine().executeScript(edge);
+            } catch (JSException ex) {
+                logger.log(Level.WARNING, ex.toString());
+            }
+        }
     }
 
+    private void enableFirebug(){
+        this.sitemap.getEngine().executeScript("if (!document.getElementById('FirebugLite')){E = document['createElement' + 'NS'] && document.documentElement.namespaceURI;E = E ? document['createElement' + 'NS'](E, 'script') : document['createElement']('script');E['setAttribute']('id', 'FirebugLite');E['setAttribute']('src', 'https://getfirebug.com/' + 'firebug-lite.js' + '#startOpened');E['setAttribute']('FirebugLite', '4');(document['getElementsByTagName']('head')[0] || document['getElementsByTagName']('body')[0]).appendChild(E);E = new Image;E['setAttribute']('src', 'https://getfirebug.com/' + '#startOpened');}");
+    }
 }

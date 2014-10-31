@@ -110,12 +110,14 @@ public class Domain {
                     while ((link = popLink()) != null) {
                         try {
                             ResourceDom child = new ResourceDom(link.getLink(), link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource().getURL());
+                            link.setToResource(child);
                             Platform.runLater(() -> {
                                 resources.add(child);
                             });
                         } catch (UnsupportedMimeTypeException ex) {
                             try {
                                 ResourceFile child = new ResourceFile(link.getLink(), link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource().getURL());
+                                link.setToResource(child);
                                 Platform.runLater(() -> {
                                     resources.add(child);
                                 });

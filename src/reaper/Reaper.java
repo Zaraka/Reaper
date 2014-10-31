@@ -33,8 +33,9 @@ public class Reaper extends Application {
         Parent root = (Parent) loader.load(location.openStream());
         
         Scene scene = new Scene(root);
-        stage.setScene(scene);
         stage.setTitle("Reaper - Web Crawler");
+        stage.setMaximized(true);
+        stage.setScene(scene);
         stage.show();
         
         this.initialize();

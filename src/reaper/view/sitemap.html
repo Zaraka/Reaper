@@ -18,24 +18,30 @@
             //nodes
             function addResourceIfNotExists(name, group){
                 if(name === ""){
-                    name = "root";
+                    name = "/";
                 }
-                if(nodes.get(name) === null){
-                    nodes.add([{id:name, label:name, group: group}]);
+                var id = encodeURIComponent(name);
+                if(nodes.get(id) === null){
+                    nodes.add([{id:id, label:name, group: group}]);
                 }
             }
             
             function removeResource(name){
+                
                 if(name === ""){
-                    name = "root";
+                    name = "/";
                 }
-                nodes.remove(name);
+                var id = encodeURIComponent(name);
+                nodes.remove(id);
             }
             
             //edges
             function addEdgeIfNotExists(id, from, to){
-                if(edges.get(id) === null){
-                    edges.add([{id:id, from:from, to:to, style:'arrow'}]);
+                var encID = encodeURIComponent(id);
+                var encFrom = encodeURIComponent(from);
+                var encTo = encodeURIComponent(ti);
+                if(edges.get(encID) === null){
+                    edges.add([{id:encID, from:encFrom, to:encTo, style:'arrow'}]);
                 }
             }
             
@@ -59,14 +65,14 @@
         var options = {
             groups: {
                 dom: {
-                    shape: 'circle',
+                    shape: 'box',
                     color: {
                         border: '#2B7CE9',
                         background: "#97C2FC"
                     }
                 },
                 file: {
-                    shape: 'circle',
+                    shape: 'box',
                     color: {
                         border: "#FF6600",
                         background: '#FFCC99'
