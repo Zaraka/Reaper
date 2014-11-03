@@ -70,6 +70,7 @@ public class ResourceDom extends ResourceAbstract {
         try {
             Connection.Response response = Jsoup.connect(this.url.toString()).execute();
             this.code.set(response.statusCode());
+            this.setMimeType(response.contentType());
             this.doc = response.parse();
         } catch (UnsupportedMimeTypeException ex) {
             throw ex;

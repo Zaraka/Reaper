@@ -57,6 +57,10 @@ public class ReaperController implements Initializable {
     private TextField maxDownloads;
     @FXML
     private ScrollPane consoleScroll;
+    @FXML
+    private Label statusCode;
+    @FXML
+    private Label mimeType;
 
     @FXML
     private void handleButtonAction(ActionEvent event) {
@@ -96,7 +100,6 @@ public class ReaperController implements Initializable {
          this.enableFirebug();
          }
          });*/
-
     }
 
     private void showResourceDetails(Resource res) {
@@ -111,6 +114,8 @@ public class ReaperController implements Initializable {
         this.maxDownloads.textProperty().bindBidirectional(dom.maxDownloadsProperty(), new NumberStringConverter());
         this.maxDepth.textProperty().bindBidirectional(dom.maxDepthProperty(), new NumberStringConverter());
 
+        //resourceTree.setCellFactory(null);
+        
         dom.resources().addListener((ListChangeListener.Change<? extends Resource> change) -> {
             while (change.next()) {
                 if (change.wasAdded()) {
@@ -140,6 +145,8 @@ public class ReaperController implements Initializable {
     private void showResource(Resource resource) {
         if (resource != null) {
             url.setText(resource.getPath());
+            mimeType.setText(resource.getMimeType());
+            statusCode.setText(String(resource.getCode()));
             urlTable.setItems(resource.links());
             urlColumn.setCellValueFactory(cellData -> cellData.getValue().linkProperty());
         } else {

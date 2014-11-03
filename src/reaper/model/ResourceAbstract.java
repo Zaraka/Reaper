@@ -4,6 +4,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -21,6 +23,7 @@ abstract class ResourceAbstract implements Resource{
     private final IntegerProperty maxDepth;
     protected URL url;
     protected final ObservableList<Link> links;
+    private final StringProperty mimeType;
 
 
     ResourceAbstract() {
@@ -31,6 +34,7 @@ abstract class ResourceAbstract implements Resource{
         this.links = FXCollections.observableArrayList();
         this.type = ResourceType.UNDEFINED;
         this.code = new SimpleIntegerProperty(0);
+        this.mimeType = new SimpleStringProperty("");
     }
     
     ResourceAbstract(String path, int depth, int maxDepth, Resource parent) throws MalformedURLException {
@@ -46,6 +50,7 @@ abstract class ResourceAbstract implements Resource{
         this.links = FXCollections.observableArrayList();
         this.type = ResourceType.UNDEFINED;
         this.code = new SimpleIntegerProperty(0);
+        this.mimeType = new SimpleStringProperty("");
     }
 
     @Override
@@ -93,6 +98,7 @@ abstract class ResourceAbstract implements Resource{
         return this.links;
     }
     
+    @Override
     public int getCode(){
         return this.code.get();
     }
@@ -120,4 +126,16 @@ abstract class ResourceAbstract implements Resource{
         return null;
     }
     
+    @Override
+    public String getMimeType(){
+        return this.mimeType.get();
+    }
+    
+    public void setMimeType(String type){
+        this.mimeType.set(type);
+    }
+    
+    public StringProperty mimeTypeProperty(){
+        return this.mimeType;
+    }
 }

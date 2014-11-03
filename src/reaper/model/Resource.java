@@ -15,4 +15,6 @@ public interface Resource {
     public int getDepth();
     public ResourceType getType();
     public Link getLinkWithPath(String Path);
+    public String getMimeType();
+    public int getCode();
 }

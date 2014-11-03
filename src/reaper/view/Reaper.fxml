@@ -58,6 +58,10 @@
                                                    <children>
                                                       <Label fx:id="url" prefHeight="17.0" prefWidth="256.0" GridPane.columnIndex="1" />
                                                       <Label text="Path" />
+                                                      <Label text="Status Code" GridPane.rowIndex="1" />
+                                                      <Label text="Mime-type" GridPane.rowIndex="2" />
+                                                      <Label fx:id="statusCode" prefHeight="17.0" prefWidth="258.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                                      <Label fx:id="mimeType" prefHeight="17.0" prefWidth="253.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                                    </children>
                                                    <VBox.margin>
                                                       <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
