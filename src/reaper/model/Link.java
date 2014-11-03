@@ -71,4 +71,18 @@ public class Link {
         }
         return null;
     }
+    
+    @Override
+    public String toString(){
+        String from = "";
+        String to = "";
+        if(this.fromResource != null){
+            from = this.fromResource.getAbsoluteURL();
+        }
+        if(this.toResource != null){
+            to = this.toResource.getAbsoluteURL();
+        }
+        String result = from + " " + this.link.get() + " " + to;
+        return result.trim();
+    }
 }

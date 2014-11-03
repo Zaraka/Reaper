@@ -25,12 +25,14 @@ public class Domain {
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
 
     private final ObservableList<Resource> resources;
+    private final ObservableList<Link> links;
     private final StringProperty hostname;
     private final IntegerProperty maxDownloads;
     private final IntegerProperty maxDepth;
 
     public Domain() {
         this.resources = FXCollections.observableArrayList();
+        this.links = FXCollections.observableArrayList();
         this.hostname = new SimpleStringProperty("");
         this.maxDepth = new SimpleIntegerProperty(1);
         this.maxDownloads = new SimpleIntegerProperty(5);
@@ -38,6 +40,7 @@ public class Domain {
 
     public Domain(String hostname, int maxDownloads, int maxDepth) {
         this.resources = FXCollections.observableArrayList();
+        this.links = FXCollections.observableArrayList();
         this.hostname = new SimpleStringProperty(hostname);
         this.maxDepth = new SimpleIntegerProperty(maxDepth);
         this.maxDownloads = new SimpleIntegerProperty(maxDownloads);
@@ -46,7 +49,7 @@ public class Domain {
     public void mine() {
         this.clearData();
         MinerService mining = new MinerService();
-        mining.init(this.getHostname(), this.getMaxDepth(), this.resources());
+        mining.init(this.getHostname(), this.getMaxDepth(), this.resources(), this.links);
         mining.setOnSucceeded((WorkerStateEvent event) -> {
             logger.log(Level.INFO, "Mining finished");
         });
@@ -59,6 +62,9 @@ public class Domain {
         mining.setOnRunning((WorkerStateEvent event) -> {
             logger.log(Level.INFO, "Mining started");
         });
+        mining.setOnCancelled((WorkerStateEvent event) -> {
+            logger.log(Level.INFO, "Mining canceled");
+        });
         mining.start();
     }
 
@@ -67,21 +73,23 @@ public class Domain {
         private String hostname;
         private int maxDepth;
         private ObservableList<Resource> resources;
+        private ObservableList<Link> linksQueue;
         private ObservableList<Link> links;
 
-        public void init(String hostname, int maxDepth, ObservableList<Resource> resources) {
+        public void init(String hostname, int maxDepth, ObservableList<Resource> resources, ObservableList<Link> links) {
             this.hostname = hostname;
             this.maxDepth = maxDepth;
             this.resources = resources;
-            this.links = FXCollections.observableArrayList();
+            this.linksQueue = FXCollections.observableArrayList();
+            this.links = links;
         }
 
         private Link popLink() {
-            if (this.links.size() < 1) {
+            if (this.linksQueue.size() < 1) {
                 return null;
             }
-            Link result = this.links.get(0);
-            this.links.remove(0);
+            Link result = this.linksQueue.get(0);
+            this.linksQueue.remove(0);
             return result;
         }
 
@@ -99,7 +107,7 @@ public class Domain {
                     }
                     try {
                         ResourceDom page = new ResourceDom(url, 0, maxDepth, null);
-                        links.addAll(page.links);
+                        linksQueue.addAll(page.links);
                         Platform.runLater(() -> {
                             resources.add(page);
                         });
@@ -109,16 +117,27 @@ public class Domain {
                     Link link;
                     while ((link = popLink()) != null) {
                         try {
-                            ResourceDom child = new ResourceDom(link.getLink(), link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource().getURL());
+                            ResourceDom child = new ResourceDom(link.getLink(), link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
+                            if (child.getDepth() < maxDepth) {
+                                linksQueue.addAll(child.links);
+                            }
                             link.setToResource(child);
+                            Link link2 = link;
                             Platform.runLater(() -> {
+                                //logger.log(Level.FINE, link2.toString());
                                 resources.add(child);
+                                links.add(link2);
                             });
                         } catch (UnsupportedMimeTypeException ex) {
                             try {
-                                ResourceFile child = new ResourceFile(link.getLink(), link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource().getURL());
+                                ResourceFile child = new ResourceFile(link.getLink(), link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
+                                if (child.getDepth() < maxDepth) {
+                                    linksQueue.addAll(child.links);
+                                }
                                 link.setToResource(child);
+                                Link link2 = link;
                                 Platform.runLater(() -> {
+                                    links.add(link2);
                                     resources.add(child);
                                 });
                             } catch (MalformedURLException ex1) {
@@ -143,6 +162,10 @@ public class Domain {
 
     public ObservableList<Resource> resources() {
         return this.resources;
+    }
+
+    public ObservableList<Link> links() {
+        return this.links;
     }
 
     public final String getHostname() {

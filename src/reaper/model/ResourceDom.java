@@ -35,11 +35,10 @@ public class ResourceDom extends ResourceAbstract {
         this.type = ResourceType.DOM;
     }
 
-    ResourceDom(String path, int depth, int maxDepth, URL parentURL) throws UnsupportedMimeTypeException, MalformedURLException {
-        super(path, depth, maxDepth, parentURL);
+    ResourceDom(String path, int depth, int maxDepth, Resource parent) throws UnsupportedMimeTypeException, MalformedURLException {
+        super(path, depth, maxDepth, parent);
         this.forms = FXCollections.observableArrayList();
         this.type = ResourceType.DOM;
-        System.out.println("dom creation");
         try {
             this.load();
         } catch (UnsupportedMimeTypeException ex) {

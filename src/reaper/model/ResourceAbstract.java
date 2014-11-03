@@ -33,13 +33,13 @@ abstract class ResourceAbstract implements Resource{
         this.code = new SimpleIntegerProperty(0);
     }
     
-    ResourceAbstract(String path, int depth, int maxDepth, URL parentURL) throws MalformedURLException {
-        if(parentURL == null){
+    ResourceAbstract(String path, int depth, int maxDepth, Resource parent) throws MalformedURLException {
+        if(parent == null){
             this.url = new URL(path);
         } else {
-            this.url = new URL(parentURL, path);
+            this.url = new URL(parent.getURL(), path);
         }
-        
+        this.parent = parent;
         this.state = ResourceState.UNITIALIZED;
         this.depth = new SimpleIntegerProperty(depth);
         this.maxDepth = new SimpleIntegerProperty(maxDepth);
@@ -108,6 +108,16 @@ abstract class ResourceAbstract implements Resource{
     @Override
     public ResourceType getType(){
         return this.type;
+    }
+    
+    @Override
+    public Link getLinkWithPath(String path){
+        for(Link link : this.links){
+            if(link.getLink() == path){
+                return link;
+            }
+        }
+        return null;
     }
     
 }

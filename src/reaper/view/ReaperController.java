@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package reaper.view;
 
 import java.net.URL;
@@ -11,7 +6,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
@@ -24,6 +18,7 @@ import javafx.scene.control.TreeView;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebErrorEvent;
+import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebView;
 import javafx.util.converter.NumberStringConverter;
 import netscape.javascript.JSException;
@@ -85,18 +80,23 @@ public class ReaperController implements Initializable {
 
         String sitemapURL = Reaper.class.getResource("view/sitemap.html").toExternalForm();
         engine.load(sitemapURL);
-        this.console.getChildren().addListener(new ListChangeListener<Node>() {
-
-            @Override
-            public void onChanged(ListChangeListener.Change<? extends Node> c) {
-                consoleScroll.setVvalue(consoleScroll.getVmax());
-            }
+        this.console.getChildren().addListener((ListChangeListener.Change<? extends Node> c) -> {
+            consoleScroll.setVvalue(consoleScroll.getVmax());
         });
         engine.setOnError((WebErrorEvent event) -> {
             logger.log(Level.WARNING, event.toString());
         });
-        this.enableFirebug();
-        
+
+        engine.setOnAlert((WebEvent<String> event) -> {
+            logger.log(Level.INFO, event.toString());
+        });
+        /*engine.getLoadWorker().stateProperty().addListener((ObservableValue<? extends Worker.State> observable, Worker.State oldValue, Worker.State newValue) -> {
+         logger.log(Level.FINE, newValue.toString());
+         if(newValue == Worker.State.SUCCEEDED){
+         this.enableFirebug();
+         }
+         });*/
+
     }
 
     private void showResourceDetails(Resource res) {
@@ -125,6 +125,16 @@ public class ReaperController implements Initializable {
             }
         });
 
+        dom.links().addListener((ListChangeListener.Change<? extends Link> change) -> {
+            while (change.next()) {
+                if (change.wasAdded()) {
+                    for (Link link : change.getAddedSubList()) {
+                        addEdge(link);
+                    }
+                }
+            }
+        });
+
     }
 
     private void showResource(Resource resource) {
@@ -137,22 +147,25 @@ public class ReaperController implements Initializable {
         }
     }
 
+    private void addEdge(Link link) {
+        if (link.getEdgeFormat() != null) {
+            String edge = "addEdgeIfNotExists('" + link.getEdgeFormat() + "', '" + link.getFromResource().getPath() + "', '" + link.getToResource().getPath() + "');";
+            try {
+                this.sitemap.getEngine().executeScript(edge);
+            } catch (JSException ex) {
+                logger.log(Level.WARNING, ex.toString());
+            }
+        } else {
+            logger.log(Level.WARNING, "null");
+        }
+    }
+
     private void addSitemapNode(Resource resource) {
         String script = "addResourceIfNotExists('" + resource.getPath() + "', '" + resource.getType().getGroup() + "');";
         try {
             this.sitemap.getEngine().executeScript(script);
         } catch (JSException ex) {
             logger.log(Level.WARNING, ex.toString());
-        }
-        for (Link link : resource.links()) {
-            if (link.getEdgeFormat() != null) {
-                String edge = "addEdgeIfNotExists('" + link.getEdgeFormat() + "', '"+link.getFromResource().getPath()+"', '"+link.getToResource().getPath()+"');";
-                try {
-                    this.sitemap.getEngine().executeScript(edge);
-                } catch (JSException ex) {
-                    logger.log(Level.WARNING, ex.toString());
-                }
-            }
         }
     }
 
@@ -163,17 +176,14 @@ public class ReaperController implements Initializable {
         } catch (JSException ex) {
             logger.log(Level.WARNING, ex.toString());
         }
-        for (Link link : resource.links()) {
-            String edge = "removeEdge('" + link.getEdgeFormat() + "');";
-            try {
-                this.sitemap.getEngine().executeScript(edge);
-            } catch (JSException ex) {
-                logger.log(Level.WARNING, ex.toString());
-            }
-        }
     }
 
-    private void enableFirebug(){
-        this.sitemap.getEngine().executeScript("if (!document.getElementById('FirebugLite')){E = document['createElement' + 'NS'] && document.documentElement.namespaceURI;E = E ? document['createElement' + 'NS'](E, 'script') : document['createElement']('script');E['setAttribute']('id', 'FirebugLite');E['setAttribute']('src', 'https://getfirebug.com/' + 'firebug-lite.js' + '#startOpened');E['setAttribute']('FirebugLite', '4');(document['getElementsByTagName']('head')[0] || document['getElementsByTagName']('body')[0]).appendChild(E);E = new Image;E['setAttribute']('src', 'https://getfirebug.com/' + '#startOpened');}");
+    private void enableFirebug() {
+        try {
+            logger.log(Level.FINE, "Firebug started");
+            this.sitemap.getEngine().executeScript("if (!document.getElementById('FirebugLite')){E = document['createElement' + 'NS'] && document.documentElement.namespaceURI;E = E ? document['createElement' + 'NS'](E, 'script') : document['createElement']('script');E['setAttribute']('id', 'FirebugLite');E['setAttribute']('src', 'https://getfirebug.com/' + 'firebug-lite.js' + '#startOpened');E['setAttribute']('FirebugLite', '4');(document['getElementsByTagName']('head')[0] || document['getElementsByTagName']('body')[0]).appendChild(E);E = new Image;E['setAttribute']('src', 'https://getfirebug.com/' + '#startOpened');}");
+        } catch (JSException ex) {
+            logger.log(Level.WARNING, ex.toString());
+        }
     }
 }
