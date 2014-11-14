@@ -98,6 +98,7 @@ abstract class ResourceAbstract implements Resource{
         return this.links;
     }
     
+    @Override
     public int getCode(){
         return this.code.get();
     }
