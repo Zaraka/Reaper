@@ -4,17 +4,27 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SingleSelectionModel;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TreeView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebErrorEvent;
@@ -24,7 +34,9 @@ import javafx.util.converter.NumberStringConverter;
 import netscape.javascript.JSException;
 import reaper.Reaper;
 import reaper.model.Domain;
+import reaper.model.Form;
 import reaper.model.Link;
+import reaper.model.Method;
 import reaper.model.Resource;
 
 /**
@@ -40,15 +52,27 @@ public class ReaperController implements Initializable {
     @FXML
     private TextField hostname;
     @FXML
-    private TreeView resourceTree;
+    private TableView<Resource> resourceTable;
     @FXML
     private Label url;
+    @FXML
+    private Label statusCodeProperty;
+    @FXML
+    private Label mimeTypeProperty;
     @FXML
     private TextFlow console;
     @FXML
     private TableView<Link> urlTable;
     @FXML
     private TableColumn<Link, String> urlColumn;
+    @FXML
+    private TableColumn<Resource, String> resourcePathColumn;
+    @FXML
+    private TableColumn<Resource, String> resourceURLColumn;
+    @FXML
+    private TableColumn<Resource, String> resourceMimeTypeColumn;
+    @FXML
+    private TableColumn<Resource, Number> resourceCodeColumn;
     @FXML
     private WebView sitemap;
     @FXML
@@ -57,15 +81,31 @@ public class ReaperController implements Initializable {
     private TextField maxDownloads;
     @FXML
     private ScrollPane consoleScroll;
+    @FXML
+    private Tab detailsTab;
+    @FXML
+    private TabPane tabPane;
+    @FXML
+    private TableView<Form> formTable;
+    @FXML
+    private TableColumn<Link, String> formActionColumn;
+    @FXML
+    private TableColumn<Method, String> formMethodColumn;
 
     @FXML
-    private void handleButtonAction(ActionEvent event) {
-        Domain data = reaper.getDomain();
+    private void startMining(ActionEvent event) {
         if (!"".equals(hostname.getText())) {
-            data.setHostname(hostname.getText());
-            data.mine();
-            //this.showResource(data.resources().get(0));
+            Domain data = reaper.getDomain();
+            data.mineStart(hostname.getText());
+        } else {
+            logger.log(Level.SEVERE, "You need to specify hostname.");
         }
+    }
+
+    @FXML
+    private void stopMining(ActionEvent event) {
+        Domain data = reaper.getDomain();
+        data.mineStop();
     }
 
     @Override
@@ -135,6 +175,42 @@ public class ReaperController implements Initializable {
             }
         });
 
+        resourceTable.setItems(dom.resources());
+        resourceTable.setEditable(false);
+        resourceCodeColumn.setCellValueFactory(cellData -> cellData.getValue().codeProperty());
+        resourceMimeTypeColumn.setCellValueFactory(cellData -> cellData.getValue().mimeTypeProperty());
+        resourcePathColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getPath()));
+        resourceURLColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getAbsoluteURL()));
+
+        ContextMenu menu = new ContextMenu();
+        MenuItem item = new MenuItem("View Resource");
+        item.setOnAction(new EventHandler() {
+            @Override
+            public void handle(Event event) {
+                Resource res = resourceTable.getSelectionModel().getSelectedItem();
+                showResource(res);
+                SingleSelectionModel<Tab> selectionModel = tabPane.getSelectionModel();
+                selectionModel.select(detailsTab);
+            }
+        });
+        menu.getItems().addAll(item);
+
+        EventHandler click = new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getClickCount() == 2) {
+                    Resource res = (Resource) resourceTable.getItems().get(((TableCell) event.getSource()).getIndex());
+                    showResource(res);
+                    SingleSelectionModel<Tab> selectionModel = tabPane.getSelectionModel();
+                    selectionModel.select(detailsTab);
+                }
+            }
+        };
+
+        GenericCellFactory cellFactory = new GenericCellFactory(click, menu);
+        resourceMimeTypeColumn.setCellFactory(cellFactory);
+        resourcePathColumn.setCellFactory(cellFactory);
+        resourceURLColumn.setCellFactory(cellFactory);
     }
 
     private void showResource(Resource resource) {
@@ -142,6 +218,9 @@ public class ReaperController implements Initializable {
             url.setText(resource.getPath());
             urlTable.setItems(resource.links());
             urlColumn.setCellValueFactory(cellData -> cellData.getValue().linkProperty());
+            mimeTypeProperty.setText(resource.mimeTypeProperty().get());
+            statusCodeProperty.setText(Integer.toString(resource.codeProperty().get()));
+            
         } else {
             url.setText("");
         }
@@ -186,4 +265,5 @@ public class ReaperController implements Initializable {
             logger.log(Level.WARNING, ex.toString());
         }
     }
+
 }

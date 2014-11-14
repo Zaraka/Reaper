@@ -1,6 +1,8 @@
 package reaper.model;
 
 import java.net.URL;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 
 /**
@@ -15,4 +17,6 @@ public interface Resource {
     public int getDepth();
     public ResourceType getType();
     public Link getLinkWithPath(String Path);
+    public IntegerProperty codeProperty();
+    public StringProperty mimeTypeProperty();
 }

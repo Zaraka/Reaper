@@ -1,4 +1,4 @@
-package reaper.model;
+package reaper.exceptions;
 
 /**
  *

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package reaper.model;
 
 /**
@@ -21,5 +16,13 @@ public class Form {
     Form(Link action, Method method){
         this.action = action;
         this.method = method;
+    }
+    
+    public Link getAction(){
+        return this.action;
+    }
+    
+    public Method getMethod(){
+        return this.method;
     }
 }

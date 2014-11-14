@@ -30,12 +30,17 @@ public class Domain {
     private final IntegerProperty maxDownloads;
     private final IntegerProperty maxDepth;
 
+    private final MinerService mining;
+
     public Domain() {
         this.resources = FXCollections.observableArrayList();
         this.links = FXCollections.observableArrayList();
         this.hostname = new SimpleStringProperty("");
         this.maxDepth = new SimpleIntegerProperty(1);
         this.maxDownloads = new SimpleIntegerProperty(5);
+        this.mining = new MinerService();
+
+        this.init();
     }
 
     public Domain(String hostname, int maxDownloads, int maxDepth) {
@@ -44,11 +49,12 @@ public class Domain {
         this.hostname = new SimpleStringProperty(hostname);
         this.maxDepth = new SimpleIntegerProperty(maxDepth);
         this.maxDownloads = new SimpleIntegerProperty(maxDownloads);
+        this.mining = new MinerService();
+
+        this.init();
     }
 
-    public void mine() {
-        this.clearData();
-        MinerService mining = new MinerService();
+    private void init() {
         mining.init(this.getHostname(), this.getMaxDepth(), this.resources(), this.links);
         mining.setOnSucceeded((WorkerStateEvent event) -> {
             logger.log(Level.INFO, "Mining finished");
@@ -65,7 +71,23 @@ public class Domain {
         mining.setOnCancelled((WorkerStateEvent event) -> {
             logger.log(Level.INFO, "Mining canceled");
         });
-        mining.start();
+        
+    }
+
+    public void mineStart(String hostname) {
+        if(!this.mining.isRunning()){
+            this.clearData();
+            this.hostname.set(hostname);
+            this.mining.setHostname(hostname);
+            this.mining.setMaxDepth(this.maxDepth.get());
+            this.mining.start();
+        }
+    }
+    
+    public void mineStop(){
+        if(this.mining.isRunning()){
+            mining.cancel();
+        }
     }
 
     private static class MinerService extends Service<Void> {
@@ -82,6 +104,14 @@ public class Domain {
             this.resources = resources;
             this.linksQueue = FXCollections.observableArrayList();
             this.links = links;
+        }
+        
+        public void setHostname(String hostname){
+            this.hostname = hostname;
+        }
+        
+        public void setMaxDepth(int maxDepth){
+            this.maxDepth = maxDepth;
         }
 
         private Link popLink() {

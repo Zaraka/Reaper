@@ -2,9 +2,7 @@ package reaper.model;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -49,6 +47,7 @@ public class ResourceDom extends ResourceAbstract {
 
     private void retrieveLinks() {
         this.retrieveHrefs();
+        this.retrieveForms();
     }
 
     private void retrieveHrefs() {
@@ -61,7 +60,26 @@ public class ResourceDom extends ResourceAbstract {
     }
 
     private void retrieveForms() {
-
+        Elements docForms = this.doc.getElementsByTag("form");
+        for (Element form : docForms){
+            Method method = Method.GET;
+            if(form.hasAttr("mehod")){
+                String methodStr = form.attr("method").trim().toUpperCase();
+                if("POST".equals(methodStr)){
+                    method = Method.POST;
+                } else if ("PUT".equals(methodStr)){
+                    method = Method.PUT;
+                } else if ("DELETE".equals(methodStr)){
+                    method = Method.DELETE;
+                }
+            }
+            String formAction = "";
+            if(form.hasAttr("action")){
+                formAction = form.attr("action").trim();
+            }
+            Link link = new Link(formAction, this);
+            this.forms.add(new Form(link, method));
+        }
     }
 
     private void load() throws UnsupportedMimeTypeException {
@@ -69,12 +87,15 @@ public class ResourceDom extends ResourceAbstract {
         System.out.println("Resource " + this.url.toString() + " loading START");
         try {
             Connection.Response response = Jsoup.connect(this.url.toString()).execute();
-            this.code.set(response.statusCode());
+            this.setCode(response.statusCode());
             this.doc = response.parse();
+            this.setMimeType(response.contentType());
         } catch (UnsupportedMimeTypeException ex) {
+            this.setMimeType(ex.getMimeType());
             throw ex;
         } catch (HttpStatusException ex) {
             //I dont give a fuuuck
+            this.setCode(ex.getStatusCode());
             System.out.println("URL " + ex.getUrl() + " code: " + ex.getStatusCode());
             this.state = ResourceState.ERROR;
         } catch (UnknownHostException ex) {

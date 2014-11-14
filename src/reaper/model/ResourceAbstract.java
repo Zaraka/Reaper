@@ -4,6 +4,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -15,12 +17,13 @@ import javafx.collections.ObservableList;
 abstract class ResourceAbstract implements Resource{
     protected Resource parent;
     protected ResourceType type;
-    protected IntegerProperty code;
+    private final IntegerProperty code;
     protected ResourceState state;
     private final IntegerProperty depth;
     private final IntegerProperty maxDepth;
     protected URL url;
     protected final ObservableList<Link> links;
+    private final StringProperty mimeType;
 
 
     ResourceAbstract() {
@@ -31,6 +34,7 @@ abstract class ResourceAbstract implements Resource{
         this.links = FXCollections.observableArrayList();
         this.type = ResourceType.UNDEFINED;
         this.code = new SimpleIntegerProperty(0);
+        this.mimeType = new SimpleStringProperty("");
     }
     
     ResourceAbstract(String path, int depth, int maxDepth, Resource parent) throws MalformedURLException {
@@ -46,6 +50,7 @@ abstract class ResourceAbstract implements Resource{
         this.links = FXCollections.observableArrayList();
         this.type = ResourceType.UNDEFINED;
         this.code = new SimpleIntegerProperty(0);
+        this.mimeType = new SimpleStringProperty("");
     }
 
     @Override
@@ -101,6 +106,7 @@ abstract class ResourceAbstract implements Resource{
         this.code.set(code);
     }
     
+    @Override
     public IntegerProperty codeProperty(){
         return this.code;
     }
@@ -118,6 +124,19 @@ abstract class ResourceAbstract implements Resource{
             }
         }
         return null;
+    }
+    
+    @Override
+    public StringProperty mimeTypeProperty(){
+        return this.mimeType;
+    }
+    
+    public String getMimeType(){
+        return this.mimeType.get();
+    }
+    
+    public void setMimeType(String type){
+        this.mimeType.set(type);
     }
     
 }

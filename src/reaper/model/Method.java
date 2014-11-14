@@ -6,5 +6,7 @@ package reaper.model;
  */
 public enum Method {
     GET,
-    POST
+    POST,
+    PUT,
+    DELETE
 }
