@@ -227,6 +227,7 @@ public class ReaperController implements Initializable {
     }
 
     private void addEdge(Link link) {
+        //logger.log(Level.FINE, link.getEdgeFormat() + " " + link.getFromResource().getPath() + " " + link.getToResource().getPath());
         if (link.getEdgeFormat() != null) {
             String edge = "addEdgeIfNotExists('" + link.getEdgeFormat() + "', '" + link.getFromResource().getPath() + "', '" + link.getToResource().getPath() + "');";
             try {
