@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -44,7 +44,17 @@ public class ResourceDom extends ResourceAbstract {
         } catch (UnsupportedMimeTypeException ex) {
             throw ex;
         }
-        //this.loadChilds();
+    }
+    
+    ResourceDom(URL url, int depth, int maxDepth, Resource parent) throws UnsupportedMimeTypeException, MalformedURLException {
+        super(url, depth, maxDepth, parent);
+        this.forms = FXCollections.observableArrayList();
+        this.type = ResourceType.DOM;
+        try {
+            this.load();
+        } catch (UnsupportedMimeTypeException ex) {
+            throw ex;
+        }
     }
 
     private void retrieveLinks() {
@@ -88,7 +98,11 @@ public class ResourceDom extends ResourceAbstract {
         this.state = ResourceState.PROCESSING;
         System.out.println("Resource " + this.url.toString() + " loading START");
         try {
+            long startTime = System.currentTimeMillis();
             Connection.Response response = Jsoup.connect(this.url.toString()).execute();
+            //measure time
+            this.downloadTime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime);
+            
             this.setCode(response.statusCode());
             this.doc = response.parse();
             this.setMimeType(response.contentType());

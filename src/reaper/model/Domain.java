@@ -1,6 +1,8 @@
 package reaper.model;
 
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -13,6 +15,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventType;
 import org.jsoup.UnsupportedMimeTypeException;
 import reaper.Reaper;
 
@@ -71,11 +74,11 @@ public class Domain {
         mining.setOnCancelled((WorkerStateEvent event) -> {
             logger.log(Level.INFO, "Mining canceled");
         });
-        
+
     }
 
     public void mineStart(String hostname) {
-        if(!this.mining.isRunning()){
+        if (!this.mining.isRunning()) {
             this.clearData();
             this.hostname.set(hostname);
             this.mining.setHostname(hostname);
@@ -83,9 +86,9 @@ public class Domain {
             this.mining.start();
         }
     }
-    
-    public void mineStop(){
-        if(this.mining.isRunning()){
+
+    public void mineStop() {
+        if (this.mining.isRunning()) {
             mining.cancel();
         }
     }
@@ -97,6 +100,7 @@ public class Domain {
         private ObservableList<Resource> resources;
         private ObservableList<Link> linksQueue;
         private ObservableList<Link> links;
+        private HashSet<String> paths;
 
         public void init(String hostname, int maxDepth, ObservableList<Resource> resources, ObservableList<Link> links) {
             this.hostname = hostname;
@@ -104,13 +108,14 @@ public class Domain {
             this.resources = resources;
             this.linksQueue = FXCollections.observableArrayList();
             this.links = links;
+            this.paths = new HashSet<>();
         }
-        
-        public void setHostname(String hostname){
+
+        public void setHostname(String hostname) {
             this.hostname = hostname;
         }
-        
-        public void setMaxDepth(int maxDepth){
+
+        public void setMaxDepth(int maxDepth) {
             this.maxDepth = maxDepth;
         }
 
@@ -137,6 +142,7 @@ public class Domain {
                     }
                     try {
                         ResourceDom page = new ResourceDom(url, 0, maxDepth, null);
+                        paths.add(page.getAbsoluteURL());
                         linksQueue.addAll(page.links);
                         Platform.runLater(() -> {
                             resources.add(page);
@@ -146,8 +152,15 @@ public class Domain {
                     }
                     Link link;
                     while ((link = popLink()) != null) {
+                        //test hashSet This is quite stupid!
+                        URL linkUrl = new URL(link.getFromResource().getURL(), link.getLink());
+                        if(paths.contains(linkUrl.toString())){
+                            continue;
+                        } else {
+                            paths.add(linkUrl.toString());
+                        }
                         try {
-                            ResourceDom child = new ResourceDom(link.getLink(), link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
+                            ResourceDom child = new ResourceDom(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
                             if (child.getDepth() < maxDepth) {
                                 linksQueue.addAll(child.links);
                             }
@@ -160,7 +173,7 @@ public class Domain {
                             });
                         } catch (UnsupportedMimeTypeException ex) {
                             try {
-                                ResourceFile child = new ResourceFile(link.getLink(), link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
+                                ResourceFile child = new ResourceFile(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
                                 if (child.getDepth() < maxDepth) {
                                     linksQueue.addAll(child.links);
                                 }

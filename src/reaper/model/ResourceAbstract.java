@@ -24,6 +24,7 @@ abstract class ResourceAbstract implements Resource{
     protected URL url;
     protected final ObservableList<Link> links;
     private final StringProperty mimeType;
+    protected long downloadTime;
 
 
     ResourceAbstract() {
@@ -35,6 +36,7 @@ abstract class ResourceAbstract implements Resource{
         this.type = ResourceType.UNDEFINED;
         this.code = new SimpleIntegerProperty(0);
         this.mimeType = new SimpleStringProperty("");
+        this.downloadTime = 0;
     }
     
     ResourceAbstract(String path, int depth, int maxDepth, Resource parent) throws MalformedURLException {
@@ -51,8 +53,22 @@ abstract class ResourceAbstract implements Resource{
         this.type = ResourceType.UNDEFINED;
         this.code = new SimpleIntegerProperty(0);
         this.mimeType = new SimpleStringProperty("");
+        this.downloadTime = 0;
     }
 
+    ResourceAbstract(URL url, int depth, int maxDepth, Resource parent) throws MalformedURLException {
+        this.url = url;
+        this.parent = parent;
+        this.state = ResourceState.UNITIALIZED;
+        this.depth = new SimpleIntegerProperty(depth);
+        this.maxDepth = new SimpleIntegerProperty(maxDepth);
+        this.links = FXCollections.observableArrayList();
+        this.type = ResourceType.UNDEFINED;
+        this.code = new SimpleIntegerProperty(0);
+        this.mimeType = new SimpleStringProperty("");
+        this.downloadTime = 0;
+    }
+    
     @Override
     public String getPath() {
         return this.url.getPath();
@@ -98,7 +114,6 @@ abstract class ResourceAbstract implements Resource{
         return this.links;
     }
     
-    @Override
     public int getCode(){
         return this.code.get();
     }
@@ -120,7 +135,7 @@ abstract class ResourceAbstract implements Resource{
     @Override
     public Link getLinkWithPath(String path){
         for(Link link : this.links){
-            if(link.getLink() == path){
+            if(link.getLink().equals(path)){
                 return link;
             }
         }

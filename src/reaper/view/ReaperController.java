@@ -12,6 +12,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -25,6 +26,7 @@ import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebErrorEvent;
@@ -91,6 +93,10 @@ public class ReaperController implements Initializable {
     private TableColumn<Link, String> formActionColumn;
     @FXML
     private TableColumn<Method, String> formMethodColumn;
+    @FXML
+    private VBox detailsVBox;
+    @FXML
+    private CheckBox displayGraph;
 
     @FXML
     private void startMining(ActionEvent event) {
@@ -106,6 +112,24 @@ public class ReaperController implements Initializable {
     private void stopMining(ActionEvent event) {
         Domain data = reaper.getDomain();
         data.mineStop();
+    }
+
+    @FXML
+    private void onChangeDisplayGraph(ActionEvent event) {
+        if (displayGraph.isSelected()) {
+            for(Resource res : reaper.getDomain().resources()){
+                addSitemapNode(res);
+            }
+            for(Link link : reaper.getDomain().links()){
+                addEdge(link);
+            }
+        } else {
+            try {
+                this.sitemap.getEngine().executeScript("resetGraph();");
+            } catch (JSException ex) {
+                logger.log(Level.WARNING, ex.toString());
+            }
+        }
     }
 
     @Override
@@ -130,13 +154,6 @@ public class ReaperController implements Initializable {
         engine.setOnAlert((WebEvent<String> event) -> {
             logger.log(Level.INFO, event.toString());
         });
-        /*engine.getLoadWorker().stateProperty().addListener((ObservableValue<? extends Worker.State> observable, Worker.State oldValue, Worker.State newValue) -> {
-         logger.log(Level.FINE, newValue.toString());
-         if(newValue == Worker.State.SUCCEEDED){
-         this.enableFirebug();
-         }
-         });*/
-
     }
 
     private void showResourceDetails(Resource res) {
@@ -152,14 +169,16 @@ public class ReaperController implements Initializable {
         this.maxDepth.textProperty().bindBidirectional(dom.maxDepthProperty(), new NumberStringConverter());
 
         dom.resources().addListener((ListChangeListener.Change<? extends Resource> change) -> {
-            while (change.next()) {
-                if (change.wasAdded()) {
-                    for (Resource res : change.getAddedSubList()) {
-                        addSitemapNode(res);
-                    }
-                } else if (change.wasRemoved()) {
-                    for (Resource res : change.getRemoved()) {
-                        removeSitemapNode(res);
+            if (displayGraph.isSelected()) {
+                while (change.next()) {
+                    if (change.wasAdded()) {
+                        for (Resource res : change.getAddedSubList()) {
+                            addSitemapNode(res);
+                        }
+                    } else if (change.wasRemoved()) {
+                        for (Resource res : change.getRemoved()) {
+                            removeSitemapNode(res);
+                        }
                     }
                 }
             }
@@ -220,7 +239,7 @@ public class ReaperController implements Initializable {
             urlColumn.setCellValueFactory(cellData -> cellData.getValue().linkProperty());
             mimeTypeProperty.setText(resource.mimeTypeProperty().get());
             statusCodeProperty.setText(Integer.toString(resource.codeProperty().get()));
-            
+
         } else {
             url.setText("");
         }

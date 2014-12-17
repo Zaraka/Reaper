@@ -1,6 +1,7 @@
 package reaper.model;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.logging.Logger;
 import reaper.Reaper;
 
@@ -13,6 +14,11 @@ public class ResourceFile extends ResourceAbstract {
     
     ResourceFile(String path, int depth, int maxDepth, Resource parent) throws MalformedURLException {
         super(path, depth, maxDepth, parent);
+        this.type = ResourceType.FILE;
+    }
+    
+    ResourceFile(URL url, int depth, int maxDepth, Resource parent) throws MalformedURLException {
+        super(url, depth, maxDepth, parent);
         this.type = ResourceType.FILE;
     }
 }

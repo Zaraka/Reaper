@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.*?>
 <?import java.net.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="652.0" prefWidth="830.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="reaper.view.ReaperController">
+<AnchorPane id="AnchorPane" prefHeight="731.0" prefWidth="949.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="reaper.view.ReaperController">
    <children>
       <VBox prefHeight="611.0" prefWidth="815.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
@@ -52,11 +52,11 @@
                               <content>
                                 <AnchorPane>
                                        <children>
-                                          <ScrollPane hbarPolicy="NEVER" prefHeight="433.0" prefWidth="828.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                          <ScrollPane hbarPolicy="NEVER" prefHeight="500.0" prefWidth="947.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                             <content>
                                               <AnchorPane>
                                                    <children>
-                                                      <VBox>
+                                                      <VBox fx:id="detailsVBox" prefHeight="900.0" prefWidth="734.0">
                                                          <children>
                                                             <GridPane>
                                                                <children>
@@ -80,12 +80,12 @@
                                                                   <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                                                </VBox.margin>
                                                             </GridPane>
-                                                            <TableView fx:id="urlTable" prefHeight="305.0" prefWidth="828.0">
+                                                            <TableView fx:id="urlTable">
                                                                <columns>
                                                                   <TableColumn fx:id="urlColumn" prefWidth="414.0" text="Path" />
                                                                </columns>
                                                             </TableView>
-                                                            <TableView fx:id="formTable" prefHeight="200.0" prefWidth="200.0">
+                                                            <TableView fx:id="formTable">
                                                               <columns>
                                                                 <TableColumn fx:id="formActionColumn" prefWidth="150.0" text="Action" />
                                                                 <TableColumn minWidth="0.0" prefWidth="172.0" text="Method" />
@@ -133,7 +133,7 @@
                                                       <TextField fx:id="maxDownloads" GridPane.columnIndex="1" />
                                                       <TextField fx:id="maxDepth" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                                       <Label prefHeight="17.0" prefWidth="196.0" text="Create Sitemap Graph" GridPane.rowIndex="2" />
-                                                      <CheckBox mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                      <CheckBox fx:id="displayGraph" mnemonicParsing="false" onAction="#onChangeDisplayGraph" selected="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                                    </children>
                                                 </GridPane>
                                              </children>
