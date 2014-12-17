@@ -1,0 +1,44 @@
+<html><head>
+  <SCRIPT src="./web-files/dtjava.js"></SCRIPT>
+<script>
+    function launchApplication(jnlpfile) {
+        dtjava.launch(            {
+                url : 'reaper.jnlp',
+                jnlp_content : 'PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPGpubHAgc3BlYz0iMS4wIiB4bWxuczpqZng9Imh0dHA6Ly9qYXZhZnguY29tIiBocmVmPSJyZWFwZXIuam5scCI+CiAgPGluZm9ybWF0aW9uPgogICAgPHRpdGxlPnJlYXBlcjwvdGl0bGU+CiAgICA8dmVuZG9yPnphcmFrYTwvdmVuZG9yPgogICAgPGRlc2NyaXB0aW9uPm51bGw8L2Rlc2NyaXB0aW9uPgogICAgPG9mZmxpbmUtYWxsb3dlZC8+CiAgPC9pbmZvcm1hdGlvbj4KICA8cmVzb3VyY2VzPgogICAgPGpmeDpqYXZhZngtcnVudGltZSB2ZXJzaW9uPSIyLjIrIiBocmVmPSJodHRwOi8vamF2YWRsLnN1bi5jb20vd2ViYXBwcy9kb3dubG9hZC9HZXRGaWxlL2phdmFmeC1sYXRlc3Qvd2luZG93cy1pNTg2L2phdmFmeDIuam5scCIvPgogIDwvcmVzb3VyY2VzPgogIDxyZXNvdXJjZXM+CiAgICA8ajJzZSB2ZXJzaW9uPSIxLjYrIiBocmVmPSJodHRwOi8vamF2YS5zdW4uY29tL3Byb2R1Y3RzL2F1dG9kbC9qMnNlIi8+CiAgICA8amFyIGhyZWY9ImxpYi9qc291cC0xLjguMS5qYXIiIHNpemU9IjMwMDg0NCIgZG93bmxvYWQ9ImVhZ2VyIiAvPgogICAgPGphciBocmVmPSJyZWFwZXIuamFyIiBzaXplPSIxNDY0MTciIGRvd25sb2FkPSJlYWdlciIgLz4KICA8L3Jlc291cmNlcz4KICA8YXBwbGV0LWRlc2MgIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBtYWluLWNsYXNzPSJjb20uamF2YWZ4Lm1haW4uTm9KYXZhRlhGYWxsYmFjayIgIG5hbWU9InJlYXBlciIgPgogICAgPHBhcmFtIG5hbWU9InJlcXVpcmVkRlhWZXJzaW9uIiB2YWx1ZT0iMi4yKyIvPgogIDwvYXBwbGV0LWRlc2M+CiAgPGpmeDpqYXZhZngtZGVzYyAgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIG1haW4tY2xhc3M9InJlYXBlci5SZWFwZXIiICBuYW1lPSJyZWFwZXIiIC8+CiAgPHVwZGF0ZSBjaGVjaz0iYWx3YXlzIi8+Cjwvam5scD4K'
+            },
+            {
+                javafx : '2.2+'
+            },
+            {}
+        );
+        return false;
+    }
+</script>
+
+<script>
+    function javafxEmbed() {
+        dtjava.embed(
+            {
+                url : 'reaper.jnlp',
+                placeholder : 'javafx-app-placeholder',
+                width : 800,
+                height : 600,
+                jnlp_content : 'PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPGpubHAgc3BlYz0iMS4wIiB4bWxuczpqZng9Imh0dHA6Ly9qYXZhZnguY29tIiBocmVmPSJyZWFwZXIuam5scCI+CiAgPGluZm9ybWF0aW9uPgogICAgPHRpdGxlPnJlYXBlcjwvdGl0bGU+CiAgICA8dmVuZG9yPnphcmFrYTwvdmVuZG9yPgogICAgPGRlc2NyaXB0aW9uPm51bGw8L2Rlc2NyaXB0aW9uPgogICAgPG9mZmxpbmUtYWxsb3dlZC8+CiAgPC9pbmZvcm1hdGlvbj4KICA8cmVzb3VyY2VzPgogICAgPGpmeDpqYXZhZngtcnVudGltZSB2ZXJzaW9uPSIyLjIrIiBocmVmPSJodHRwOi8vamF2YWRsLnN1bi5jb20vd2ViYXBwcy9kb3dubG9hZC9HZXRGaWxlL2phdmFmeC1sYXRlc3Qvd2luZG93cy1pNTg2L2phdmFmeDIuam5scCIvPgogIDwvcmVzb3VyY2VzPgogIDxyZXNvdXJjZXM+CiAgICA8ajJzZSB2ZXJzaW9uPSIxLjYrIiBocmVmPSJodHRwOi8vamF2YS5zdW4uY29tL3Byb2R1Y3RzL2F1dG9kbC9qMnNlIi8+CiAgICA8amFyIGhyZWY9ImxpYi9qc291cC0xLjguMS5qYXIiIHNpemU9IjMwMDg0NCIgZG93bmxvYWQ9ImVhZ2VyIiAvPgogICAgPGphciBocmVmPSJyZWFwZXIuamFyIiBzaXplPSIxNDY0MTciIGRvd25sb2FkPSJlYWdlciIgLz4KICA8L3Jlc291cmNlcz4KICA8YXBwbGV0LWRlc2MgIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBtYWluLWNsYXNzPSJjb20uamF2YWZ4Lm1haW4uTm9KYXZhRlhGYWxsYmFjayIgIG5hbWU9InJlYXBlciIgPgogICAgPHBhcmFtIG5hbWU9InJlcXVpcmVkRlhWZXJzaW9uIiB2YWx1ZT0iMi4yKyIvPgogIDwvYXBwbGV0LWRlc2M+CiAgPGpmeDpqYXZhZngtZGVzYyAgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIG1haW4tY2xhc3M9InJlYXBlci5SZWFwZXIiICBuYW1lPSJyZWFwZXIiIC8+CiAgPHVwZGF0ZSBjaGVjaz0iYWx3YXlzIi8+Cjwvam5scD4K'
+            },
+            {
+                javafx : '2.2+'
+            },
+            {}
+        );
+    }
+    <!-- Embed FX application into web page once page is loaded -->
+    dtjava.addOnloadCallback(javafxEmbed);
+</script>
+
+</head><body>
+<h2>Test page for <b>reaper</b></h2>
+  <b>Webstart:</b> <a href='reaper.jnlp' onclick="return launchApplication('reaper.jnlp');">click to launch this app as webstart</a><br><hr><br>
+
+  <!-- Applet will be inserted here -->
+  <div id='javafx-app-placeholder'></div>
+</body></html>

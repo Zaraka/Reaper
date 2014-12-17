@@ -38,6 +38,14 @@
             
             //edges
             function addEdgeIfNotExists(id, from, to){
+                
+                if(from === ""){
+                    from = "/";
+                }
+                
+                if(to === ""){
+                    to = "/";
+                }
                 //alert(id + " " + from + " " + to);
                 var encID = encodeURIComponent(id);
                 var encFrom = encodeURIComponent(from);

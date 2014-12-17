@@ -45,7 +45,7 @@ public class ResourceDom extends ResourceAbstract {
             throw ex;
         }
     }
-    
+
     ResourceDom(URL url, int depth, int maxDepth, Resource parent) throws UnsupportedMimeTypeException, MalformedURLException {
         super(url, depth, maxDepth, parent);
         this.forms = FXCollections.observableArrayList();
@@ -102,7 +102,7 @@ public class ResourceDom extends ResourceAbstract {
             Connection.Response response = Jsoup.connect(this.url.toString()).execute();
             //measure time
             this.downloadTime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime);
-            
+
             this.setCode(response.statusCode());
             this.doc = response.parse();
             this.setMimeType(response.contentType());
