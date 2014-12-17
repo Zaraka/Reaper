@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <!--<script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>-->
+        <script src="./vis.min.js"></script>
+        <script src="./vis.min.css"></script>
+        <style type="text/css">
+            body {
+                margin: 0;
+            }
+            #container {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+        <script type="text/javascript">
+            //nodes
+            function addResourceIfNotExists(name, group){
+                if(name === ""){
+                    name = "/";
+                }
+                var id = encodeURIComponent(name);
+                if(nodes.get(id) === null){
+                    nodes.add([{id:id, label:name, group: group}]);
+                }
+            }
+            
+            function removeResource(name){
+                
+                if(name === ""){
+                    name = "/";
+                }
+                var id = encodeURIComponent(name);
+                nodes.remove(id);
+            }
+            
+            //edges
+            function addEdgeIfNotExists(id, from, to){
+                //alert(id + " " + from + " " + to);
+                var encID = encodeURIComponent(id);
+                var encFrom = encodeURIComponent(from);
+                var encTo = encodeURIComponent(to);
+                if(edges.get(encID) === null){
+                    edges.add([{id:encID, from:encFrom, to:encTo, style:'arrow'}]);
+                }
+            }
+            
+            function removeEdge(id){
+                edges.remove(id);
+            }
+            
+            function resetGraph(){
+                nodes.clear();
+                edges.clear();
+            }
+        </script>
+    </head>
+    <body>
+        <div id="container"></div>
+        <script type="text/javascript">            
+        var edges = new vis.DataSet();
+        var nodes = new vis.DataSet();
+
+        // create a network
+        var container = document.getElementById('container');
+        var data = {
+            nodes: nodes,
+            edges: edges
+        };
+        var options = {
+            width: '100%',
+            height: '100%',
+            clustering: true,
+            groups: {
+                dom: {
+                    shape: 'box',
+                    color: {
+                        border: '#2B7CE9',
+                        background: "#97C2FC"
+                    }
+                },
+                file: {
+                    shape: 'box',
+                    color: {
+                        border: "#FF6600",
+                        background: '#FFCC99'
+                    }
+                }
+            }
+        };
+        var network = new vis.Network(container, data, options);
+        </script>
+        
+    </body>
+</html>
