@@ -1,4 +1,8 @@
-<<<<<<< HEAD
-=======
+# NetBeans specific #
+nbproject/private/
 build/
->>>>>>> c2de16a35939eb4a404520c282372af677801ef8
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
