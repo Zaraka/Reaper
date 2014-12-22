@@ -1,9 +1,8 @@
 package reaper.model;
 
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
+import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
@@ -128,27 +127,17 @@ public class Domain {
             return result;
         }
 
-        private void createVertex(Resource res) {
-            OrientGraph graph = graphFactory.getTx();
-            try {
-                Vertex ver = graph.addVertex("class:Resource", "url", res.getURL().toString(), "mimeType", res.getMimeType(), "downloadTime", res.getDownloadTime(), "code", res.getCode());
-                res.setVertex(ver);
-            } finally {
-                graph.shutdown();
-            }
-        }
 
-        private void createEdge(Link link) {
-            /*
+        private void createTransaction(Link link) {
+            
             OrientGraph graph = graphFactory.getTx();
             try {
-                Edge edge = graph.addEdge(null, link.getFromResource().getVertex(), link.getToResource().getVertex(), "linkTo");
-                edge.setProperty("name", link.getLink());
+                OrientVertex from = graph.addVertex("class:Resource", "url", link.getFromResource().getURL().toString(), "code", link.getFromResource().getCode(), "downloadTime",  link.getFromResource().getDownloadTime() , "mimeType", link.getFromResource().getMimeType());
+                OrientVertex to = graph.addVertex("class:Resource", "url", link.getToResource().getURL().toString(), "code", link.getToResource().getCode(), "downloadTime",  link.getFromResource().getDownloadTime() , "mimeType", link.getToResource().getMimeType());
+                from.addEdge("LinkTo", to, null, null, "path", link.getLink());
             } finally {
                 graph.shutdown();
-            }
-            System.out.println("edge created");
-                    */
+            }                    
         }
 
         @Override
@@ -168,7 +157,6 @@ public class Domain {
                         ResourceDom page = new ResourceDom(url, 0, maxDepth, null);
                         paths.add(page.getAbsoluteURL());
                         linksQueue.addAll(page.links);
-                        createVertex(page);
                     } catch (UnsupportedMimeTypeException | MalformedURLException ex) {
                         throw ex;
                     }
@@ -187,8 +175,7 @@ public class Domain {
                                 linksQueue.addAll(child.links);
                             }
                             link.setToResource(child);
-                            createVertex(child);
-                            createEdge(link);
+                            createTransaction(link);
                         } catch (UnsupportedMimeTypeException ex) {
                             try {
                                 ResourceFile child = new ResourceFile(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
@@ -196,8 +183,7 @@ public class Domain {
                                     linksQueue.addAll(child.links);
                                 }
                                 link.setToResource(child);
-                                createVertex(child);
-                                createEdge(link);
+                                createTransaction(link);
 
                             } catch (MalformedURLException ex1) {
                                 throw ex1;

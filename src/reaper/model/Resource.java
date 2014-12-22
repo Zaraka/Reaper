@@ -1,6 +1,5 @@
 package reaper.model;
 
-import com.tinkerpop.blueprints.Vertex;
 import java.net.URL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.StringProperty;
@@ -23,6 +22,4 @@ public interface Resource {
     public StringProperty mimeTypeProperty();
     public String getMimeType();
     public long getDownloadTime();
-    public void setVertex(Vertex x);
-    public Vertex getVertex();
 }
