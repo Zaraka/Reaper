@@ -1,5 +1,6 @@
 package reaper.model;
 
+import com.tinkerpop.blueprints.Vertex;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javafx.beans.property.IntegerProperty;
@@ -25,6 +26,7 @@ abstract class ResourceAbstract implements Resource{
     protected final ObservableList<Link> links;
     private final StringProperty mimeType;
     protected long downloadTime;
+    private Vertex vertex;
 
 
     ResourceAbstract() {
@@ -114,6 +116,7 @@ abstract class ResourceAbstract implements Resource{
         return this.links;
     }
     
+    @Override
     public int getCode(){
         return this.code.get();
     }
@@ -147,6 +150,7 @@ abstract class ResourceAbstract implements Resource{
         return this.mimeType;
     }
     
+    @Override
     public String getMimeType(){
         return this.mimeType.get();
     }
@@ -155,4 +159,18 @@ abstract class ResourceAbstract implements Resource{
         this.mimeType.set(type);
     }
     
+    @Override
+    public long getDownloadTime(){
+        return this.downloadTime;
+    }
+    
+    @Override
+    public void setVertex(Vertex ver){
+        this.vertex = ver;
+    }
+    
+    @Override
+    public Vertex getVertex(){
+        return this.vertex;
+    }
 }

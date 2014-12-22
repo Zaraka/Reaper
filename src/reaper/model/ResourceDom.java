@@ -128,27 +128,6 @@ public class ResourceDom extends ResourceAbstract {
         }
     }
 
-    /*private void loadChilds() {
-        if (this.state == ResourceState.FINISHED) {
-            if (this.getDepth() < this.getMaxDepth()) {
-                int childDepth = this.getDepth() + 1;
-                for (Link link : this.links) {
-                    try {
-                        ResourceDom child = new ResourceDom(link.getLink(), childDepth, this.getMaxDepth(), this.masterResources, this.url);
-                    } catch (UnsupportedMimeTypeException ex) {
-                        try {
-                            ResourceFile child = new ResourceFile(link.getLink(), childDepth, this.getMaxDepth(), this.masterResources, this.url);
-                        } catch (MalformedURLException ex1) {
-                            logger.log(Level.SEVERE, null, ex1);
-                        }
-                    } catch (MalformedURLException ex) {
-                        logger.log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
-        }
-    }*/
-
     private boolean validateLink(String link) {
         if (link.equals("")) {
             return false;

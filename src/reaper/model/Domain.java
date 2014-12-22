@@ -1,11 +1,14 @@
 package reaper.model;
 
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -15,7 +18,6 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventType;
 import org.jsoup.UnsupportedMimeTypeException;
 import reaper.Reaper;
 
@@ -58,7 +60,7 @@ public class Domain {
     }
 
     private void init() {
-        mining.init(this.getHostname(), this.getMaxDepth(), this.resources(), this.links);
+        mining.init(this.getHostname(), this.getMaxDepth());
         mining.setOnSucceeded((WorkerStateEvent event) -> {
             logger.log(Level.INFO, "Mining finished");
         });
@@ -97,18 +99,16 @@ public class Domain {
 
         private String hostname;
         private int maxDepth;
-        private ObservableList<Resource> resources;
         private ObservableList<Link> linksQueue;
-        private ObservableList<Link> links;
         private HashSet<String> paths;
+        private OrientGraphFactory graphFactory;
 
-        public void init(String hostname, int maxDepth, ObservableList<Resource> resources, ObservableList<Link> links) {
+        public void init(String hostname, int maxDepth) {
             this.hostname = hostname;
             this.maxDepth = maxDepth;
-            this.resources = resources;
             this.linksQueue = FXCollections.observableArrayList();
-            this.links = links;
             this.paths = new HashSet<>();
+            this.graphFactory = new OrientGraphFactory("remote:localhost/ReaperTest", "admin", "admin").setupPool(1, 10);
         }
 
         public void setHostname(String hostname) {
@@ -128,6 +128,29 @@ public class Domain {
             return result;
         }
 
+        private void createVertex(Resource res) {
+            OrientGraph graph = graphFactory.getTx();
+            try {
+                Vertex ver = graph.addVertex("class:Resource", "url", res.getURL().toString(), "mimeType", res.getMimeType(), "downloadTime", res.getDownloadTime(), "code", res.getCode());
+                res.setVertex(ver);
+            } finally {
+                graph.shutdown();
+            }
+        }
+
+        private void createEdge(Link link) {
+            /*
+            OrientGraph graph = graphFactory.getTx();
+            try {
+                Edge edge = graph.addEdge(null, link.getFromResource().getVertex(), link.getToResource().getVertex(), "linkTo");
+                edge.setProperty("name", link.getLink());
+            } finally {
+                graph.shutdown();
+            }
+            System.out.println("edge created");
+                    */
+        }
+
         @Override
         protected Task<Void> createTask() {
             return new Task<Void>() {
@@ -140,21 +163,20 @@ public class Domain {
                         System.out.println("You should provide protocol as well. Default proctol http is used.");
 
                     }
+
                     try {
                         ResourceDom page = new ResourceDom(url, 0, maxDepth, null);
                         paths.add(page.getAbsoluteURL());
                         linksQueue.addAll(page.links);
-                        Platform.runLater(() -> {
-                            resources.add(page);
-                        });
+                        createVertex(page);
                     } catch (UnsupportedMimeTypeException | MalformedURLException ex) {
                         throw ex;
                     }
+
                     Link link;
                     while ((link = popLink()) != null) {
-                        //test hashSet This is quite stupid!
                         URL linkUrl = new URL(link.getFromResource().getURL(), link.getLink());
-                        if(paths.contains(linkUrl.toString())){
+                        if (paths.contains(linkUrl.toString())) {
                             continue;
                         } else {
                             paths.add(linkUrl.toString());
@@ -165,12 +187,8 @@ public class Domain {
                                 linksQueue.addAll(child.links);
                             }
                             link.setToResource(child);
-                            Link link2 = link;
-                            Platform.runLater(() -> {
-                                //logger.log(Level.FINE, link2.toString());
-                                resources.add(child);
-                                links.add(link2);
-                            });
+                            createVertex(child);
+                            createEdge(link);
                         } catch (UnsupportedMimeTypeException ex) {
                             try {
                                 ResourceFile child = new ResourceFile(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
@@ -178,11 +196,9 @@ public class Domain {
                                     linksQueue.addAll(child.links);
                                 }
                                 link.setToResource(child);
-                                Link link2 = link;
-                                Platform.runLater(() -> {
-                                    links.add(link2);
-                                    resources.add(child);
-                                });
+                                createVertex(child);
+                                createEdge(link);
+
                             } catch (MalformedURLException ex1) {
                                 throw ex1;
                             }
