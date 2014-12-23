@@ -1,6 +1,8 @@
 package reaper.model;
 
 import java.util.logging.Logger;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import reaper.Reaper;
@@ -16,22 +18,21 @@ public class Link {
     private final StringProperty link;
     private Resource fromResource;
     private Resource toResource;
+    private IntegerProperty count;
 
     Link() {
         this.link = new SimpleStringProperty("undefined");
     }
 
-    Link(String link) {
-        this.link = new SimpleStringProperty(link);
-    }
-
     Link(String link, Resource source) {
         this.link = new SimpleStringProperty(link);
+        this.count = new SimpleIntegerProperty(0);
         this.fromResource = source;
     }
     
     Link(String link, Resource source, Resource destination){
         this.link = new SimpleStringProperty(link);
+        this.count = new SimpleIntegerProperty(0);
         this.fromResource = source;
         this.toResource = destination;
     }
@@ -64,7 +65,6 @@ public class Link {
         this.toResource = to;
     }
 
-    
     public String getEdgeFormat() {
         if(this.fromResource != null && this.toResource != null){
             return this.fromResource.getPath()+"@"+this.toResource.getPath();
@@ -72,15 +72,23 @@ public class Link {
         return null;
     }
     
+    public int getCount(){
+        return this.count.get();
+    }
+    
+    public void setCount(int count){
+        this.count.set(count);
+    }
+    
     @Override
     public String toString(){
         String from = "";
         String to = "";
         if(this.fromResource != null){
-            from = this.fromResource.getAbsoluteURL();
+            from = this.fromResource.getURL().toString();
         }
         if(this.toResource != null){
-            to = this.toResource.getAbsoluteURL();
+            to = this.toResource.getURL().toString();
         }
         String result = from + " " + this.link.get() + " " + to;
         return result.trim();

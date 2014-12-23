@@ -127,17 +127,68 @@ public class Domain {
             return result;
         }
 
-
-        private void createTransaction(Link link) {
-            
+        
+        private void createSingleVertex(Resource res){
             OrientGraph graph = graphFactory.getTx();
             try {
-                OrientVertex from = graph.addVertex("class:Resource", "url", link.getFromResource().getURL().toString(), "code", link.getFromResource().getCode(), "downloadTime",  link.getFromResource().getDownloadTime() , "mimeType", link.getFromResource().getMimeType());
-                OrientVertex to = graph.addVertex("class:Resource", "url", link.getToResource().getURL().toString(), "code", link.getToResource().getCode(), "downloadTime",  link.getFromResource().getDownloadTime() , "mimeType", link.getToResource().getMimeType());
+                OrientVertex vertex = graph.addVertex("class:Resource", 
+                        "url", res.getURL().toString(), "code", res.getCode(), 
+                        "downloadTime",  res.getDownloadTime() , "mimeType", res.getMimeType(),
+                        "type", res.getType().toString());
+                res.setVertexID(vertex.getIdentity());
+            } finally {
+                graph.shutdown();
+            }
+        }
+
+        private void linkTransaction(Link link) {
+            OrientGraph graph = graphFactory.getTx();
+            try {
+                OrientVertex from, to;
+                if(link.getFromResource().getVertexID() == null){
+                    from = graph.addVertex("class:Resource", "url", link.getFromResource().getURL().toString(), 
+                            "code", link.getFromResource().getCode(), 
+                            "downloadTime",  link.getFromResource().getDownloadTime() , 
+                            "mimeType", link.getFromResource().getMimeType(),
+                            "type", link.getFromResource().getType().toString());
+                    link.getFromResource().setVertexID(from.getIdentity());
+                } else {
+                    from = graph.getVertex(link.getFromResource().getVertexID());
+                }
+                
+                if(link.getToResource().getVertexID() == null){
+                    to = graph.addVertex("class:Resource", "url", link.getToResource().getURL().toString(),
+                            "code", link.getToResource().getCode(), 
+                            "downloadTime",  link.getFromResource().getDownloadTime() , 
+                            "mimeType", link.getToResource().getMimeType(),
+                            "type", link.getToResource().getType().toString());
+                    link.getToResource().setVertexID(to.getIdentity());
+                } else {
+                    to = graph.getVertex(link.getToResource().getVertexID());
+                }
                 from.addEdge("LinkTo", to, null, null, "path", link.getLink());
             } finally {
                 graph.shutdown();
             }                    
+        }
+        
+        private void outsideLinkTransaction(Link link){
+            OrientGraph graph = graphFactory.getTx();
+            try {
+                OrientVertex from, to;
+                if(link.getFromResource().getVertexID() == null){
+                    from = graph.addVertex("class:Resource", "url", link.getFromResource().getURL().toString(), "code", link.getFromResource().getCode(), "downloadTime",  link.getFromResource().getDownloadTime() , "mimeType", link.getFromResource().getMimeType());
+                    link.getFromResource().setVertexID(from.getIdentity());
+                } else {
+                    from = graph.getVertex(link.getFromResource().getVertexID());
+                }
+                
+                
+                
+                //from.addEdge("LinkTo", to, null, null, "path", link.getLink());
+            } finally {
+                graph.shutdown();
+            }
         }
 
         @Override
@@ -154,9 +205,10 @@ public class Domain {
                     }
 
                     try {
-                        ResourceDom page = new ResourceDom(url, 0, maxDepth, null);
-                        paths.add(page.getAbsoluteURL());
-                        linksQueue.addAll(page.links);
+                        ResourceDom root = new ResourceDom(url, 0, maxDepth, null);
+                        paths.add(root.getURL().toString());
+                        linksQueue.addAll(root.links);
+                        createSingleVertex(root);
                     } catch (UnsupportedMimeTypeException | MalformedURLException ex) {
                         throw ex;
                     }
@@ -164,6 +216,9 @@ public class Domain {
                     Link link;
                     while ((link = popLink()) != null) {
                         URL linkUrl = new URL(link.getFromResource().getURL(), link.getLink());
+                        if(!link.getFromResource().getURL().getHost().equals(linkUrl.getHost())){
+                            
+                        }
                         if (paths.contains(linkUrl.toString())) {
                             continue;
                         } else {
@@ -175,7 +230,7 @@ public class Domain {
                                 linksQueue.addAll(child.links);
                             }
                             link.setToResource(child);
-                            createTransaction(link);
+                            linkTransaction(link);
                         } catch (UnsupportedMimeTypeException ex) {
                             try {
                                 ResourceFile child = new ResourceFile(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
@@ -183,7 +238,7 @@ public class Domain {
                                     linksQueue.addAll(child.links);
                                 }
                                 link.setToResource(child);
-                                createTransaction(link);
+                                linkTransaction(link);
 
                             } catch (MalformedURLException ex1) {
                                 throw ex1;

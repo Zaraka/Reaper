@@ -199,7 +199,7 @@ public class ReaperController implements Initializable {
         resourceCodeColumn.setCellValueFactory(cellData -> cellData.getValue().codeProperty());
         resourceMimeTypeColumn.setCellValueFactory(cellData -> cellData.getValue().mimeTypeProperty());
         resourcePathColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getPath()));
-        resourceURLColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getAbsoluteURL()));
+        resourceURLColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getURL().toString()));
 
         ContextMenu menu = new ContextMenu();
         MenuItem item = new MenuItem("View Resource");

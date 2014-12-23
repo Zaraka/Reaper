@@ -13,11 +13,19 @@ public enum ResourceType {
         }
     },
     DOM {
-
+        
         @Override
         public String getGroup() {
             return "dom";
         }
+    },
+    OUTSIDE {
+
+        @Override
+        public String getGroup() {
+            return "outside";
+        }
+        
     },
     UNDEFINED {
 

@@ -1,7 +1,6 @@
 package reaper.model;
 
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import com.orientechnologies.orient.core.id.ORID;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javafx.beans.property.IntegerProperty;
@@ -19,16 +18,15 @@ import javafx.collections.ObservableList;
 abstract class ResourceAbstract implements Resource{
     protected Resource parent;
     protected ResourceType type;
-    private final IntegerProperty code;
+    protected URL url;
+    protected long downloadTime;
     protected ResourceState state;
+    protected final ObservableList<Link> links;
+    private final IntegerProperty code;
+    private final StringProperty mimeType;
     private final IntegerProperty depth;
     private final IntegerProperty maxDepth;
-    protected URL url;
-    protected final ObservableList<Link> links;
-    private final StringProperty mimeType;
-    protected long downloadTime;
-    private OrientVertex vertex;
-
+    private ORID orid;
 
     ResourceAbstract() {
         this.url = null;
@@ -40,6 +38,7 @@ abstract class ResourceAbstract implements Resource{
         this.code = new SimpleIntegerProperty(0);
         this.mimeType = new SimpleStringProperty("");
         this.downloadTime = 0;
+        this.orid = null;
     }
     
     ResourceAbstract(String path, int depth, int maxDepth, Resource parent) throws MalformedURLException {
@@ -57,6 +56,7 @@ abstract class ResourceAbstract implements Resource{
         this.code = new SimpleIntegerProperty(0);
         this.mimeType = new SimpleStringProperty("");
         this.downloadTime = 0;
+        this.orid = null;
     }
 
     ResourceAbstract(URL url, int depth, int maxDepth, Resource parent) throws MalformedURLException {
@@ -70,16 +70,12 @@ abstract class ResourceAbstract implements Resource{
         this.code = new SimpleIntegerProperty(0);
         this.mimeType = new SimpleStringProperty("");
         this.downloadTime = 0;
+        this.orid = null;
     }
     
     @Override
     public String getPath() {
         return this.url.getPath();
-    }
-    
-    @Override
-    public String getAbsoluteURL(){
-        return this.url.toString();
     }
 
     @Override
@@ -163,5 +159,16 @@ abstract class ResourceAbstract implements Resource{
     @Override
     public long getDownloadTime(){
         return this.downloadTime;
+    }
+    
+    
+    @Override
+    public ORID getVertexID(){
+        return this.orid;
+    }
+    
+    @Override
+    public void setVertexID(ORID or){
+        this.orid = or;
     }
 }
