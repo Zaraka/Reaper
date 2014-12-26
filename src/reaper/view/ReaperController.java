@@ -1,21 +1,21 @@
 package reaper.view;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
@@ -28,7 +28,7 @@ import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebErrorEvent;
@@ -38,9 +38,7 @@ import javafx.util.converter.NumberStringConverter;
 import netscape.javascript.JSException;
 import reaper.Reaper;
 import reaper.model.Domain;
-import reaper.model.Form;
 import reaper.model.Link;
-import reaper.model.Method;
 import reaper.model.Resource;
 
 /**
@@ -56,27 +54,9 @@ public class ReaperController implements Initializable {
     @FXML
     private TextField hostname;
     @FXML
-    private TableView<Resource> resourceTable;
-    @FXML
-    private Label resourceURL;
-    @FXML
-    private Label resourceStatusCodeProperty;
-    @FXML
-    private Label resourceMimeTypeProperty;
-    @FXML
-    private Label resourceDownloadTime;
-    @FXML
-    private Label resourceType;
-    @FXML
     private TextFlow console;
     @FXML
-    private TableView<Link> urlTable;
-    @FXML
-    private TableColumn<Link, String> urlColumn;
-    @FXML
-    private TableColumn<Link, String> typeColumn;
-    @FXML
-    private TableColumn<Link, Integer> countColumn;
+    private TableView<Resource> resourceTable;
     @FXML
     private TableColumn<Resource, String> resourcePathColumn;
     @FXML
@@ -98,14 +78,6 @@ public class ReaperController implements Initializable {
     @FXML
     private TabPane tabPane;
     @FXML
-    private TableView<Form> formTable;
-    @FXML
-    private TableColumn<Link, String> formActionColumn;
-    @FXML
-    private TableColumn<Method, String> formMethodColumn;
-    @FXML
-    private VBox detailsVBox;
-    @FXML
     private CheckBox displayGraph;
     @FXML
     private TextField databaseHost;
@@ -113,6 +85,8 @@ public class ReaperController implements Initializable {
     private TextField databaseUser;
     @FXML
     private PasswordField databasePassword;
+    @FXML
+    private StackPane detailsPanel;
 
     @FXML
     private void startMining(ActionEvent event) {
@@ -225,7 +199,7 @@ public class ReaperController implements Initializable {
             @Override
             public void handle(Event event) {
                 Resource res = resourceTable.getSelectionModel().getSelectedItem();
-                showResource(res);
+                //showResource(res);
                 SingleSelectionModel<Tab> selectionModel = tabPane.getSelectionModel();
                 selectionModel.select(detailsTab);
             }
@@ -237,7 +211,7 @@ public class ReaperController implements Initializable {
             public void handle(MouseEvent event) {
                 if (event.getClickCount() == 2) {
                     Resource res = (Resource) resourceTable.getItems().get(((TableCell) event.getSource()).getIndex());
-                    showResource(res);
+                    //showResource(res);
                     SingleSelectionModel<Tab> selectionModel = tabPane.getSelectionModel();
                     selectionModel.select(detailsTab);
                 }
@@ -249,19 +223,15 @@ public class ReaperController implements Initializable {
         resourcePathColumn.setCellFactory(cellFactory);
         resourceURLColumn.setCellFactory(cellFactory);
     }
-
-    private void showResource(Resource resource) {
-        if (resource != null) {
-            resourceURL.setText(resource.getPath());
-            urlTable.setItems(FXCollections.observableArrayList(resource.links()));
-            urlColumn.setCellValueFactory(cellData -> cellData.getValue().linkProperty());
-            resourceMimeTypeProperty.setText(resource.mimeTypeProperty().get());
-            resourceStatusCodeProperty.setText(Integer.toString(resource.codeProperty().get()));
-            resourceDownloadTime.setText(String.valueOf(resource.getDownloadTime()));
-            resourceType.setText(resource.getType().toString());
-        } else {
-            resourceURL.setText("");
+    
+    private void createResourcePane(Resource res){
+        try{
+            detailsPanel.getChildren().clear();
+            detailsPanel.getChildren().add(FXMLLoader.load(resourceToFXML(res)));
+        } catch( IOException ex){
+            logger.log(Level.SEVERE, "Couldn't change Panel, probably wrong url.");
         }
+        
     }
 
     private void addEdge(Link link) {
@@ -301,6 +271,17 @@ public class ReaperController implements Initializable {
             this.sitemap.getEngine().executeScript("if (!document.getElementById('FirebugLite')){E = document['createElement' + 'NS'] && document.documentElement.namespaceURI;E = E ? document['createElement' + 'NS'](E, 'script') : document['createElement']('script');E['setAttribute']('id', 'FirebugLite');E['setAttribute']('src', 'https://getfirebug.com/' + 'firebug-lite.js' + '#startOpened');E['setAttribute']('FirebugLite', '4');(document['getElementsByTagName']('head')[0] || document['getElementsByTagName']('body')[0]).appendChild(E);E = new Image;E['setAttribute']('src', 'https://getfirebug.com/' + '#startOpened');}");
         } catch (JSException ex) {
             logger.log(Level.WARNING, ex.toString());
+        }
+    }
+    
+    private URL resourceToFXML(Resource res){
+        switch(res.getType()){
+            case DOM:
+                return getClass().getResource("ResourceDom.fxml");
+            case FILE:
+                return getClass().getResource("ResourceFile.fxml");
+            default:
+                return getClass().getResource("ResourceUndefined.fxml");
         }
     }
 
