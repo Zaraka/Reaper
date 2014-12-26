@@ -3,6 +3,9 @@ package reaper.model;
 import com.orientechnologies.orient.core.id.ORID;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -21,7 +24,7 @@ abstract class ResourceAbstract implements Resource{
     protected URL url;
     protected long downloadTime;
     protected ResourceState state;
-    protected final ObservableList<Link> links;
+    protected Map<String, Link> links;
     private final IntegerProperty code;
     private final StringProperty mimeType;
     private final IntegerProperty depth;
@@ -33,39 +36,21 @@ abstract class ResourceAbstract implements Resource{
         this.state = ResourceState.UNITIALIZED;
         this.depth = new SimpleIntegerProperty(0);
         this.maxDepth = new SimpleIntegerProperty(0);
-        this.links = FXCollections.observableArrayList();
+        this.links = new HashMap();
         this.type = ResourceType.UNDEFINED;
         this.code = new SimpleIntegerProperty(0);
         this.mimeType = new SimpleStringProperty("");
         this.downloadTime = 0;
         this.orid = null;
     }
-    
-    ResourceAbstract(String path, int depth, int maxDepth, Resource parent) throws MalformedURLException {
-        if(parent == null){
-            this.url = new URL(path);
-        } else {
-            this.url = new URL(parent.getURL(), path);
-        }
-        this.parent = parent;
-        this.state = ResourceState.UNITIALIZED;
-        this.depth = new SimpleIntegerProperty(depth);
-        this.maxDepth = new SimpleIntegerProperty(maxDepth);
-        this.links = FXCollections.observableArrayList();
-        this.type = ResourceType.UNDEFINED;
-        this.code = new SimpleIntegerProperty(0);
-        this.mimeType = new SimpleStringProperty("");
-        this.downloadTime = 0;
-        this.orid = null;
-    }
-
+   
     ResourceAbstract(URL url, int depth, int maxDepth, Resource parent) throws MalformedURLException {
         this.url = url;
         this.parent = parent;
         this.state = ResourceState.UNITIALIZED;
         this.depth = new SimpleIntegerProperty(depth);
         this.maxDepth = new SimpleIntegerProperty(maxDepth);
-        this.links = FXCollections.observableArrayList();
+        this.links = new HashMap();
         this.type = ResourceType.UNDEFINED;
         this.code = new SimpleIntegerProperty(0);
         this.mimeType = new SimpleStringProperty("");
@@ -109,8 +94,8 @@ abstract class ResourceAbstract implements Resource{
     }
     
     @Override
-    public ObservableList<Link> links(){
-        return this.links;
+    public ArrayList<Link> links(){
+        return new ArrayList<>(this.links.values());
     }
     
     @Override
@@ -134,12 +119,7 @@ abstract class ResourceAbstract implements Resource{
     
     @Override
     public Link getLinkWithPath(String path){
-        for(Link link : this.links){
-            if(link.getLink().equals(path)){
-                return link;
-            }
-        }
-        return null;
+        return this.links.get(path);
     }
     
     @Override

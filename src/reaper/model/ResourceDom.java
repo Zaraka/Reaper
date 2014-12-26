@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
 import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
@@ -16,6 +14,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import reaper.Reaper;
+import reaper.exceptions.OutsidePageException;
 
 /**
  *
@@ -26,30 +25,30 @@ public class ResourceDom extends ResourceAbstract {
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
 
     private Document doc;
-    private final ObservableList<Form> forms;
+    private ArrayList<Form> forms;
+    private static final String JsoupUserAgent = "Reaper/1.0";
 
     ResourceDom() {
         super();
 
-        this.forms = FXCollections.observableArrayList();
+        this.forms = new ArrayList<>();
         this.type = ResourceType.DOM;
     }
 
-    ResourceDom(String path, int depth, int maxDepth, Resource parent) throws UnsupportedMimeTypeException, MalformedURLException {
-        super(path, depth, maxDepth, parent);
-        this.forms = FXCollections.observableArrayList();
-        this.type = ResourceType.DOM;
-        try {
-            this.load();
-        } catch (UnsupportedMimeTypeException ex) {
-            throw ex;
-        }
-    }
-
-    ResourceDom(URL url, int depth, int maxDepth, Resource parent) throws UnsupportedMimeTypeException, MalformedURLException {
+    ResourceDom(URL url, int depth, int maxDepth, Resource parent) throws UnsupportedMimeTypeException, MalformedURLException, OutsidePageException {
         super(url, depth, maxDepth, parent);
-        this.forms = FXCollections.observableArrayList();
+
+        this.forms = new ArrayList<>();
         this.type = ResourceType.DOM;
+
+        if (this.parent != null) {
+            //First check if resource is in domain
+            if (!url.getHost().equals(parent.getURL().getHost())) {
+                throw new OutsidePageException("Document isn't in scanned area");
+            }
+        }
+
+        //then check if resource has DOM element
         try {
             this.load();
         } catch (UnsupportedMimeTypeException ex) {
@@ -57,36 +56,83 @@ public class ResourceDom extends ResourceAbstract {
         }
     }
 
-    private void retrieveLinks() {
-        this.retrieveHrefs();
+    private void scratchURLs() {
+        this.retrieveScripts();
+        this.retrieveLinks();
+        this.retrieveHyperlinks();
         this.retrieveForms();
     }
-
-    private void retrieveHrefs() {
-        Elements docLinks = this.doc.getElementsByTag("a");
-        for (Element link : docLinks) {
+    
+    private void retrieveScripts() {
+        Elements docScripts = this.doc.getElementsByTag("script");
+        for(Element script : docScripts){
+            if(script.hasAttr("src")){
+                String src = script.attr("src").trim();
+                String key = "script#" + src;
+                if(this.links.containsKey(key)){
+                    this.links.get(key).addCount();
+                } else {
+                    this.links.put(key, new Link(src, this, LinkType.SCRIPT));
+                }
+            }
+        }
+    }
+    
+    private void retrieveLinks(){
+        Elements docLinks = this.doc.getElementsByTag("link");
+        for(Element link : docLinks) {
             String href = link.attr("href").trim();
-            Link newLink = new Link(href, this);
-            this.links.add(newLink);
+            Link newLink = new Link(href, this, LinkType.LINK_UNDEFINED);
+            String rel = link.attr("rel").trim().toLowerCase();
+            switch(rel){
+                case "icon":
+                    newLink.setType(LinkType.ICON);
+                    break;
+                case "author":
+                    newLink.setType(LinkType.AUTHOR);
+                    break;
+                case "stylesheet":
+                    newLink.setType(LinkType.STYLESHEET);
+                    break;
+            }
+            String key = "link#" + href;
+            if(this.links.containsKey(key)){
+                this.links.get(key).addCount();
+            } else {
+                this.links.put(key, newLink);
+            }
+        }
+    }
+
+    private void retrieveHyperlinks() {
+        Elements docLinks = this.doc.getElementsByTag("a");
+        for (Element hyperlink : docLinks) {
+            String href = hyperlink.attr("href").trim();
+            String key = "a#" + href;
+            if(this.links.containsKey(key)){
+                this.links.get(key).addCount();
+            } else {
+                this.links.put(key, new Link(href, this, LinkType.HYPERLINK));
+            }
         }
     }
 
     private void retrieveForms() {
         Elements docForms = this.doc.getElementsByTag("form");
-        for (Element form : docForms){
+        for (Element form : docForms) {
             Method method = Method.GET;
-            if(form.hasAttr("mehod")){
+            if (form.hasAttr("mehod")) {
                 String methodStr = form.attr("method").trim().toUpperCase();
-                if("POST".equals(methodStr)){
+                if ("POST".equals(methodStr)) {
                     method = Method.POST;
-                } else if ("PUT".equals(methodStr)){
+                } else if ("PUT".equals(methodStr)) {
                     method = Method.PUT;
-                } else if ("DELETE".equals(methodStr)){
+                } else if ("DELETE".equals(methodStr)) {
                     method = Method.DELETE;
                 }
             }
             String formAction = "";
-            if(form.hasAttr("action")){
+            if (form.hasAttr("action")) {
                 formAction = form.attr("action").trim();
             }
             Link link = new Link(formAction, this);
@@ -99,9 +145,9 @@ public class ResourceDom extends ResourceAbstract {
         System.out.println("Resource " + this.url.toString() + " loading START");
         try {
             long startTime = System.currentTimeMillis();
-            Connection.Response response = Jsoup.connect(this.url.toString()).execute();
+            Connection.Response response = Jsoup.connect(this.url.toString()).userAgent(JsoupUserAgent).execute();
             //measure time
-            this.downloadTime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTime);
+            this.downloadTime = System.currentTimeMillis() - startTime;
 
             this.setCode(response.statusCode());
             this.doc = response.parse();
@@ -124,16 +170,7 @@ public class ResourceDom extends ResourceAbstract {
 
         if (this.state == ResourceState.PROCESSING) {
             this.state = ResourceState.FINISHED;
-            this.retrieveLinks();
+            this.scratchURLs();
         }
-    }
-
-    private boolean validateLink(String link) {
-        if (link.equals("")) {
-            return false;
-        } else if (link.startsWith("#")) {
-            return false;
-        }
-        return true;
     }
 }

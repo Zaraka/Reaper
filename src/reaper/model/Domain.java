@@ -1,11 +1,7 @@
 package reaper.model;
 
+import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
-import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
-import com.tinkerpop.blueprints.impls.orient.OrientVertex;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.IntegerProperty;
@@ -14,10 +10,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
-import org.jsoup.UnsupportedMimeTypeException;
 import reaper.Reaper;
 
 /**
@@ -33,6 +26,9 @@ public class Domain {
     private final StringProperty hostname;
     private final IntegerProperty maxDownloads;
     private final IntegerProperty maxDepth;
+    private final StringProperty dbHost;
+    private final StringProperty dbUser;
+    private final StringProperty dbPassword;
 
     private final MinerService mining;
 
@@ -43,23 +39,31 @@ public class Domain {
         this.maxDepth = new SimpleIntegerProperty(1);
         this.maxDownloads = new SimpleIntegerProperty(5);
         this.mining = new MinerService();
-
+        this.dbHost = new SimpleStringProperty("remote:localhost/ReaperTest");
+        this.dbPassword = new SimpleStringProperty("admin");
+        this.dbUser = new SimpleStringProperty("admin");
         this.init();
     }
-
-    public Domain(String hostname, int maxDownloads, int maxDepth) {
-        this.resources = FXCollections.observableArrayList();
-        this.links = FXCollections.observableArrayList();
-        this.hostname = new SimpleStringProperty(hostname);
-        this.maxDepth = new SimpleIntegerProperty(maxDepth);
-        this.maxDownloads = new SimpleIntegerProperty(maxDownloads);
-        this.mining = new MinerService();
-
-        this.init();
+    
+    public void dataReset(){
+        if(this.mining.isRunning()){
+            logger.log(Level.WARNING, "Cant clear data while miner is running");
+            return;
+        }
+        
+        OrientGraph graph = new OrientGraph(this.getDbHost(), this.getDbUser(), this.getDbPassword());
+        try {
+            graph.command(new OCommandSQL("TRUNCATE class Resource")).execute();
+            graph.command(new OCommandSQL("TRUNCATE class LinkTo")).execute();
+        } finally {
+            graph.shutdown();
+            logger.log(Level.INFO, "Database truncated");
+        }
     }
 
     private void init() {
-        mining.init(this.getHostname(), this.getMaxDepth());
+        mining.init(this.getHostname(), this.getMaxDepth(), 
+                this.getDbHost(), this.getDbUser(), this.getDbPassword());
         mining.setOnSucceeded((WorkerStateEvent event) -> {
             logger.log(Level.INFO, "Mining finished");
         });
@@ -80,6 +84,7 @@ public class Domain {
 
     public void mineStart(String hostname) {
         if (!this.mining.isRunning()) {
+            logger.log(Level.INFO, "Mining on " + hostname + " started");
             this.clearData();
             this.hostname.set(hostname);
             this.mining.setHostname(hostname);
@@ -94,172 +99,10 @@ public class Domain {
         }
     }
 
-    private static class MinerService extends Service<Void> {
-
-        private String hostname;
-        private int maxDepth;
-        private ObservableList<Link> linksQueue;
-        private HashSet<String> paths;
-        private OrientGraphFactory graphFactory;
-
-        public void init(String hostname, int maxDepth) {
-            this.hostname = hostname;
-            this.maxDepth = maxDepth;
-            this.linksQueue = FXCollections.observableArrayList();
-            this.paths = new HashSet<>();
-            this.graphFactory = new OrientGraphFactory("remote:localhost/ReaperTest", "admin", "admin").setupPool(1, 10);
-        }
-
-        public void setHostname(String hostname) {
-            this.hostname = hostname;
-        }
-
-        public void setMaxDepth(int maxDepth) {
-            this.maxDepth = maxDepth;
-        }
-
-        private Link popLink() {
-            if (this.linksQueue.size() < 1) {
-                return null;
-            }
-            Link result = this.linksQueue.get(0);
-            this.linksQueue.remove(0);
-            return result;
-        }
-
-        
-        private void createSingleVertex(Resource res){
-            OrientGraph graph = graphFactory.getTx();
-            try {
-                OrientVertex vertex = graph.addVertex("class:Resource", 
-                        "url", res.getURL().toString(), "code", res.getCode(), 
-                        "downloadTime",  res.getDownloadTime() , "mimeType", res.getMimeType(),
-                        "type", res.getType().toString());
-                res.setVertexID(vertex.getIdentity());
-            } finally {
-                graph.shutdown();
-            }
-        }
-
-        private void linkTransaction(Link link) {
-            OrientGraph graph = graphFactory.getTx();
-            try {
-                OrientVertex from, to;
-                if(link.getFromResource().getVertexID() == null){
-                    from = graph.addVertex("class:Resource", "url", link.getFromResource().getURL().toString(), 
-                            "code", link.getFromResource().getCode(), 
-                            "downloadTime",  link.getFromResource().getDownloadTime() , 
-                            "mimeType", link.getFromResource().getMimeType(),
-                            "type", link.getFromResource().getType().toString());
-                    link.getFromResource().setVertexID(from.getIdentity());
-                } else {
-                    from = graph.getVertex(link.getFromResource().getVertexID());
-                }
-                
-                if(link.getToResource().getVertexID() == null){
-                    to = graph.addVertex("class:Resource", "url", link.getToResource().getURL().toString(),
-                            "code", link.getToResource().getCode(), 
-                            "downloadTime",  link.getFromResource().getDownloadTime() , 
-                            "mimeType", link.getToResource().getMimeType(),
-                            "type", link.getToResource().getType().toString());
-                    link.getToResource().setVertexID(to.getIdentity());
-                } else {
-                    to = graph.getVertex(link.getToResource().getVertexID());
-                }
-                from.addEdge("LinkTo", to, null, null, "path", link.getLink());
-            } finally {
-                graph.shutdown();
-            }                    
-        }
-        
-        private void outsideLinkTransaction(Link link){
-            OrientGraph graph = graphFactory.getTx();
-            try {
-                OrientVertex from, to;
-                if(link.getFromResource().getVertexID() == null){
-                    from = graph.addVertex("class:Resource", "url", link.getFromResource().getURL().toString(), "code", link.getFromResource().getCode(), "downloadTime",  link.getFromResource().getDownloadTime() , "mimeType", link.getFromResource().getMimeType());
-                    link.getFromResource().setVertexID(from.getIdentity());
-                } else {
-                    from = graph.getVertex(link.getFromResource().getVertexID());
-                }
-                
-                
-                
-                //from.addEdge("LinkTo", to, null, null, "path", link.getLink());
-            } finally {
-                graph.shutdown();
-            }
-        }
-
-        @Override
-        protected Task<Void> createTask() {
-            return new Task<Void>() {
-
-                @Override
-                protected Void call() throws Exception {
-                    String url = hostname;
-                    if (!url.matches("^.*:\\/\\/.*$")) {
-                        url = "http://" + url;
-                        System.out.println("You should provide protocol as well. Default proctol http is used.");
-
-                    }
-
-                    try {
-                        ResourceDom root = new ResourceDom(url, 0, maxDepth, null);
-                        paths.add(root.getURL().toString());
-                        linksQueue.addAll(root.links);
-                        createSingleVertex(root);
-                    } catch (UnsupportedMimeTypeException | MalformedURLException ex) {
-                        throw ex;
-                    }
-
-                    Link link;
-                    while ((link = popLink()) != null) {
-                        URL linkUrl = new URL(link.getFromResource().getURL(), link.getLink());
-                        if(!link.getFromResource().getURL().getHost().equals(linkUrl.getHost())){
-                            
-                        }
-                        if (paths.contains(linkUrl.toString())) {
-                            continue;
-                        } else {
-                            paths.add(linkUrl.toString());
-                        }
-                        try {
-                            ResourceDom child = new ResourceDom(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
-                            if (child.getDepth() < maxDepth) {
-                                linksQueue.addAll(child.links);
-                            }
-                            link.setToResource(child);
-                            linkTransaction(link);
-                        } catch (UnsupportedMimeTypeException ex) {
-                            try {
-                                ResourceFile child = new ResourceFile(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
-                                if (child.getDepth() < maxDepth) {
-                                    linksQueue.addAll(child.links);
-                                }
-                                link.setToResource(child);
-                                linkTransaction(link);
-
-                            } catch (MalformedURLException ex1) {
-                                throw ex1;
-                            }
-                        } catch (MalformedURLException ex) {
-                            throw ex;
-                        }
-                    }
-                    return null;
-                }
-
-            };
-        }
-
-    }
-
     private void clearData() {
-        logger.log(Level.FINE, "Clearing data");
-        this.resources.clear();
     }
 
+    //GETs & SETs
     public ObservableList<Resource> resources() {
         return this.resources;
     }
@@ -299,5 +142,40 @@ public class Domain {
     public final void setMaxDepth(int maxDepth) {
         this.maxDepth.set(maxDepth);
     }
+    
+    public StringProperty dbHost(){
+        return this.dbHost;
+    }
+    
+    public StringProperty dbUser(){
+        return this.dbUser;
+    }
+    
+    public StringProperty dbPassword(){
+        return this.dbPassword;
+    }
+    
+    public String getDbHost(){
+        return this.dbHost.get();
+    }
+    
+    public String getDbUser(){
+        return this.dbUser.get();
+    }
+    
+    public String getDbPassword(){
+        return this.dbPassword.get();
+    }
+    
+    public void setDbHost(String host){
+        this.dbHost.set(host);
+    }
 
+    public void setDbUser(String user){
+        this.dbUser.set(user);
+    }
+    
+    public void setDbPassword(String password){
+        this.dbPassword.set(password);
+    }
 }

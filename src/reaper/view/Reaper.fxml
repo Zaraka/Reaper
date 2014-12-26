@@ -18,9 +18,9 @@
               <items>
                   <HBox>
                      <children>
-                        <TextField fx:id="hostname" onAction="#startMining" prefHeight="25.0" prefWidth="195.0" />
                         <Button fx:id="domainButton" mnemonicParsing="false" onAction="#startMining" text="Start" />
                       <Button fx:id="stopButton" mnemonicParsing="false" onAction="#stopMining" text="Stop" />
+                        <Button fx:id="clearButton" mnemonicParsing="false" onAction="#clearData" text="Clear" />
                      </children>
                   </HBox>
               </items>
@@ -31,6 +31,52 @@
                      <children>
                         <TabPane fx:id="tabPane" prefHeight="303.0" prefWidth="828.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <tabs>
+                              <Tab text="Options">
+                                 <content>
+                                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                       <children>
+                                          <VBox layoutX="103.0" layoutY="28.0" prefHeight="440.0" prefWidth="828.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                             <children>
+                                                <GridPane>
+                                                  <columnConstraints>
+                                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                  </columnConstraints>
+                                                  <rowConstraints>
+                                                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                  </rowConstraints>
+                                                   <children>
+                                                      <Label text="Number of max Downloads" GridPane.rowIndex="1" />
+                                                      <Label text="Depth to search" GridPane.rowIndex="2" />
+                                                      <TextField fx:id="maxDownloads" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                                      <TextField fx:id="maxDepth" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                      <Label prefHeight="17.0" prefWidth="196.0" text="Create Sitemap Graph" GridPane.rowIndex="3" />
+                                                      <CheckBox fx:id="displayGraph" mnemonicParsing="false" onAction="#onChangeDisplayGraph" selected="true" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                                      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Database" wrappingWidth="226.64990234375" GridPane.rowIndex="4" />
+                                                      <Label text="Host" GridPane.rowIndex="5" />
+                                                      <Label text="User" GridPane.rowIndex="6" />
+                                                      <Label text="Password" GridPane.rowIndex="7" />
+                                                      <TextField fx:id="databaseHost" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                                                      <PasswordField fx:id="databasePassword" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                                                      <TextField fx:id="databaseUser" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                                                      <TextField fx:id="hostname" onAction="#startMining" prefHeight="25.0" prefWidth="195.0" GridPane.columnIndex="1" />
+                                                      <Label text="Domain" />
+                                                   </children>
+                                                </GridPane>
+                                             </children>
+                                          </VBox>
+                                       </children></AnchorPane>
+                                 </content>
+                              </Tab>
                               <Tab text="Resources">
                                 <content>
                                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
@@ -52,44 +98,49 @@
                               <content>
                                 <AnchorPane>
                                        <children>
-                                          <ScrollPane hbarPolicy="NEVER" prefHeight="500.0" prefWidth="947.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                          <ScrollPane fitToWidth="true" hbarPolicy="NEVER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                             <content>
                                               <AnchorPane>
                                                    <children>
-                                                      <VBox fx:id="detailsVBox" prefHeight="900.0" prefWidth="734.0">
+                                                      <VBox prefHeight="492.0" prefWidth="945.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                                          <children>
-                                                            <GridPane>
+                                                            <GridPane prefHeight="300.0">
                                                                <children>
-                                                                  <Label fx:id="url" prefHeight="17.0" prefWidth="256.0" GridPane.columnIndex="1" />
-                                                                  <Label text="Path" />
+                                                                  <Label fx:id="resourceURL" prefHeight="17.0" prefWidth="256.0" GridPane.columnIndex="1" />
+                                                                  <Label text="Source" />
                                                                   <Label text="Mime-Type" GridPane.rowIndex="1" />
                                                                   <Label text="Status Code" GridPane.rowIndex="2" />
-                                                                  <Label fx:id="mimeTypeProperty" prefHeight="15.0" prefWidth="258.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                                                                  <Label fx:id="statusCodeProperty" prefHeight="15.0" prefWidth="261.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                                  <Label fx:id="resourceMimeTypeProperty" prefHeight="286.0" prefWidth="258.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                                                  <Label fx:id="resourceStatusCodeProperty" prefHeight="15.0" prefWidth="261.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                                  <Label text="Download Time" GridPane.columnIndex="2" />
+                                                                  <Label text="Type" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                                                                  <Label fx:id="resourceDownloadTimeProperty" prefHeight="15.0" prefWidth="229.0" GridPane.columnIndex="3" />
+                                                                  <Label fx:id="resourceType" prefHeight="15.0" prefWidth="227.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
                                                                </children>
                                                                <columnConstraints>
-                                                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="338.0" minWidth="10.0" prefWidth="115.0" />
-                                                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="603.0" minWidth="10.0" prefWidth="603.0" />
+                                                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="338.0" minWidth="0.0" percentWidth="25.0" prefWidth="200.0" />
+                                                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="603.0" minWidth="9.0" percentWidth="25.0" prefWidth="14.0" />
+                                                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="603.0" minWidth="10.0" percentWidth="25.0" prefWidth="603.0" />
+                                                                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="603.0" minWidth="10.0" percentWidth="25.0" prefWidth="603.0" />
                                                                </columnConstraints>
                                                                <rowConstraints>
                                                                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                                                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                                                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                                                </rowConstraints>
-                                                               <VBox.margin>
-                                                                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                                                               </VBox.margin>
                                                             </GridPane>
                                                             <TableView fx:id="urlTable">
                                                                <columns>
                                                                   <TableColumn fx:id="urlColumn" prefWidth="414.0" text="Path" />
+                                                                  <TableColumn fx:id="typeColumn" prefWidth="184.0" text="Type" />
+                                                                  <TableColumn fx:id="countColumn" prefWidth="88.0" text="Count" />
                                                                </columns>
                                                             </TableView>
                                                             <TableView fx:id="formTable">
-                                                              <columns>
-                                                                <TableColumn fx:id="formActionColumn" prefWidth="150.0" text="Action" />
-                                                                <TableColumn minWidth="0.0" prefWidth="172.0" text="Method" />
-                                                              </columns>
+                                                               <columns>
+                                                                  <TableColumn fx:id="formActionColumn" prefWidth="150.0" text="Action" />
+                                                                  <TableColumn minWidth="0.0" prefWidth="172.0" text="Method" />
+                                                               </columns>
                                                             </TableView>
                                                          </children>
                                                       </VBox>
@@ -109,38 +160,6 @@
                                        </children></AnchorPane>
                               </content>
                             </Tab>
-                              <Tab text="Options">
-                                 <content>
-                                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
-                                       <children>
-                                          <VBox layoutX="103.0" layoutY="28.0" prefHeight="440.0" prefWidth="828.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                             <children>
-                                                <GridPane>
-                                                  <columnConstraints>
-                                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                                  </columnConstraints>
-                                                  <rowConstraints>
-                                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                                  </rowConstraints>
-                                                   <children>
-                                                      <Label text="Number of max Downloads" />
-                                                      <Label text="Depth to search" GridPane.rowIndex="1" />
-                                                      <TextField fx:id="maxDownloads" GridPane.columnIndex="1" />
-                                                      <TextField fx:id="maxDepth" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                                                      <Label prefHeight="17.0" prefWidth="196.0" text="Create Sitemap Graph" GridPane.rowIndex="2" />
-                                                      <CheckBox fx:id="displayGraph" mnemonicParsing="false" onAction="#onChangeDisplayGraph" selected="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                                                   </children>
-                                                </GridPane>
-                                             </children>
-                                          </VBox>
-                                       </children></AnchorPane>
-                                 </content>
-                              </Tab>
                           </tabs>
                         </TabPane>
                      </children>

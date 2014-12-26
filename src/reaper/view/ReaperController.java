@@ -5,6 +5,7 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -16,6 +17,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
@@ -56,17 +58,25 @@ public class ReaperController implements Initializable {
     @FXML
     private TableView<Resource> resourceTable;
     @FXML
-    private Label url;
+    private Label resourceURL;
     @FXML
-    private Label statusCodeProperty;
+    private Label resourceStatusCodeProperty;
     @FXML
-    private Label mimeTypeProperty;
+    private Label resourceMimeTypeProperty;
+    @FXML
+    private Label resourceDownloadTime;
+    @FXML
+    private Label resourceType;
     @FXML
     private TextFlow console;
     @FXML
     private TableView<Link> urlTable;
     @FXML
     private TableColumn<Link, String> urlColumn;
+    @FXML
+    private TableColumn<Link, String> typeColumn;
+    @FXML
+    private TableColumn<Link, Integer> countColumn;
     @FXML
     private TableColumn<Resource, String> resourcePathColumn;
     @FXML
@@ -97,12 +107,17 @@ public class ReaperController implements Initializable {
     private VBox detailsVBox;
     @FXML
     private CheckBox displayGraph;
+    @FXML
+    private TextField databaseHost;
+    @FXML
+    private TextField databaseUser;
+    @FXML
+    private PasswordField databasePassword;
 
     @FXML
     private void startMining(ActionEvent event) {
         if (!"".equals(hostname.getText())) {
-            Domain data = reaper.getDomain();
-            data.mineStart(hostname.getText());
+            reaper.getDomain().mineStart(hostname.getText());
         } else {
             logger.log(Level.SEVERE, "You need to specify hostname.");
         }
@@ -110,8 +125,12 @@ public class ReaperController implements Initializable {
 
     @FXML
     private void stopMining(ActionEvent event) {
-        Domain data = reaper.getDomain();
-        data.mineStop();
+        reaper.getDomain().mineStop();
+    }
+    
+    @FXML
+    private void clearData(ActionEvent event){
+        reaper.getDomain().dataReset();
     }
 
     @FXML
@@ -135,7 +154,6 @@ public class ReaperController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         logger.addHandler(new FlowHandler(this.console));
-        logger.log(Level.INFO, "Starting");
 
         WebEngine engine = sitemap.getEngine();
         engine.setOnError((WebErrorEvent event) -> {
@@ -156,10 +174,6 @@ public class ReaperController implements Initializable {
         });
     }
 
-    private void showResourceDetails(Resource res) {
-        this.url.setText(res.getPath());
-    }
-
     public void setReaper(Reaper reaper) {
         //bind data
         this.reaper = reaper;
@@ -168,6 +182,10 @@ public class ReaperController implements Initializable {
         this.maxDownloads.textProperty().bindBidirectional(dom.maxDownloadsProperty(), new NumberStringConverter());
         this.maxDepth.textProperty().bindBidirectional(dom.maxDepthProperty(), new NumberStringConverter());
 
+        this.databaseHost.textProperty().bindBidirectional(dom.dbHost());
+        this.databasePassword.textProperty().bindBidirectional(dom.dbPassword());
+        this.databaseUser.textProperty().bindBidirectional(dom.dbUser());
+        
         dom.resources().addListener((ListChangeListener.Change<? extends Resource> change) -> {
             if (displayGraph.isSelected()) {
                 while (change.next()) {
@@ -234,19 +252,19 @@ public class ReaperController implements Initializable {
 
     private void showResource(Resource resource) {
         if (resource != null) {
-            url.setText(resource.getPath());
-            urlTable.setItems(resource.links());
+            resourceURL.setText(resource.getPath());
+            urlTable.setItems(FXCollections.observableArrayList(resource.links()));
             urlColumn.setCellValueFactory(cellData -> cellData.getValue().linkProperty());
-            mimeTypeProperty.setText(resource.mimeTypeProperty().get());
-            statusCodeProperty.setText(Integer.toString(resource.codeProperty().get()));
-
+            resourceMimeTypeProperty.setText(resource.mimeTypeProperty().get());
+            resourceStatusCodeProperty.setText(Integer.toString(resource.codeProperty().get()));
+            resourceDownloadTime.setText(String.valueOf(resource.getDownloadTime()));
+            resourceType.setText(resource.getType().toString());
         } else {
-            url.setText("");
+            resourceURL.setText("");
         }
     }
 
     private void addEdge(Link link) {
-        //logger.log(Level.FINE, link.getEdgeFormat() + " " + link.getFromResource().getPath() + " " + link.getToResource().getPath());
         if (link.getEdgeFormat() != null) {
             String edge = "addEdgeIfNotExists('" + link.getEdgeFormat() + "', '" + link.getFromResource().getPath() + "', '" + link.getToResource().getPath() + "');";
             try {

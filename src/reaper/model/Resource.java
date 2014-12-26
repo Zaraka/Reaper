@@ -2,16 +2,16 @@ package reaper.model;
 
 import com.orientechnologies.orient.core.id.ORID;
 import java.net.URL;
+import java.util.ArrayList;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.StringProperty;
-import javafx.collections.ObservableList;
 
 /**
  *
  * @author zaraka
  */
 public interface Resource {
-    public ObservableList<Link> links();
+    public ArrayList<Link> links();
     public String getPath();
     public URL getURL();
     public int getDepth();

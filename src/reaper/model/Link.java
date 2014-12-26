@@ -19,22 +19,42 @@ public class Link {
     private Resource fromResource;
     private Resource toResource;
     private IntegerProperty count;
+    private LinkType type;
 
     Link() {
         this.link = new SimpleStringProperty("undefined");
+        this.fromResource = null;
+        this.toResource = null;
+        this.count = new SimpleIntegerProperty(0);
+        this.type = LinkType.UNDEFINED;
     }
 
     Link(String link, Resource source) {
         this.link = new SimpleStringProperty(link);
         this.count = new SimpleIntegerProperty(0);
         this.fromResource = source;
+        this.type = LinkType.UNDEFINED;
+        this.fromResource = null;
+        this.toResource = null;
     }
     
-    Link(String link, Resource source, Resource destination){
+    Link(String link, Resource source, LinkType type) {
+        this.link = new SimpleStringProperty(link);
+        this.count = new SimpleIntegerProperty(0);
+        this.fromResource = source;
+        this.type = type;
+        this.fromResource = null;
+        this.toResource = null;
+    }
+    
+    Link(String link, Resource source, Resource destination, LinkType type){
         this.link = new SimpleStringProperty(link);
         this.count = new SimpleIntegerProperty(0);
         this.fromResource = source;
         this.toResource = destination;
+        this.type = type;
+        this.fromResource = null;
+        this.toResource = null;
     }
 
     public void setLink(String path) {
@@ -78,6 +98,18 @@ public class Link {
     
     public void setCount(int count){
         this.count.set(count);
+    }
+    
+    public void addCount(){
+        this.setCount(this.getCount() + 1);
+    }
+    
+    public LinkType getType(){
+        return this.type;
+    }
+    
+    public void setType(LinkType type){
+        this.type = type;
     }
     
     @Override
