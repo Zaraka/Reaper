@@ -116,12 +116,11 @@ public class MinerService extends Service<Void> {
                     URL uURL = new URL(url);
                     ResourceDom root = new ResourceDom(uURL, 0, maxDepth, null);
                     paths.add(root.getURL().toString());
-                    linksQueue.addAll(root.links());
+                    linksQueue.addAll(root.links());                    
                     createSingleVertex(root);
                 } catch (UnsupportedMimeTypeException | MalformedURLException ex) {
                     throw ex;
                 }
-
                 Link link;
                 while ((link = popLink()) != null) {
                     URL linkUrl = new URL(link.getFromResource().getURL(), link.getLink());

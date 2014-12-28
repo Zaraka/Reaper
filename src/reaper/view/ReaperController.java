@@ -199,7 +199,7 @@ public class ReaperController implements Initializable {
             @Override
             public void handle(Event event) {
                 Resource res = resourceTable.getSelectionModel().getSelectedItem();
-                //showResource(res);
+                createResourcePane(res);
                 SingleSelectionModel<Tab> selectionModel = tabPane.getSelectionModel();
                 selectionModel.select(detailsTab);
             }
@@ -211,7 +211,7 @@ public class ReaperController implements Initializable {
             public void handle(MouseEvent event) {
                 if (event.getClickCount() == 2) {
                     Resource res = (Resource) resourceTable.getItems().get(((TableCell) event.getSource()).getIndex());
-                    //showResource(res);
+                    createResourcePane(res);
                     SingleSelectionModel<Tab> selectionModel = tabPane.getSelectionModel();
                     selectionModel.select(detailsTab);
                 }
@@ -227,7 +227,11 @@ public class ReaperController implements Initializable {
     private void createResourcePane(Resource res){
         try{
             detailsPanel.getChildren().clear();
-            detailsPanel.getChildren().add(FXMLLoader.load(resourceToFXML(res)));
+            FXMLLoader loader = new FXMLLoader(resourceToFXML(res));
+            detailsPanel.getChildren().add(loader.load());
+            ResourceController controller = loader.<ResourceController>getController();
+            controller.loadResource(res);
+            
         } catch( IOException ex){
             logger.log(Level.SEVERE, "Couldn't change Panel, probably wrong url.");
         }

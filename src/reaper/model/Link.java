@@ -18,7 +18,7 @@ public class Link {
     private final StringProperty link;
     private Resource fromResource;
     private Resource toResource;
-    private IntegerProperty count;
+    private final IntegerProperty count;
     private LinkType type;
 
     Link() {
@@ -34,7 +34,7 @@ public class Link {
         this.count = new SimpleIntegerProperty(0);
         this.fromResource = source;
         this.type = LinkType.UNDEFINED;
-        this.fromResource = null;
+        this.fromResource = source;
         this.toResource = null;
     }
     
@@ -43,7 +43,7 @@ public class Link {
         this.count = new SimpleIntegerProperty(0);
         this.fromResource = source;
         this.type = type;
-        this.fromResource = null;
+        this.fromResource = source;
         this.toResource = null;
     }
     
@@ -53,8 +53,8 @@ public class Link {
         this.fromResource = source;
         this.toResource = destination;
         this.type = type;
-        this.fromResource = null;
-        this.toResource = null;
+        this.fromResource = source;
+        this.toResource = destination;
     }
 
     public void setLink(String path) {

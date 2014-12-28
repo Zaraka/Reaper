@@ -1,7 +1,10 @@
 package reaper.model;
 
 import com.orientechnologies.orient.core.sql.OCommandSQL;
+import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.IntegerProperty;
@@ -29,6 +32,7 @@ public class Domain {
     private final StringProperty dbHost;
     private final StringProperty dbUser;
     private final StringProperty dbPassword;
+    private Map<String, Resource> tmpResources;
 
     private final MinerService mining;
 
@@ -42,6 +46,8 @@ public class Domain {
         this.dbHost = new SimpleStringProperty("remote:localhost/ReaperTest");
         this.dbPassword = new SimpleStringProperty("admin");
         this.dbUser = new SimpleStringProperty("admin");
+        this.tmpResources = new HashMap();
+        
         this.init();
     }
     
@@ -53,11 +59,25 @@ public class Domain {
         
         OrientGraph graph = new OrientGraph(this.getDbHost(), this.getDbUser(), this.getDbPassword());
         try {
-            graph.command(new OCommandSQL("TRUNCATE class Resource")).execute();
-            graph.command(new OCommandSQL("TRUNCATE class LinkTo")).execute();
+            long resourcesModified = graph.command(new OCommandSQL("TRUNCATE class Resource")).execute();
+            logger.log(Level.INFO, String.valueOf(resourcesModified) + " Resources deleted.");
+            long linksModified = graph.command(new OCommandSQL("TRUNCATE class LinkTo")).execute();
+            logger.log(Level.INFO, String.valueOf(linksModified) + " Links deleted.");
         } finally {
             graph.shutdown();
             logger.log(Level.INFO, "Database truncated");
+        }
+    }
+    
+    public void loadAll(){
+        OrientGraph graph = new OrientGraph(this.getDbHost(), this.getDbUser(), this.getDbPassword());
+        try {
+            for(Vertex ver : graph.getVerticesOfClass("Resource")){
+                logger.log(Level.FINE, ver.getProperty("url").toString());
+                
+            }
+        } finally {
+            graph.shutdown();
         }
     }
 
@@ -66,6 +86,7 @@ public class Domain {
                 this.getDbHost(), this.getDbUser(), this.getDbPassword());
         mining.setOnSucceeded((WorkerStateEvent event) -> {
             logger.log(Level.INFO, "Mining finished");
+            this.loadAll();
         });
         mining.setOnFailed((WorkerStateEvent event) -> {
             logger.log(Level.SEVERE, "Mining failed");

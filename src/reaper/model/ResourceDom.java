@@ -1,5 +1,6 @@
 package reaper.model;
 
+import com.tinkerpop.blueprints.Vertex;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -54,6 +55,12 @@ public class ResourceDom extends ResourceAbstract {
         } catch (UnsupportedMimeTypeException ex) {
             throw ex;
         }
+    }
+    
+    ResourceDom(Vertex vertex){
+        super();
+        
+        
     }
 
     private void scratchURLs() {
