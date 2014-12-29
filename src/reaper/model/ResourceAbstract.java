@@ -1,6 +1,9 @@
 package reaper.model;
 
 import com.orientechnologies.orient.core.id.ORID;
+import com.orientechnologies.orient.core.id.ORecordId;
+import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -54,6 +57,21 @@ abstract class ResourceAbstract implements Resource{
         this.mimeType = new SimpleStringProperty("");
         this.downloadTime = 0;
         this.orid = null;
+    }
+    
+    ResourceAbstract(Vertex vertex) throws MalformedURLException{
+        this.parent = null;
+        this.state = ResourceState.UNITIALIZED;
+        this.depth = new SimpleIntegerProperty(0);
+        this.maxDepth = new SimpleIntegerProperty(0);
+        this.links = new HashMap<>();
+        this.type = ResourceType.UNDEFINED;
+        
+        this.orid = (ORID)vertex.getId();
+        this.url = new URL(vertex.getProperty("url").toString());
+        this.code = new SimpleIntegerProperty((int)vertex.getProperty("code"));
+        this.downloadTime = (long)vertex.getProperty("downloadTime");
+        this.mimeType = new SimpleStringProperty(vertex.getProperty("mimeType").toString());
     }
     
     @Override

@@ -1,5 +1,6 @@
 package reaper.model;
 
+import com.tinkerpop.blueprints.Vertex;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Logger;
@@ -14,6 +15,12 @@ public class ResourceFile extends ResourceAbstract {
     
     ResourceFile(URL url, int depth, int maxDepth, Resource parent) throws MalformedURLException {
         super(url, depth, maxDepth, parent);
+        this.type = ResourceType.FILE;
+    }
+    
+    ResourceFile(Vertex vertex) throws MalformedURLException{
+        super(vertex);
+        
         this.type = ResourceType.FILE;
     }
 }

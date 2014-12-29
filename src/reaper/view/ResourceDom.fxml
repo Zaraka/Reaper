@@ -8,9 +8,9 @@
 
 <StackPane layoutX="20.0" layoutY="20.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="reaper.view.ResourceDomController">
     <children>
-        <VBox prefHeight="492.0" prefWidth="945.0">
+        <VBox>
             <children>
-                <GridPane prefHeight="300.0">
+                <GridPane VBox.vgrow="NEVER">
                     <children>
                         <Label fx:id="resourceURL" prefHeight="17.0" prefWidth="256.0" GridPane.columnIndex="1" />
                         <Label text="Source" />
@@ -20,7 +20,7 @@
                         <Label fx:id="resourceStatusCodeProperty" prefHeight="15.0" prefWidth="261.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                         <Label text="Download Time" GridPane.columnIndex="2" />
                         <Label text="Type" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                        <Label fx:id="resourceDownloadTimeProperty" prefHeight="15.0" prefWidth="229.0" GridPane.columnIndex="3" />
+                        <Label fx:id="resourceDownloadTime" prefHeight="15.0" prefWidth="229.0" GridPane.columnIndex="3" />
                         <Label fx:id="resourceType" prefHeight="15.0" prefWidth="227.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
                     </children>
                     <columnConstraints>
@@ -35,7 +35,7 @@
                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                 </GridPane>
-                <TableView fx:id="urlTable">
+                <TableView fx:id="urlTable" VBox.vgrow="NEVER">
                     <columns>
                         <TableColumn fx:id="urlColumn" prefWidth="414.0" text="Path" />
                         <TableColumn fx:id="typeColumn" prefWidth="184.0" text="Type" />

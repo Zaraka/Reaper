@@ -3,6 +3,8 @@ package reaper.model;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -13,6 +15,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.concurrent.WorkerStateEvent;
 import reaper.Reaper;
 
@@ -32,7 +35,7 @@ public class Domain {
     private final StringProperty dbHost;
     private final StringProperty dbUser;
     private final StringProperty dbPassword;
-    private Map<String, Resource> tmpResources;
+    private final Map<String, Resource> tmpResources;
 
     private final MinerService mining;
 
@@ -72,8 +75,14 @@ public class Domain {
     public void loadAll(){
         OrientGraph graph = new OrientGraph(this.getDbHost(), this.getDbUser(), this.getDbPassword());
         try {
-            for(Vertex ver : graph.getVerticesOfClass("Resource")){
-                logger.log(Level.FINE, ver.getProperty("url").toString());
+            for(Vertex ver : graph.getVerticesOfClass("Resource", false)){
+                try {
+                    Resource res = ResourceFactory.resourceFromVector(ver);
+                    //this.tmpResources.put(res.getURL().toString(), res);
+                    this.resources.add(res);
+                } catch (MalformedURLException ex) {
+                    logger.log(Level.SEVERE, ex.toString());
+                }
                 
             }
         } finally {
@@ -95,7 +104,7 @@ public class Domain {
             }
         });
         mining.setOnRunning((WorkerStateEvent event) -> {
-            logger.log(Level.INFO, "Mining started");
+            logger.log(Level.INFO, "Mining service started");
         });
         mining.setOnCancelled((WorkerStateEvent event) -> {
             logger.log(Level.INFO, "Mining canceled");
@@ -105,7 +114,7 @@ public class Domain {
 
     public void mineStart(String hostname) {
         if (!this.mining.isRunning()) {
-            logger.log(Level.INFO, "Mining on " + hostname + " started");
+            logger.log(Level.INFO, "Request mining on " + hostname);
             this.clearData();
             this.hostname.set(hostname);
             this.mining.setHostname(hostname);
@@ -125,6 +134,7 @@ public class Domain {
 
     //GETs & SETs
     public ObservableList<Resource> resources() {
+        //return new ArrayList<>(this.tmpResources.values());
         return this.resources;
     }
 

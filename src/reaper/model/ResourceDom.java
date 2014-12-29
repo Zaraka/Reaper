@@ -57,9 +57,11 @@ public class ResourceDom extends ResourceAbstract {
         }
     }
     
-    ResourceDom(Vertex vertex){
-        super();
+    ResourceDom(Vertex vertex) throws MalformedURLException{
+        super(vertex);
         
+        this.forms = new ArrayList<>();
+        this.type = ResourceType.DOM;
         
     }
 
