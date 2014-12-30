@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="reaper.view.ResourceDomController">
+   <children>
+      <VBox>
+         <children>
+            <GridPane VBox.vgrow="NEVER">
+               <children>
+                  <Label fx:id="resourceURL" prefHeight="17.0" prefWidth="256.0" GridPane.columnIndex="1" />
+                  <Label text="Source" />
+                  <Label text="Type" GridPane.columnIndex="2" />
+                  <Label fx:id="resourceType" prefHeight="15.0" prefWidth="227.0" GridPane.columnIndex="3" />
+               </children>
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="338.0" minWidth="0.0" percentWidth="25.0" prefWidth="200.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="603.0" minWidth="9.0" percentWidth="25.0" prefWidth="14.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="603.0" minWidth="10.0" percentWidth="25.0" prefWidth="603.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="603.0" minWidth="10.0" percentWidth="25.0" prefWidth="603.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+            </GridPane>
+         </children>
+      </VBox>
+   </children>
+</StackPane>

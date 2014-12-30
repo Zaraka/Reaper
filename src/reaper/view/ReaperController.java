@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ListChangeListener;
+import javafx.collections.MapChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -16,6 +17,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
@@ -40,6 +42,7 @@ import reaper.Reaper;
 import reaper.model.Domain;
 import reaper.model.Link;
 import reaper.model.Resource;
+import reaper.model.ResourceType;
 
 /**
  *
@@ -89,6 +92,12 @@ public class ReaperController implements Initializable {
     private PasswordField databasePassword;
     @FXML
     private StackPane detailsPanel;
+    @FXML
+    private Label overviewDomainLabel;
+    @FXML
+    private Label overviewResourceLabel;
+    @FXML
+    private Label overviewLinksLabel;
 
     @FXML
     private void startMining(ActionEvent event) {
@@ -103,19 +112,19 @@ public class ReaperController implements Initializable {
     private void stopMining(ActionEvent event) {
         reaper.getDomain().mineStop();
     }
-    
+
     @FXML
-    private void clearData(ActionEvent event){
+    private void clearData(ActionEvent event) {
         reaper.getDomain().dataReset();
     }
 
     @FXML
     private void onChangeDisplayGraph(ActionEvent event) {
         if (displayGraph.isSelected()) {
-            for(Resource res : reaper.getDomain().resources()){
+            for (Resource res : reaper.getDomain().resources().values()) {
                 addSitemapNode(res);
             }
-            for(Link link : reaper.getDomain().links()){
+            for (Link link : reaper.getDomain().links()) {
                 addEdge(link);
             }
         } else {
@@ -125,6 +134,16 @@ public class ReaperController implements Initializable {
                 logger.log(Level.WARNING, ex.toString());
             }
         }
+    }
+
+    @FXML
+    private void overviewGetRoot(ActionEvent event) {
+        reaper.getDomain().loadRoot();
+    }
+
+    @FXML
+    private void overviewLoadAll(ActionEvent event) {
+        reaper.getDomain().loadAll();
     }
 
     @Override
@@ -161,19 +180,15 @@ public class ReaperController implements Initializable {
         this.databaseHost.textProperty().bindBidirectional(dom.dbHost());
         this.databasePassword.textProperty().bindBidirectional(dom.dbPassword());
         this.databaseUser.textProperty().bindBidirectional(dom.dbUser());
-        
-        dom.resources().addListener((ListChangeListener.Change<? extends Resource> change) -> {
+
+        dom.resources().addListener((MapChangeListener.Change<? extends String, ? extends Resource> change) -> {
             if (displayGraph.isSelected()) {
-                while (change.next()) {
-                    if (change.wasAdded()) {
-                        for (Resource res : change.getAddedSubList()) {
-                            addSitemapNode(res);
-                        }
-                    } else if (change.wasRemoved()) {
-                        for (Resource res : change.getRemoved()) {
-                            removeSitemapNode(res);
-                        }
-                    }
+                if (change.wasRemoved()) {
+                        removeSitemapNode(change.getValueRemoved());
+                    
+                }
+                if (change.wasAdded()) {
+                        addSitemapNode(change.getValueAdded());
                 }
             }
         });
@@ -188,7 +203,7 @@ public class ReaperController implements Initializable {
             }
         });
 
-        resourceTable.setItems(dom.resources());
+        //resourceTable.setItems(dom.resources());
         resourceTable.setEditable(false);
         resourceCodeColumn.setCellValueFactory(cellData -> cellData.getValue().codeProperty());
         resourceMimeTypeColumn.setCellValueFactory(cellData -> cellData.getValue().mimeTypeProperty());
@@ -225,25 +240,35 @@ public class ReaperController implements Initializable {
         resourceMimeTypeColumn.setCellFactory(cellFactory);
         resourcePathColumn.setCellFactory(cellFactory);
         resourceURLColumn.setCellFactory(cellFactory);
+
+        overviewDomainLabel.textProperty().bindBidirectional(dom.hostnameProperty());
+        overviewResourceLabel.textProperty().bindBidirectional(dom.resourcesCountProperty(), new NumberStringConverter());
+        overviewLinksLabel.textProperty().bindBidirectional(dom.linksCountProperty(), new NumberStringConverter());
     }
-    
-    private void createResourcePane(Resource res){
-        try{
+
+    private void createResourcePane(Resource res) {
+        try {
             detailsPanel.getChildren().clear();
             FXMLLoader loader = new FXMLLoader(resourceToFXML(res));
             detailsPanel.getChildren().add(loader.load());
             ResourceController controller = loader.<ResourceController>getController();
             controller.loadResource(res);
-            
-        } catch( IOException ex){
+
+        } catch (IOException ex) {
             logger.log(Level.SEVERE, "Couldn't change Panel, probably wrong url of FXML file.");
         }
-        
+
     }
 
     private void addEdge(Link link) {
         if (link.getEdgeFormat() != null) {
-            String edge = "addEdgeIfNotExists('" + link.getEdgeFormat() + "', '" + link.getFromResource().getPath() + "', '" + link.getToResource().getPath() + "');";
+            String fromUrl = (link.getFromResource().getType() == ResourceType.OUTSIDE) ? 
+                    link.getFromResource().getURL().toString() : 
+                    link.getFromResource().getPath() ;
+            String toUrl = (link.getToResource().getType() == ResourceType.OUTSIDE) ? 
+                    link.getToResource().getURL().toString() : 
+                    link.getToResource().getPath() ;
+            String edge = "addEdgeIfNotExists('" + link.getEdgeFormat() + "', '" + fromUrl + "', '" + toUrl + "');";
             try {
                 this.sitemap.getEngine().executeScript(edge);
             } catch (JSException ex) {
@@ -255,7 +280,13 @@ public class ReaperController implements Initializable {
     }
 
     private void addSitemapNode(Resource resource) {
-        String script = "addResourceIfNotExists('" + resource.getPath() + "', '" + resource.getType().getGroup() + "');";
+        String path;
+        if(resource.getType() == ResourceType.OUTSIDE){
+            path = resource.getURL().toString();
+        } else {
+            path = resource.getPath();
+        }
+        String script = "addResourceIfNotExists('" + path + "', '" + resource.getType().getGroup() + "');";
         try {
             this.sitemap.getEngine().executeScript(script);
         } catch (JSException ex) {
@@ -280,9 +311,9 @@ public class ReaperController implements Initializable {
             logger.log(Level.WARNING, ex.toString());
         }
     }
-    
-    private URL resourceToFXML(Resource res){
-        switch(res.getType()){
+
+    private URL resourceToFXML(Resource res) {
+        switch (res.getType()) {
             case DOM:
                 return getClass().getResource("ResourceDom.fxml");
             case FILE:

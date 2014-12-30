@@ -9,21 +9,21 @@ public enum ResourceType {
 
         @Override
         public String getGroup() {
-            return "file";
+            return "FILE";
         }
     },
     DOM {
         
         @Override
         public String getGroup() {
-            return "dom";
+            return "DOM";
         }
     },
     OUTSIDE {
 
         @Override
         public String getGroup() {
-            return "outside";
+            return "OUTSIDE";
         }
         
     },
@@ -31,7 +31,7 @@ public enum ResourceType {
 
         @Override
         public String getGroup() {
-            return "undefined";
+            return "UNDEFINED";
         }
     };
     public abstract String getGroup();

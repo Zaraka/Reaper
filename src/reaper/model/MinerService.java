@@ -27,6 +27,8 @@ public class MinerService extends Service<Void> {
     private ArrayList<Link> linksQueue;
     private HashSet<String> paths;
     private OrientGraphFactory graphFactory;
+    private int resourceCount, linksCount;
+    private Object rootId;
 
     public void init(String hostname, int maxDepth, String dbHost, String dbUser, String dbPass) {
         this.hostname = hostname;
@@ -36,6 +38,10 @@ public class MinerService extends Service<Void> {
         this.databaseHost = dbHost;
         this.databasePassword = dbPass;
         this.databaseUser = dbUser;
+        
+        this.resourceCount = 0;
+        this.linksCount = 0;
+        this.rootId = null;
         
         try {
             this.graphFactory = new OrientGraphFactory(dbHost, dbUser, dbPass).setupPool(1, 10);
@@ -51,6 +57,18 @@ public class MinerService extends Service<Void> {
 
     public void setMaxDepth(int maxDepth) {
         this.maxDepth = maxDepth;
+    }
+    
+    public int getResourceCount(){
+        return this.resourceCount;
+    }
+    
+    public int getLinksCount(){
+        return this.linksCount;
+    }
+    
+    public Object getRootId(){
+        return this.rootId;
     }
 
     private Link popLink() {
@@ -70,6 +88,7 @@ public class MinerService extends Service<Void> {
                     "downloadTime", res.getDownloadTime(), "mimeType", res.getMimeType(),
                     "type", res.getType().toString());
             res.setVertexID(vertex.getIdentity());
+            resourceCount++;
         } finally {
             graph.shutdown();
         }
@@ -86,6 +105,7 @@ public class MinerService extends Service<Void> {
                         "mimeType", link.getFromResource().getMimeType(),
                         "type", link.getFromResource().getType().toString());
                 link.getFromResource().setVertexID(from.getIdentity());
+                resourceCount++;
             } else {
                 from = graph.getVertex(link.getFromResource().getVertexID());
             }
@@ -97,10 +117,13 @@ public class MinerService extends Service<Void> {
                         "mimeType", link.getToResource().getMimeType(),
                         "type", link.getToResource().getType().toString());
                 link.getToResource().setVertexID(to.getIdentity());
+                resourceCount++;
             } else {
                 to = graph.getVertex(link.getToResource().getVertexID());
             }
-            from.addEdge("LinkTo", to, null, null, "path", link.getLink(), "count", link.getCount());
+            from.addEdge("LinkTo", to, null, null, "path", link.getLink(), 
+                    "count", link.getCount(),"type", link.getType().toString());
+            linksCount += link.getCount();
         } finally {
             graph.shutdown();
         }
@@ -125,6 +148,7 @@ public class MinerService extends Service<Void> {
                     paths.add(root.getURL().toString());
                     linksQueue.addAll(root.links());                    
                     createSingleVertex(root);
+                    rootId = root.getVertexID();
                 } catch (UnsupportedMimeTypeException | MalformedURLException ex) {
                     throw ex;
                 }

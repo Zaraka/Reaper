@@ -17,89 +17,110 @@
         </style>
         <script type="text/javascript">
             //nodes
-            function addResourceIfNotExists(name, group){
-                if(name === ""){
+            function addResourceIfNotExists(name, group) {
+                if (name === "") {
                     name = "/";
                 }
                 var id = encodeURIComponent(name);
-                if(nodes.get(id) === null){
-                    nodes.add([{id:id, label:name, group: group}]);
+                if (nodes.get(id) === null) {
+                    nodes.add([{id: id, label: name, group: group}]);
                 }
             }
-            
-            function removeResource(name){
-                
-                if(name === ""){
+
+            function removeResource(name) {
+
+                if (name === "") {
                     name = "/";
                 }
                 var id = encodeURIComponent(name);
                 nodes.remove(id);
             }
-            
+
             //edges
-            function addEdgeIfNotExists(id, from, to){
-                
-                if(from === ""){
+            function addEdgeIfNotExists(id, from, to) {
+
+                if (from === "") {
                     from = "/";
                 }
-                
-                if(to === ""){
+
+                if (to === "") {
                     to = "/";
                 }
                 //alert(id + " " + from + " " + to);
                 var encID = encodeURIComponent(id);
                 var encFrom = encodeURIComponent(from);
                 var encTo = encodeURIComponent(to);
-                if(edges.get(encID) === null){
-                    edges.add([{id:encID, from:encFrom, to:encTo, style:'arrow'}]);
+                if (edges.get(encID) === null) {
+                    edges.add([{id: encID, from: encFrom, to: encTo, style: 'arrow'}]);
                 }
             }
-            
-            function removeEdge(id){
+
+            function removeEdge(id) {
                 edges.remove(id);
             }
-            
-            function resetGraph(){
+
+            function resetGraph() {
                 nodes.clear();
                 edges.clear();
             }
+            
         </script>
     </head>
     <body>
         <div id="container"></div>
-        <script type="text/javascript">            
-        var edges = new vis.DataSet();
-        var nodes = new vis.DataSet();
+        <script type="text/javascript">
+            var edges = new vis.DataSet();
+            var nodes = new vis.DataSet();
 
-        // create a network
-        var container = document.getElementById('container');
-        var data = {
-            nodes: nodes,
-            edges: edges
-        };
-        var options = {
-            width: '100%',
-            height: '100%',
-            clustering: true,
-            groups: {
-                dom: {
-                    shape: 'box',
-                    color: {
-                        border: '#2B7CE9',
-                        background: "#97C2FC"
-                    }
+            // create a network
+            var container = document.getElementById('container');
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
+            var options = {
+                width: '100%',
+                height: '100%',
+                clustering: false,
+                physics: {
+                    barnesHut: {enabled: false},
+                    repulsion: {nodeDistance: 179, springConstant: 0.082, damping: 0.165}
                 },
-                file: {
-                    shape: 'box',
-                    color: {
-                        border: "#FF6600",
-                        background: '#FFCC99'
+                smoothCurves: false,
+                hideEdgesOnDrag: true,
+                groups: {
+                    DOM: {
+                        shape: 'box',
+                        color: {
+                            border: '#2B7CE9',
+                            background: "#97C2FC"
+                        }
+                    },
+                    FILE: {
+                        shape: 'box',
+                        color: {
+                            border: "#FF6600",
+                            background: '#FFCC99'
+                        }
+                    },
+                    OUTSIDE: {
+                        shape: 'box',
+                        fontSize: 10,
+                        color: {
+                            /*border: "#CC0000",
+                             background: "#CC3300", color red*/
+                            border: "#787878",
+                            background: '#B0B0B0'
+                        }
                     }
                 }
+            };
+            var network = new vis.Network(container, data, options);
+            
+            window.onresize = function(event){
+                network.redraw();
             }
-        };
-        var network = new vis.Network(container, data, options);
         </script>
-        
+
     </body>
 </html>

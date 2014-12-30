@@ -25,13 +25,13 @@ public class Link {
         this.link = new SimpleStringProperty("undefined");
         this.fromResource = null;
         this.toResource = null;
-        this.count = new SimpleIntegerProperty(0);
+        this.count = new SimpleIntegerProperty(1);
         this.type = LinkType.UNDEFINED;
     }
 
     Link(String link, Resource source) {
         this.link = new SimpleStringProperty(link);
-        this.count = new SimpleIntegerProperty(0);
+        this.count = new SimpleIntegerProperty(1);
         this.fromResource = source;
         this.type = LinkType.UNDEFINED;
         this.fromResource = source;
@@ -40,7 +40,7 @@ public class Link {
     
     Link(String link, Resource source, LinkType type) {
         this.link = new SimpleStringProperty(link);
-        this.count = new SimpleIntegerProperty(0);
+        this.count = new SimpleIntegerProperty(1);
         this.fromResource = source;
         this.type = type;
         this.fromResource = source;
@@ -49,7 +49,7 @@ public class Link {
     
     Link(String link, Resource source, Resource destination, LinkType type){
         this.link = new SimpleStringProperty(link);
-        this.count = new SimpleIntegerProperty(0);
+        this.count = new SimpleIntegerProperty(1);
         this.fromResource = source;
         this.toResource = destination;
         this.type = type;
@@ -87,7 +87,13 @@ public class Link {
 
     public String getEdgeFormat() {
         if(this.fromResource != null && this.toResource != null){
-            return this.fromResource.getPath()+"@"+this.toResource.getPath();
+            String fromUrl = (this.fromResource.getType() == ResourceType.OUTSIDE) ? 
+                    this.fromResource.getURL().toString() : 
+                    this.fromResource.getPath() ;
+            String toUrl = (this.toResource.getType() == ResourceType.OUTSIDE) ? 
+                    this.toResource.getURL().toString() : 
+                    this.toResource.getPath() ;
+            return fromUrl + "@" + toUrl;
         }
         return null;
     }
