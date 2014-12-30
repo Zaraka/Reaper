@@ -1,10 +1,10 @@
 package reaper.model;
 
+import com.orientechnologies.orient.core.exception.OStorageException;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -15,7 +15,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.concurrent.WorkerStateEvent;
 import reaper.Reaper;
 
@@ -91,10 +90,16 @@ public class Domain {
     }
 
     private void init() {
+        try {
         mining.init(this.getHostname(), this.getMaxDepth(), 
                 this.getDbHost(), this.getDbUser(), this.getDbPassword());
+        } catch (OStorageException ex){
+            logger.log(Level.SEVERE, ex.toString());
+        }
         mining.setOnSucceeded((WorkerStateEvent event) -> {
             logger.log(Level.INFO, "Mining finished");
+            this.mining.reset();
+            System.gc();
             this.loadAll();
         });
         mining.setOnFailed((WorkerStateEvent event) -> {

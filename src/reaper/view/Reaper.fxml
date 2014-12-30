@@ -83,11 +83,11 @@
                                        <children>
                                           <TableView fx:id="resourceTable" layoutX="130.0" layoutY="35.0" prefHeight="433.0" prefWidth="828.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                             <columns>
-                                              <TableColumn fx:id="resourcePathColumn" prefWidth="200.0" text="Path" />
+                                                <TableColumn fx:id="resourceURLColumn" prefWidth="350.0" text="URL" />
                                               <TableColumn fx:id="resourceCodeColumn" prefWidth="70.0" text="Code" />
                                                 <TableColumn fx:id="resourceMimeTypeColumn" prefWidth="85.0" text="Mime-Type" />
-                                                <TableColumn fx:id="resourceLoadingColumn" prefWidth="75.0" text="Loading" />
-                                                <TableColumn fx:id="resourceURLColumn" prefWidth="350.0" text="URL" />
+                                                <TableColumn fx:id="resourceTypeColumn" prefWidth="75.0" text="Resource" />
+                                              <TableColumn fx:id="resourcePathColumn" prefWidth="200.0" text="Path" />
                                             </columns>
                                           </TableView>
                                        </children>

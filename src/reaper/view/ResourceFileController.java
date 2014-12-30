@@ -1,10 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package reaper.view;
 
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import reaper.model.Resource;
 
 /**
@@ -13,10 +10,28 @@ import reaper.model.Resource;
  * @author zaraka
  */
 public class ResourceFileController implements ResourceController {
+    
+       @FXML
+    private Label resourceURL;
+    @FXML
+    private Label resourceStatusCodeProperty;
+    @FXML
+    private Label resourceMimeTypeProperty;
+    @FXML
+    private Label resourceDownloadTime;
+    @FXML
+    private Label resourceType;
 
     @Override
-    public void loadResource(Resource res) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void loadResource(Resource resource) {
+         if (resource == null) {
+            return;
+        }
+        resourceURL.setText(resource.getPath());
+        resourceMimeTypeProperty.setText(resource.mimeTypeProperty().get());
+        resourceStatusCodeProperty.setText(Integer.toString(resource.codeProperty().get()));
+        resourceDownloadTime.setText(String.valueOf(resource.getDownloadTime()));
+        resourceType.setText(resource.getType().toString());
     }
 
     

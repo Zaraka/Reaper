@@ -66,6 +66,8 @@ public class ReaperController implements Initializable {
     @FXML
     private TableColumn<Resource, Number> resourceCodeColumn;
     @FXML
+    private TableColumn<Resource, String> resourceTypeColumn;
+    @FXML
     private WebView sitemap;
     @FXML
     private TextField maxDepth;
@@ -192,6 +194,7 @@ public class ReaperController implements Initializable {
         resourceMimeTypeColumn.setCellValueFactory(cellData -> cellData.getValue().mimeTypeProperty());
         resourcePathColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getPath()));
         resourceURLColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getURL().toString()));
+        resourceTypeColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getType().toString()));
 
         ContextMenu menu = new ContextMenu();
         MenuItem item = new MenuItem("View Resource");
@@ -233,7 +236,7 @@ public class ReaperController implements Initializable {
             controller.loadResource(res);
             
         } catch( IOException ex){
-            logger.log(Level.SEVERE, "Couldn't change Panel, probably wrong url.");
+            logger.log(Level.SEVERE, "Couldn't change Panel, probably wrong url of FXML file.");
         }
         
     }

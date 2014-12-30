@@ -1,5 +1,6 @@
 package reaper.model;
 
+import com.orientechnologies.orient.core.exception.OStorageException;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
@@ -32,10 +33,16 @@ public class MinerService extends Service<Void> {
         this.maxDepth = maxDepth;
         this.linksQueue = new ArrayList<>();
         this.paths = new HashSet<>();
-        this.graphFactory = new OrientGraphFactory(dbHost, dbUser, dbPass).setupPool(1, 10);
         this.databaseHost = dbHost;
         this.databasePassword = dbPass;
         this.databaseUser = dbUser;
+        
+        try {
+            this.graphFactory = new OrientGraphFactory(dbHost, dbUser, dbPass).setupPool(1, 10);
+        } catch(OStorageException ex){
+            throw ex;
+        }
+        
     }
 
     public void setHostname(String hostname) {

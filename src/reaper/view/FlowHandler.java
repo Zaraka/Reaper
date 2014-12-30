@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
@@ -32,10 +33,11 @@ public class FlowHandler extends Handler {
     public void publish(LogRecord record) {        
         Text msg = new Text(this.getFormatter().format(record));
         
-        msg.setFont(Font.font("Monospace"));
+        msg.setFont(Font.font("Monospace", 14));
         
         if(record.getLevel() == Level.SEVERE){
             msg.setFill(Color.RED);
+            msg.setFont(Font.font("Monospace", FontWeight.BOLD, 14));
         } else if(record.getLevel() == Level.WARNING){
             msg.setFill(Color.DARKORANGE);
         } else if (record.getLevel() == Level.FINE){
