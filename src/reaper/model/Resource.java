@@ -1,6 +1,5 @@
 package reaper.model;
 
-import com.orientechnologies.orient.core.id.ORID;
 import java.net.URL;
 import java.util.ArrayList;
 import javafx.beans.property.IntegerProperty;
@@ -22,6 +21,6 @@ public interface Resource {
     public StringProperty mimeTypeProperty();
     public String getMimeType();
     public long getDownloadTime();
-    public ORID getVertexID();
-    public void setVertexID(ORID id);
+    public Object getVertexID();
+    public void setVertexID(Object id);
 }

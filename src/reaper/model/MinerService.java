@@ -7,7 +7,11 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import org.jsoup.UnsupportedMimeTypeException;
@@ -18,6 +22,7 @@ import reaper.exceptions.OutsidePageException;
  * @author zaraka
  */
 public class MinerService extends Service<Void> {
+    private static final Logger logger = Logger.getLogger(reaper.Reaper.class.getName());
 
     private String hostname;
     private int maxDepth;
@@ -25,7 +30,7 @@ public class MinerService extends Service<Void> {
     private String databaseUser;
     private String databasePassword;
     private ArrayList<Link> linksQueue;
-    private HashSet<String> paths;
+    private Map<String, String> resources;
     private OrientGraphFactory graphFactory;
     private int resourceCount, linksCount;
     private Object rootId;
@@ -34,21 +39,21 @@ public class MinerService extends Service<Void> {
         this.hostname = hostname;
         this.maxDepth = maxDepth;
         this.linksQueue = new ArrayList<>();
-        this.paths = new HashSet<>();
+        this.resources = new HashMap<>();
         this.databaseHost = dbHost;
         this.databasePassword = dbPass;
         this.databaseUser = dbUser;
-        
+
         this.resourceCount = 0;
         this.linksCount = 0;
         this.rootId = null;
-        
+
         try {
             this.graphFactory = new OrientGraphFactory(dbHost, dbUser, dbPass).setupPool(1, 10);
-        } catch(OStorageException ex){
+        } catch (OStorageException ex) {
             throw ex;
         }
-        
+
     }
 
     public void setHostname(String hostname) {
@@ -58,16 +63,16 @@ public class MinerService extends Service<Void> {
     public void setMaxDepth(int maxDepth) {
         this.maxDepth = maxDepth;
     }
-    
-    public int getResourceCount(){
+
+    public int getResourceCount() {
         return this.resourceCount;
     }
-    
-    public int getLinksCount(){
+
+    public int getLinksCount() {
         return this.linksCount;
     }
-    
-    public Object getRootId(){
+
+    public Object getRootId() {
         return this.rootId;
     }
 
@@ -87,8 +92,10 @@ public class MinerService extends Service<Void> {
                     "url", res.getURL().toString(), "code", res.getCode(),
                     "downloadTime", res.getDownloadTime(), "mimeType", res.getMimeType(),
                     "type", res.getType().toString());
-            res.setVertexID(vertex.getIdentity());
+            graph.commit();
+            res.setVertexID(vertex.getId());
             resourceCount++;
+            resources.put(res.getURL().toString(), res.getVertexID().toString());
         } finally {
             graph.shutdown();
         }
@@ -98,31 +105,21 @@ public class MinerService extends Service<Void> {
         OrientGraph graph = graphFactory.getTx();
         try {
             OrientVertex from, to;
-            if (link.getFromResource().getVertexID() == null) {
-                from = graph.addVertex("class:Resource", "url", link.getFromResource().getURL().toString(),
-                        "code", link.getFromResource().getCode(),
-                        "downloadTime", link.getFromResource().getDownloadTime(),
-                        "mimeType", link.getFromResource().getMimeType(),
-                        "type", link.getFromResource().getType().toString());
-                link.getFromResource().setVertexID(from.getIdentity());
-                resourceCount++;
-            } else {
-                from = graph.getVertex(link.getFromResource().getVertexID());
+            String fromID, toID;
+            fromID = resources.get(link.getFromURL());
+            if (fromID == null) {
+                System.out.println("error");
+                return;
             }
-
-            if (link.getToResource().getVertexID() == null) {
-                to = graph.addVertex("class:Resource", "url", link.getToResource().getURL().toString(),
-                        "code", link.getToResource().getCode(),
-                        "downloadTime", link.getFromResource().getDownloadTime(),
-                        "mimeType", link.getToResource().getMimeType(),
-                        "type", link.getToResource().getType().toString());
-                link.getToResource().setVertexID(to.getIdentity());
-                resourceCount++;
-            } else {
-                to = graph.getVertex(link.getToResource().getVertexID());
+            toID = resources.get(link.getToURL());
+            if (toID == null) {
+                System.out.println("error");
+                return;
             }
-            from.addEdge("LinkTo", to, null, null, "path", link.getLink(), 
-                    "count", link.getCount(),"type", link.getType().toString());
+            from = graph.getVertex(fromID);
+            to = graph.getVertex(toID);
+            from.addEdge("LinkTo", to, null, null, "path", link.getLink(),
+                    "count", link.getCount(), "type", link.getType().toString());
             linksCount += link.getCount();
         } finally {
             graph.shutdown();
@@ -138,15 +135,19 @@ public class MinerService extends Service<Void> {
                 String url = hostname;
                 if (!url.matches("^.*:\\/\\/.*$")) {
                     url = "http://" + url;
-                    System.out.println("You should provide protocol as well. Default proctol http is used.");
+                    Platform.runLater(new Runnable() {
 
+                        @Override
+                        public void run() {
+                            logger.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
+                        }
+                    });
                 }
 
                 try {
                     URL uURL = new URL(url);
                     ResourceDom root = new ResourceDom(uURL, 0, maxDepth, null);
-                    paths.add(root.getURL().toString());
-                    linksQueue.addAll(root.links());                    
+                    linksQueue.addAll(root.links());
                     createSingleVertex(root);
                     rootId = root.getVertexID();
                 } catch (UnsupportedMimeTypeException | MalformedURLException ex) {
@@ -154,39 +155,32 @@ public class MinerService extends Service<Void> {
                 }
                 Link link;
                 while ((link = popLink()) != null) {
-                    URL linkUrl = new URL(link.getFromResource().getURL(), link.getLink());
-                    if (paths.contains(linkUrl.toString())) {
-                        continue;
-                    } else {
-                        paths.add(linkUrl.toString());
-                    }
-                    try {
-                        ResourceDom child = new ResourceDom(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
-                        if (child.getDepth() < maxDepth) {
-                            linksQueue.addAll(child.links());
-                        }
-                        link.setToResource(child);
-                        linkTransaction(link);
-                    } catch (UnsupportedMimeTypeException ex) {
+                    if (resources.get(link.getToURL()) == null) {
+                        Resource toRes;
+                        URL linkUrl = new URL(link.getFromResource().getURL(), link.getLink());
                         try {
-                            ResourceFile child = new ResourceFile(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
-                            link.setToResource(child);
-                            linkTransaction(link);
-
-                        } catch (MalformedURLException ex1) {
-                            throw ex1;
+                            toRes = new ResourceDom(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
+                            if (toRes.getDepth() < maxDepth) {
+                                linksQueue.addAll(toRes.links());
+                            }
+                        } catch (UnsupportedMimeTypeException ex) {
+                            try {
+                                toRes = new ResourceFile(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
+                            } catch (MalformedURLException ex1) {
+                                throw ex1;
+                            }
+                        } catch (OutsidePageException ex) {
+                            toRes = new ResourceOutside(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
+                        } catch (MalformedURLException ex) {
+                            throw ex;
                         }
-                    } catch (OutsidePageException ex) {
-                        ResourceOutside child = new ResourceOutside(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
-                        link.setToResource(child);
-                        linkTransaction(link);
-                    } catch (MalformedURLException ex) {
-                        throw ex;
+                        link.setToResource(toRes);
+                        createSingleVertex(toRes);
                     }
+                    linkTransaction(link);
                 }
                 return null;
             }
-
         };
     }
 

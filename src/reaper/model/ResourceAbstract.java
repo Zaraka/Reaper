@@ -1,9 +1,7 @@
 package reaper.model;
 
 import com.orientechnologies.orient.core.id.ORID;
-import com.orientechnologies.orient.core.id.ORecordId;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -30,7 +28,7 @@ abstract class ResourceAbstract implements Resource{
     private final StringProperty mimeType;
     private final IntegerProperty depth;
     private final IntegerProperty maxDepth;
-    private ORID orid;
+    private Object id;
 
     ResourceAbstract() {
         this.url = null;
@@ -42,7 +40,7 @@ abstract class ResourceAbstract implements Resource{
         this.code = new SimpleIntegerProperty(0);
         this.mimeType = new SimpleStringProperty("");
         this.downloadTime = 0;
-        this.orid = null;
+        this.id = null;
     }
    
     ResourceAbstract(URL url, int depth, int maxDepth, Resource parent) throws MalformedURLException {
@@ -56,7 +54,7 @@ abstract class ResourceAbstract implements Resource{
         this.code = new SimpleIntegerProperty(0);
         this.mimeType = new SimpleStringProperty("");
         this.downloadTime = 0;
-        this.orid = null;
+        this.id = null;
     }
     
     ResourceAbstract(Vertex vertex) throws MalformedURLException{
@@ -67,7 +65,7 @@ abstract class ResourceAbstract implements Resource{
         this.links = new HashMap<>();
         this.type = ResourceType.UNDEFINED;
         
-        this.orid = (ORID)vertex.getId();
+        this.id = (ORID)vertex.getId();
         this.url = new URL(vertex.getProperty("url").toString());
         this.code = new SimpleIntegerProperty((int)vertex.getProperty("code"));
         this.downloadTime = (long)vertex.getProperty("downloadTime");
@@ -159,12 +157,12 @@ abstract class ResourceAbstract implements Resource{
     
     
     @Override
-    public ORID getVertexID(){
-        return this.orid;
+    public Object getVertexID(){
+        return this.id;
     }
     
     @Override
-    public void setVertexID(ORID or){
-        this.orid = or;
+    public void setVertexID(Object or){
+        this.id = or;
     }
 }
