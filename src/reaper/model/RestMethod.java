@@ -4,7 +4,7 @@ package reaper.model;
  *
  * @author zaraka
  */
-public enum Method {
+public enum RestMethod {
     GET,
     POST,
     PUT,

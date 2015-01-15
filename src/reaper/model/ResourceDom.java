@@ -129,22 +129,28 @@ public class ResourceDom extends ResourceAbstract {
     private void retrieveForms() {
         Elements docForms = this.doc.getElementsByTag("form");
         for (Element form : docForms) {
-            Method method = Method.GET;
+            RestMethod method = RestMethod.GET;
             if (form.hasAttr("mehod")) {
                 String methodStr = form.attr("method").trim().toUpperCase();
                 if ("POST".equals(methodStr)) {
-                    method = Method.POST;
+                    method = RestMethod.POST;
                 } else if ("PUT".equals(methodStr)) {
-                    method = Method.PUT;
+                    method = RestMethod.PUT;
                 } else if ("DELETE".equals(methodStr)) {
-                    method = Method.DELETE;
+                    method = RestMethod.DELETE;
                 }
             }
             String formAction = "";
             if (form.hasAttr("action")) {
                 formAction = form.attr("action").trim();
             }
-            Link link = new Link(formAction, this);
+            String key = "form#" + formAction;
+            Link link = new Link(formAction, this, LinkType.FORM);
+            if(this.links.containsKey(key)){
+                this.links.get(key).addCount();
+            } else {
+                this.links.put(key, link);
+            }
             this.forms.add(new Form(link, method));
         }
     }

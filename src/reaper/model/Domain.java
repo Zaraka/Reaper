@@ -313,4 +313,8 @@ public class Domain {
     public IntegerProperty linksCountProperty() {
         return this.linksCount;
     }
+    
+    public Object getRootID(){
+        return this.rootId;
+    }
 }

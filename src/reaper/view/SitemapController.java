@@ -2,7 +2,6 @@ package reaper.view;
 
 import java.util.logging.Logger;
 import reaper.Reaper;
-import reaper.model.Domain;
 
 /**
  *
@@ -11,14 +10,14 @@ import reaper.model.Domain;
 public class SitemapController {
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
     
-    private Domain domain;
+    private ReaperController parent;
     
     public void openNode(String nodeId){
-        domain.loadResource(nodeId);
+        parent.setActiveNode(nodeId);
     }
     
-    public void setDomain(Domain domain){
-        this.domain = domain;
+    public void setParentController(ReaperController parent){
+        this.parent = parent;
     }
     
 }

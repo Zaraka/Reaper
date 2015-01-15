@@ -1,5 +1,6 @@
 package reaper.model;
 
+import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import java.net.URL;
 import java.util.ArrayList;
 import javafx.beans.property.IntegerProperty;
@@ -23,4 +24,5 @@ public interface Resource {
     public long getDownloadTime();
     public Object getVertexID();
     public void setVertexID(Object id);
+    public void vertexTransaction(OrientGraph grapth);
 }

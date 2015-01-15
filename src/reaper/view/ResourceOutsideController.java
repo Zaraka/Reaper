@@ -14,6 +14,7 @@ public class ResourceOutsideController implements ResourceController {
     private Label resourceURL;
     @FXML
     private Label resourceType;
+    
     @Override
     public void loadResource(Resource resource) {
         if(resource == null){

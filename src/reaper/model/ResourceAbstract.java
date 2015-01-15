@@ -2,6 +2,8 @@ package reaper.model;
 
 import com.orientechnologies.orient.core.id.ORID;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -164,5 +166,19 @@ abstract class ResourceAbstract implements Resource{
     @Override
     public void setVertexID(Object or){
         this.id = or;
+    }
+    
+    @Override
+    public void vertexTransaction(OrientGraph graph){
+        try {
+            OrientVertex vertex = graph.addVertex("class:Resource",
+                    "url", this.getURL().toString(), "code", this.getCode(),
+                    "downloadTime", this.getDownloadTime(), "mimeType", this.getMimeType(),
+                    "type", this.getType().toString());
+            graph.commit();
+            this.setVertexID(vertex.getId());
+        } finally {
+            graph.shutdown();
+        }
     }
 }
