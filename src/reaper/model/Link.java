@@ -1,5 +1,7 @@
 package reaper.model;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.logging.Logger;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -12,7 +14,7 @@ import reaper.Reaper;
  * @author nikita.vanku
  */
 public class Link {
-    
+
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
 
     private final StringProperty link;
@@ -20,6 +22,7 @@ public class Link {
     private Resource toResource;
     private final IntegerProperty count;
     private LinkType type;
+    private String fromURL, toURL;
 
     Link() {
         this.link = new SimpleStringProperty("undefined");
@@ -36,8 +39,15 @@ public class Link {
         this.type = LinkType.UNDEFINED;
         this.fromResource = source;
         this.toResource = null;
+        this.fromURL = source.getURL().toString();
+        try {
+            this.toURL = new URL(source.getURL(), link).toString();
+        } catch(MalformedURLException ex){
+            
+        }
+        
     }
-    
+
     Link(String link, Resource source, LinkType type) {
         this.link = new SimpleStringProperty(link);
         this.count = new SimpleIntegerProperty(1);
@@ -45,9 +55,15 @@ public class Link {
         this.type = type;
         this.fromResource = source;
         this.toResource = null;
+        this.fromURL = source.getURL().toString();
+        try {
+            this.toURL = new URL(source.getURL(), link).toString();
+        } catch(MalformedURLException ex){
+            
+        }
     }
-    
-    Link(String link, Resource source, Resource destination, LinkType type){
+
+    Link(String link, Resource source, Resource destination, LinkType type) {
         this.link = new SimpleStringProperty(link);
         this.count = new SimpleIntegerProperty(1);
         this.fromResource = source;
@@ -55,6 +71,8 @@ public class Link {
         this.type = type;
         this.fromResource = source;
         this.toResource = destination;
+        this.fromURL = source.getURL().toString();
+        this.toURL = destination.getURL().toString();
     }
 
     public void setLink(String path) {
@@ -75,6 +93,7 @@ public class Link {
 
     public void setFromResource(Resource res) {
         this.fromResource = res;
+        this.fromURL = res.getURL().toString();
     }
 
     public Resource getToResource() {
@@ -83,52 +102,57 @@ public class Link {
 
     public void setToResource(Resource to) {
         this.toResource = to;
+        this.toURL = to.getURL().toString();
     }
 
     public String getEdgeFormat() {
-        if(this.fromResource != null && this.toResource != null){
-            String fromUrl = (this.fromResource.getType() == ResourceType.OUTSIDE) ? 
-                    this.fromResource.getURL().toString() : 
-                    this.fromResource.getPath() ;
-            String toUrl = (this.toResource.getType() == ResourceType.OUTSIDE) ? 
-                    this.toResource.getURL().toString() : 
-                    this.toResource.getPath() ;
-            return fromUrl + "@" + toUrl;
+        if (this.fromResource != null && this.toResource != null) {
+            String fromUrl = this.getFromResource().getURL().toString();
+            String toUrl = this.getToResource().getURL().toString();
+            return fromUrl + "<=>" + toUrl;
         }
         return null;
     }
-    
-    public int getCount(){
+
+    public int getCount() {
         return this.count.get();
     }
-    
-    public void setCount(int count){
+
+    public void setCount(int count) {
         this.count.set(count);
     }
-    
-    public void addCount(){
+
+    public void addCount() {
         this.setCount(this.getCount() + 1);
     }
-    
-    public LinkType getType(){
+
+    public LinkType getType() {
         return this.type;
     }
-    
-    public void setType(LinkType type){
+
+    public void setType(LinkType type) {
         this.type = type;
     }
-    
+
     @Override
-    public String toString(){
+    public String toString() {
         String from = "";
         String to = "";
-        if(this.fromResource != null){
+        if (this.fromResource != null) {
             from = this.fromResource.getURL().toString();
         }
-        if(this.toResource != null){
+        if (this.toResource != null) {
             to = this.toResource.getURL().toString();
         }
-        String result = from + " " + this.link.get() + " " + to;
+        String result = from + ">" + this.link.get() + ">" + to;
         return result.trim();
+    }
+    
+    public String getFromURL(){
+        return this.fromURL;
+    }
+    
+    public String getToURL(){
+        return this.toURL;
     }
 }

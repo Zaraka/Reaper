@@ -38,6 +38,7 @@ import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebView;
 import javafx.util.converter.NumberStringConverter;
 import netscape.javascript.JSException;
+import netscape.javascript.JSObject;
 import reaper.Reaper;
 import reaper.model.Domain;
 import reaper.model.Link;
@@ -199,7 +200,13 @@ public class ReaperController implements Initializable {
                     for (Link link : change.getAddedSubList()) {
                         addEdge(link);
                     }
-                }
+                 } else if (change.wasRemoved()){
+                     for(Link link : change.getRemoved()) {
+                         removeEdge(link);
+                     }
+                 }
+                
+                
             }
         });
 
@@ -244,6 +251,12 @@ public class ReaperController implements Initializable {
         overviewDomainLabel.textProperty().bindBidirectional(dom.hostnameProperty());
         overviewResourceLabel.textProperty().bindBidirectional(dom.resourcesCountProperty(), new NumberStringConverter());
         overviewLinksLabel.textProperty().bindBidirectional(dom.linksCountProperty(), new NumberStringConverter());
+        
+        //WebView controller
+        JSObject jsobs = (JSObject) this.sitemap.getEngine().executeScript("window");
+        SitemapController sitemapController = new SitemapController();
+        sitemapController.setDomain(dom);
+        jsobs.setMember("controller", sitemapController);
     }
 
     private void createResourcePane(Resource res) {
@@ -262,31 +275,31 @@ public class ReaperController implements Initializable {
 
     private void addEdge(Link link) {
         if (link.getEdgeFormat() != null) {
-            String fromUrl = (link.getFromResource().getType() == ResourceType.OUTSIDE) ? 
-                    link.getFromResource().getURL().toString() : 
-                    link.getFromResource().getPath() ;
-            String toUrl = (link.getToResource().getType() == ResourceType.OUTSIDE) ? 
-                    link.getToResource().getURL().toString() : 
-                    link.getToResource().getPath() ;
-            String edge = "addEdgeIfNotExists('" + link.getEdgeFormat() + "', '" + fromUrl + "', '" + toUrl + "');";
+            String fromUrl = link.getFromResource().getURL().toString();
+            String toUrl = link.getToResource().getURL().toString();
+            String edge = "addEdgeIfNotExists('" + link.getEdgeFormat() + "', '" + fromUrl + "', '" + toUrl + "', '"+link.getCount()+"');";
             try {
                 this.sitemap.getEngine().executeScript(edge);
             } catch (JSException ex) {
                 logger.log(Level.WARNING, ex.toString());
             }
-        } else {
-            logger.log(Level.WARNING, "null");
+        }
+    }
+    
+    private void removeEdge(Link link){
+        if(link.getEdgeFormat() != null){
+            String edge = "removeEdge('" + link.getEdgeFormat() + "');";
+            try {
+                this.sitemap.getEngine().executeScript(edge);
+            } catch (JSException ex) {
+                logger.log(Level.WARNING, ex.toString());
+            }
         }
     }
 
     private void addSitemapNode(Resource resource) {
-        String path;
-        if(resource.getType() == ResourceType.OUTSIDE){
-            path = resource.getURL().toString();
-        } else {
-            path = resource.getPath();
-        }
-        String script = "addResourceIfNotExists('" + path + "', '" + resource.getType().getGroup() + "');";
+        String path = resource.getURL().toString();
+        String script = "addResourceIfNotExists('" + path + "', '" + resource.getType().getGroup() + "','"+resource.getVertexID().toString()+"');";
         try {
             this.sitemap.getEngine().executeScript(script);
         } catch (JSException ex) {
@@ -295,7 +308,7 @@ public class ReaperController implements Initializable {
     }
 
     private void removeSitemapNode(Resource resource) {
-        String script = "removeResource('" + resource.getPath() + "');";
+        String script = "removeResource('" + resource.getURL().toString() + "');";
         try {
             this.sitemap.getEngine().executeScript(script);
         } catch (JSException ex) {

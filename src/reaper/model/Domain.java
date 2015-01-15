@@ -95,9 +95,9 @@ public class Domain {
             }
 
             for (Edge edge : graph.getEdgesOfClass("LinkTo", false)) {
-                Link link = new Link(edge.getProperty("path").toString(), 
-                        this.resources.get(edge.getVertex(Direction.OUT).getId().toString()), 
-                        this.resources.get(edge.getVertex(Direction.IN).getId().toString()), 
+                Link link = new Link(edge.getProperty("path").toString(),
+                        this.resources.get(edge.getVertex(Direction.OUT).getId().toString()),
+                        this.resources.get(edge.getVertex(Direction.IN).getId().toString()),
                         LinkType.valueOf(edge.getProperty("type").toString()));
                 link.setCount((int) edge.getProperty("count"));
                 this.links.add(link);
@@ -108,7 +108,9 @@ public class Domain {
     }
 
     public void loadRoot() {
-        this.loadResource(rootId);
+        if (rootId != null) {
+            this.loadResource(rootId);
+        }
     }
 
     public void loadResource(Object id) {
@@ -202,8 +204,8 @@ public class Domain {
     }
 
     private void clearData() {
-        this.resources.clear();
         this.links.clear();
+        this.resources.clear();
     }
 
     //GETs & SETs

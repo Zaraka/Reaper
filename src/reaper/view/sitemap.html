@@ -14,31 +14,78 @@
                 width: 100%;
                 height: 100%;
             }
+            
+            #legend {
+                position: absolute;
+                top: 25px;
+                right: 25px;
+                width: 170px;
+                border: 1px solid lightgrey;
+                background-color: #e5e5e5;
+            }
+            
+            #legend ul {
+                list-style: none;
+                padding-left: 5px;
+            }
+            
+            .box {
+                padding: 10px;
+                -webkit-border-radius: 5px;
+                -moz-border-radius: 5px;
+                border-radius: 5px;
+                width: 100px;
+                display: inline-block;
+                margin-left: 10px;
+                font-family: "Lucida Console", Monaco, monospace;
+                font-size: 10pt;
+                font-weight: bold;
+            }
+            
+            .blue-box {
+                
+                color: black;
+                border: 1px solid #2B7CE9;
+                background-color: #97C2FC;
+            }
+            
+            .gray-box {
+                color: black;
+                border: 1px solid #787878;
+                background-color: #B0B0B0;
+            }
+            
+            .orange-box {
+                color: black;
+                border: 1px solid #FF6600;
+                background-color: #FFCC99;
+            }
         </style>
         <script type="text/javascript">
-            //nodes
-            function addResourceIfNotExists(name, group) {
+            function addResourceIfNotExists(name, group, orid) {
                 if (name === "") {
                     name = "/";
                 }
                 var id = encodeURIComponent(name);
                 if (nodes.get(id) === null) {
-                    nodes.add([{id: id, label: name, group: group}]);
+                    nodes.add([{id: id, label: name, group: group, orid: orid}]);
                 }
             }
 
             function removeResource(name) {
-
                 if (name === "") {
                     name = "/";
                 }
-                var id = encodeURIComponent(name);
-                nodes.remove(id);
+                var encName = encodeURIComponent(name);
+                nodes.remove(encName);
             }
 
-            //edges
-            function addEdgeIfNotExists(id, from, to) {
+            function removeEdge(id) {
+                var encID = encodeURIComponent(id);
+                edges.remove(encID);
+            }
 
+            function addEdgeIfNotExists(id, from, to, label) {
                 if (from === "") {
                     from = "/";
                 }
@@ -51,23 +98,30 @@
                 var encFrom = encodeURIComponent(from);
                 var encTo = encodeURIComponent(to);
                 if (edges.get(encID) === null) {
-                    edges.add([{id: encID, from: encFrom, to: encTo, style: 'arrow'}]);
+                    edges.add([{id: encID, from: encFrom, to: encTo, style: 'arrow', label: label}]);
                 }
-            }
-
-            function removeEdge(id) {
-                edges.remove(id);
             }
 
             function resetGraph() {
                 nodes.clear();
                 edges.clear();
             }
-            
+
         </script>
     </head>
     <body>
-        <div id="container"></div>
+        <div id="container">
+        </div>
+        <div id="legend">
+            <ul>
+                <li><input type="checkbox"><div class="box blue-box">DOM element</div></li>
+                <li><input type="checkbox"><div class="box orange-box">File</div></li>
+                <li><input type="checkbox"><div class="box gray-box">Not Scanned</div></li>
+            </ul>
+                
+                
+                
+            </div>
         <script type="text/javascript">
             var edges = new vis.DataSet();
             var nodes = new vis.DataSet();
@@ -87,7 +141,7 @@
                     repulsion: {nodeDistance: 179, springConstant: 0.082, damping: 0.165}
                 },
                 smoothCurves: false,
-                hideEdgesOnDrag: true,
+                hideEdgesOnDrag: false,
                 groups: {
                     DOM: {
                         shape: 'box',
@@ -116,10 +170,21 @@
                 }
             };
             var network = new vis.Network(container, data, options);
-            
-            window.onresize = function(event){
+
+            window.onresize = function (event) {
                 network.redraw();
-            }
+            };
+
+            network.on('select', function (properties) {
+
+            });
+
+            network.on('doubleClick', function (properties) {
+                if (properties.nodes.length > 0) {
+                    var node = nodes.get(properties.nodes[0]);
+                    controller.openNode(node.orid);
+                }
+            });
         </script>
 
     </body>
