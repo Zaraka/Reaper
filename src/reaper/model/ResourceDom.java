@@ -1,6 +1,8 @@
 package reaper.model;
 
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -146,11 +148,11 @@ public class ResourceDom extends ResourceAbstract {
             }
             String key = "form#" + formAction;
             Link link = new Link(formAction, this, LinkType.FORM);
-            if(this.links.containsKey(key)){
+            /*if(this.links.containsKey(key)){
                 this.links.get(key).addCount();
             } else {
                 this.links.put(key, link);
-            }
+            }*/
             this.forms.add(new Form(link, method));
         }
     }
@@ -186,6 +188,27 @@ public class ResourceDom extends ResourceAbstract {
         if (this.state == ResourceState.PROCESSING) {
             this.state = ResourceState.FINISHED;
             this.scratchURLs();
+        }
+    }
+    
+    @Override
+    public void vertexTransaction(OrientGraph graph){
+        try {
+            OrientVertex vertex = graph.addVertex("class:Resource",
+                    "url", this.getURL().toString(), "code", this.getCode(),
+                    "downloadTime", this.getDownloadTime(), "mimeType", this.getMimeType(),
+                    "type", this.getType().toString());
+            graph.commit();
+            this.setVertexID(vertex.getId());
+            
+            for(Form form : forms){
+                OrientVertex formVertex = graph.addVertex("class:Form", 
+                        "action", form.getAction().getLink(), 
+                        "method", form.getMethod().toString());
+                vertex.addEdge("Includes", formVertex);
+            }
+        } finally {
+            graph.shutdown();
         }
     }
 }

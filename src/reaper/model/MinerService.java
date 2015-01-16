@@ -88,12 +88,7 @@ public class MinerService extends Service<Void> {
     private void createSingleVertex(Resource res) {
         OrientGraph graph = graphFactory.getTx();
         try {
-            OrientVertex vertex = graph.addVertex("class:Resource",
-                    "url", res.getURL().toString(), "code", res.getCode(),
-                    "downloadTime", res.getDownloadTime(), "mimeType", res.getMimeType(),
-                    "type", res.getType().toString());
-            graph.commit();
-            res.setVertexID(vertex.getId());
+            res.vertexTransaction(graph);
             resourceCount++;
             resources.put(res.getURL().toString(), res.getVertexID().toString());
         } finally {
