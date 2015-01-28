@@ -119,8 +119,6 @@
                 <li><input type="checkbox"><div class="box gray-box">Not Scanned</div></li>
             </ul>
                 
-                
-                
             </div>
         <script type="text/javascript">
             var edges = new vis.DataSet();
@@ -182,6 +180,9 @@
             network.on('doubleClick', function (properties) {
                 if (properties.nodes.length > 0) {
                     var node = nodes.get(properties.nodes[0]);
+                    //alert("id: " + node.id);
+                    //alert("label: " + node.label);
+                    //alert("orid: " + node.orid);
                     controller.openNode(node.orid);
                 }
             });

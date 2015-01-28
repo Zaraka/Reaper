@@ -43,7 +43,6 @@ import reaper.Reaper;
 import reaper.model.Domain;
 import reaper.model.Link;
 import reaper.model.Resource;
-import reaper.model.ResourceType;
 
 /**
  *
@@ -53,7 +52,8 @@ public class ReaperController implements Initializable {
 
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
 
-    Reaper reaper;
+    private Reaper reaper;
+    private String activeNode;
 
     @FXML
     private TextField hostname;
@@ -140,11 +140,15 @@ public class ReaperController implements Initializable {
     @FXML
     private void overviewGetRoot(ActionEvent event) {
         reaper.getDomain().loadRoot();
+        activeNode = reaper.getDomain().getRootID().toString();
+        createResourcePane(reaper.getDomain().resources().get(activeNode));
     }
 
     @FXML
     private void overviewLoadAll(ActionEvent event) {
         reaper.getDomain().loadAll();
+        activeNode = reaper.getDomain().getRootID().toString();
+        createResourcePane(reaper.getDomain().resources().get(activeNode));
     }
 
     @Override
@@ -253,9 +257,10 @@ public class ReaperController implements Initializable {
         overviewLinksLabel.textProperty().bindBidirectional(dom.linksCountProperty(), new NumberStringConverter());
         
         //WebView controller
-        JSObject jsobs = (JSObject) this.sitemap.getEngine().executeScript("window");
+        sitemap.setContextMenuEnabled(false);
+        JSObject jsobs = (JSObject) sitemap.getEngine().executeScript("window");
         SitemapController sitemapController = new SitemapController();
-        sitemapController.setDomain(dom);
+        sitemapController.setParentController(this);
         jsobs.setMember("controller", sitemapController);
     }
 
@@ -266,7 +271,6 @@ public class ReaperController implements Initializable {
             detailsPanel.getChildren().add(loader.load());
             ResourceController controller = loader.<ResourceController>getController();
             controller.loadResource(res);
-
         } catch (IOException ex) {
             logger.log(Level.SEVERE, "Couldn't change Panel, probably wrong url of FXML file.");
         }
@@ -331,9 +335,17 @@ public class ReaperController implements Initializable {
                 return getClass().getResource("ResourceDom.fxml");
             case FILE:
                 return getClass().getResource("ResourceFile.fxml");
+            case OUTSIDE:
+                return getClass().getResource("ResourceOutside.fxml");
             default:
-                return getClass().getResource("ResourceUndefined.fxml");
+                return getClass().getResource("ResourceOutside.fxml");
         }
+    }
+    
+    public void setActiveNode(String node){
+        reaper.getDomain().loadResource(node);
+        activeNode = node;
+        createResourcePane(reaper.getDomain().resources().get(node));
     }
 
 }

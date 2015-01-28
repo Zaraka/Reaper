@@ -7,7 +7,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import reaper.model.Form;
 import reaper.model.Link;
-import reaper.model.Method;
+import reaper.model.RestMethod;
 import reaper.model.Resource;
 
 /**
@@ -22,7 +22,7 @@ public class ResourceDomController implements ResourceController {
     @FXML
     private TableColumn<Link, String> formActionColumn;
     @FXML
-    private TableColumn<Method, String> formMethodColumn;
+    private TableColumn<RestMethod, String> formMethodColumn;
     @FXML
     private TableView<Link> urlTable;
     @FXML
