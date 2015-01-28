@@ -22,7 +22,7 @@
 % zde zvolime kodovani, ve kterem je napsan text prace
 % "latin2" pro iso8859-2 nebo "cp1250" pro windows-1250, "utf8" pro "utf-8"
 %\usepackage{ucs}
-\usepackage[latin2]{inputenc}
+\usepackage[utf8]{inputenc}
 \usepackage[T1, IL2]{fontenc}
 \usepackage{url}
 \DeclareUrlCommand\url{\def\UrlLeft{<}\def\UrlRight{>} \urlstyle{tt}}
@@ -84,7 +84,9 @@
 }
 
 %Abstrakt (cesky, anglicky)
-%\abstract[cs]{Do tohoto odstavce bude zapsán výtah (abstrakt) práce v českém jazyce.}
+\abstract[cs]{Cílem teto práce je vytvořit nástroj na automatickou analýzu webových stránek v rámci jedné domény.
+Problém jsem vyřešila vytvořením webového pavouka, který mapuje a analyzuje zdroje domény.
+Vytvořený pavouk ukazuje, že analýza některých domén je záležitost procházení tisíce sránek.}
 %\abstract[en]{Do tohoto odstavce bude zapsán výtah (abstrakt) práce v anglickém jazyce.}
 
 %Klicova slova (cesky, anglicky)
@@ -92,9 +94,9 @@
 %\keywords[en]{Sem budou zapsána jednotlivá klíčová slova v anglickém jazyce, oddělená čárkami.}
 
 %Prohlaseni
-%\declaration{Prohlašuji, že jsem tuto bakalářskou práci vypracoval samostatně pod vedením pana X...
-%Další informace mi poskytli...
-%Uvedl jsem všechny literární prameny a publikace, ze kterých jsem čerpal.}
+\declaration{Prohlašuji, že jsem tuto bakalářskou práci vypracovala samostatně pod vedením pana Ing. Radek Burget, Ph.D.
+Další informace mi poskytli můj Team Leader František Tröster.
+Uvedla jsem všechny literární prameny a publikace, ze kterých jsem čerpala.}
 
 %Podekovani (nepovinne)
 %\acknowledgment{V této sekci je možno uvést poděkování vedoucímu práce a těm, kteří poskytli odbornou pomoc
