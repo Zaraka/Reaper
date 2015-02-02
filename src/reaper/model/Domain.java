@@ -71,6 +71,9 @@ public class Domain {
             logger.log(Level.INFO, String.valueOf(resourcesModified) + " Resources deleted.");
             long linksModified = graph.command(new OCommandSQL("TRUNCATE class LinkTo")).execute();
             logger.log(Level.INFO, String.valueOf(linksModified) + " Links deleted.");
+            long formsModified = graph.command(new OCommandSQL("TRUNCATE class Resource")).execute();
+            logger.log(Level.INFO, String.valueOf(formsModified) + " Forms deleted");
+            
         } finally {
             graph.shutdown();
             logger.log(Level.INFO, "Database truncated");

@@ -41,11 +41,25 @@ Vyhledání dalších hypertextových odkazů je možné pouze u těch stránek,
 \end{itemize}
 
 \subsection{Analýza URL}
-Uniform Resource Locator (dále jen URL) jsou definovány v (RFC 3986)
+Uniform Resource Locator (dále jen URL, neboli též adresa) jsou definovány v (RFC 3986). Je potřeba rozlišit relativní a absolutní adresu. V případě relativní adresy se zohledňuje aktualní adresa dokumentu. Součástí URL může být též kotva, kotva je definována atributem \texttt{id} v elementu \texttt{<a>}, kotvy nemají pro pavouka žádný význam a jsou tedy ignorovány. V případě nalezení většího množství odkazů se stejnou adresou v dokumentu, pavouk se zachová jako by pracoval s adresou jedinou.
+
+\subsection{Zaznamenání stahování dokumentu}
+
+
+\subsection{Vykreslení dokumentu}
 
 
 \newpage
 \chapter{Návrh aplikace}
+Aplikace je složena z několika částí. Jedná se o algoritmus pavouka, který stahuje a analyzuje dokumenty. Databázovým uložištěm, které uchovává analyzované data a grafická nadstavba (GUI) přes kterou je aplikace řízena. Pro vykreslování dokumentů jsou využity technologie Headless Browseru, v tomto případě byl využit PhantomJS, který pracuje na vykreslovacím jádře WebKit.
+
+\chapter{Java}
+Byla využita platforma Java s platformou JavaFX, která umožňuje tvorbu Rich Internet Applications (dále jen RIA). JavaFX aplikace je možno využít i jako desktopové aplikace. Aplikace vytvořena součástí této práce byla naprogramována pro Java 8, JavaFX 8.
+
+\chapter{Analýza DOM objektu}
+
+
+\chapter{Databáze}
 
 \newpage
 \chapter{Implementace aplikace}
