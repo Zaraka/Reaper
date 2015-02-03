@@ -130,12 +130,8 @@ public class MinerService extends Service<Void> {
                 String url = hostname;
                 if (!url.matches("^.*:\\/\\/.*$")) {
                     url = "http://" + url;
-                    Platform.runLater(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            logger.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
-                        }
+                    Platform.runLater(() -> {
+                        logger.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
                     });
                 }
 

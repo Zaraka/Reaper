@@ -18,7 +18,7 @@ V této práci se budu vìnovat nìkolika hlavních èástí této problematiky. První èá
 Doplnit.
 
 \chapter{Souèasní pavouci}
-Dnes se pavouci vyu¾ívají pøevá¾nì k indexování internetu pro internetové vyhledavaèe. Mezi ty nejvíce známe mù¾eme zaøadit Google èi Bing. Detaily implementace tìchto pavoukù jsou pochopitelnì utajeny. Kromì pavoukù analyzující celý internet bez omezení existuje i celá øada úzce specializovaných pavoukù pro urèitou èinnost. Napøíklad \texttt{skipfish} je OpenSource pavouk testující zabezpeèení jedne domény a odhaluje slabá místa, které by mohli vyu¾ít útoèníci. \texttt{HTTrack} je pavouk, který po zadání domény prochází ve¹kerý její obsah a stahuje ho do ulo¾i¹tì. Stránky lze potom prohlí¾et Offline.
+Dnes se pavouci vyu¾ívají pøevá¾nì k indexování internetu pro internetové vyhledavaèe. Mezi ty nejvíce známe mù¾eme zaøadit Google èi Bing. 
 
 \subsection{Analýza URL}
 \label{subsec:analysis}

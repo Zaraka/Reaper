@@ -1,5 +1,6 @@
 package reaper.model;
 
+import com.google.common.net.InternetDomainName;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
@@ -46,7 +47,7 @@ public class ResourceDom extends ResourceAbstract {
 
         if (this.parent != null) {
             //First check if resource is in domain
-            if (!url.getHost().equals(parent.getURL().getHost())) {
+            if (!InternetDomainName.from(url.getHost()).topPrivateDomain().toString().equals(InternetDomainName.from(parent.getURL().getHost()).topPrivateDomain().toString())) {
                 throw new OutsidePageException("Document isn't in scanned area");
             }
         }
@@ -58,13 +59,13 @@ public class ResourceDom extends ResourceAbstract {
             throw ex;
         }
     }
-    
-    ResourceDom(Vertex vertex) throws MalformedURLException{
+
+    ResourceDom(Vertex vertex) throws MalformedURLException {
         super(vertex);
-        
+
         this.forms = new ArrayList<>();
         this.type = ResourceType.DOM;
-        
+
     }
 
     private void scratchURLs() {
@@ -73,14 +74,14 @@ public class ResourceDom extends ResourceAbstract {
         this.retrieveHyperlinks();
         this.retrieveForms();
     }
-    
+
     private void retrieveScripts() {
         Elements docScripts = this.doc.getElementsByTag("script");
-        for(Element script : docScripts){
-            if(script.hasAttr("src")){
+        for (Element script : docScripts) {
+            if (script.hasAttr("src")) {
                 String src = script.attr("src").trim();
                 String key = "script#" + src;
-                if(this.links.containsKey(key)){
+                if (this.links.containsKey(key)) {
                     this.links.get(key).addCount();
                 } else {
                     this.links.put(key, new Link(src, this, LinkType.SCRIPT));
@@ -88,14 +89,14 @@ public class ResourceDom extends ResourceAbstract {
             }
         }
     }
-    
-    private void retrieveLinks(){
+
+    private void retrieveLinks() {
         Elements docLinks = this.doc.getElementsByTag("link");
-        for(Element link : docLinks) {
+        for (Element link : docLinks) {
             String href = link.attr("href").trim();
             Link newLink = new Link(href, this, LinkType.LINK_UNDEFINED);
             String rel = link.attr("rel").trim().toLowerCase();
-            switch(rel){
+            switch (rel) {
                 case "icon":
                     newLink.setType(LinkType.ICON);
                     break;
@@ -107,7 +108,7 @@ public class ResourceDom extends ResourceAbstract {
                     break;
             }
             String key = "link#" + href;
-            if(this.links.containsKey(key)){
+            if (this.links.containsKey(key)) {
                 this.links.get(key).addCount();
             } else {
                 this.links.put(key, newLink);
@@ -120,7 +121,7 @@ public class ResourceDom extends ResourceAbstract {
         for (Element hyperlink : docLinks) {
             String href = hyperlink.attr("href").trim();
             String key = "a#" + href;
-            if(this.links.containsKey(key)){
+            if (this.links.containsKey(key)) {
                 this.links.get(key).addCount();
             } else {
                 this.links.put(key, new Link(href, this, LinkType.HYPERLINK));
@@ -149,10 +150,10 @@ public class ResourceDom extends ResourceAbstract {
             String key = "form#" + formAction;
             Link link = new Link(formAction, this, LinkType.FORM);
             /*if(this.links.containsKey(key)){
-                this.links.get(key).addCount();
-            } else {
-                this.links.put(key, link);
-            }*/
+             this.links.get(key).addCount();
+             } else {
+             this.links.put(key, link);
+             }*/
             this.forms.add(new Form(link, method));
         }
     }
@@ -190,9 +191,9 @@ public class ResourceDom extends ResourceAbstract {
             this.scratchURLs();
         }
     }
-    
+
     @Override
-    public void vertexTransaction(OrientGraph graph){
+    public void vertexTransaction(OrientGraph graph) {
         try {
             OrientVertex vertex = graph.addVertex("class:Resource",
                     "url", this.getURL().toString(), "code", this.getCode(),
@@ -200,10 +201,10 @@ public class ResourceDom extends ResourceAbstract {
                     "type", this.getType().toString());
             graph.commit();
             this.setVertexID(vertex.getId());
-            
-            for(Form form : forms){
-                OrientVertex formVertex = graph.addVertex("class:Form", 
-                        "action", form.getAction().getLink(), 
+
+            for (Form form : forms) {
+                OrientVertex formVertex = graph.addVertex("class:Form",
+                        "action", form.getAction().getLink(),
                         "method", form.getMethod().toString());
                 vertex.addEdge("Includes", formVertex);
             }
