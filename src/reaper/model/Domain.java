@@ -8,6 +8,7 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.IntegerProperty;
@@ -38,6 +39,7 @@ public class Domain {
     private final StringProperty dbPassword;
     private final IntegerProperty resourcesCount;
     private final IntegerProperty linksCount;
+    private final ObservableList<URL> blacklist;
     private Object rootId;
 
     private final MinerService mining;
@@ -54,6 +56,7 @@ public class Domain {
         this.dbUser = new SimpleStringProperty("admin");
         this.resourcesCount = new SimpleIntegerProperty(0);
         this.linksCount = new SimpleIntegerProperty(0);
+        this.blacklist = FXCollections.observableArrayList();
         this.rootId = null;
 
         this.init();
@@ -319,5 +322,9 @@ public class Domain {
     
     public Object getRootID(){
         return this.rootId;
+    }
+    
+    public ObservableList<URL> blacklistProperty(){
+        return this.blacklist;
     }
 }

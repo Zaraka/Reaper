@@ -1,7 +1,9 @@
 package reaper.view;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,6 +17,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -29,6 +32,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextFlow;
@@ -72,6 +76,10 @@ public class ReaperController implements Initializable {
     @FXML
     private TableColumn<Resource, String> resourceTypeColumn;
     @FXML
+    private TableView<URL> blacklistTable;
+    @FXML
+    private TableColumn<URL, String> blacklistColumn;
+    @FXML
     private WebView sitemap;
     @FXML
     private TextField maxDepth;
@@ -99,7 +107,9 @@ public class ReaperController implements Initializable {
     private Label overviewResourceLabel;
     @FXML
     private Label overviewLinksLabel;
-
+    @FXML
+    private Button addBlacklistItemButton;
+    
     @FXML
     private void startMining(ActionEvent event) {
         if (!"".equals(hostname.getText())) {
@@ -149,6 +159,23 @@ public class ReaperController implements Initializable {
         reaper.getDomain().loadAll();
         activeNode = reaper.getDomain().getRootID().toString();
         createResourcePane(reaper.getDomain().resources().get(activeNode));
+    }
+    
+    @FXML
+    private void addBlacklistedItem(ActionEvent event){
+        TextInputDialog dialog = new TextInputDialog("subdomain.example.com");
+        dialog.setTitle("Add blacklisted domain");
+        dialog.setHeaderText("Add blacklisted domain");
+        dialog.setContentText("Please enter domain you want to blacklist");
+        
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(domain -> {
+            try {
+                this.reaper.getDomain().blacklistProperty().add(new URL(domain));
+            } catch (MalformedURLException ex) {
+                logger.log(Level.SEVERE, null, ex);
+            }
+        });
     }
 
     @Override
@@ -214,6 +241,7 @@ public class ReaperController implements Initializable {
             }
         });
 
+        //resourceTable
         //resourceTable.setItems(dom.resources());
         resourceTable.setEditable(false);
         resourceCodeColumn.setCellValueFactory(cellData -> cellData.getValue().codeProperty());
@@ -251,7 +279,12 @@ public class ReaperController implements Initializable {
         resourceMimeTypeColumn.setCellFactory(cellFactory);
         resourcePathColumn.setCellFactory(cellFactory);
         resourceURLColumn.setCellFactory(cellFactory);
+        
+        //blacklistTable
+        blacklistTable.setEditable(false);
+        blacklistColumn.setCellValueFactory((CellDataFeatures<URL, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().toString()));
 
+        //overview
         overviewDomainLabel.textProperty().bindBidirectional(dom.hostnameProperty());
         overviewResourceLabel.textProperty().bindBidirectional(dom.resourcesCountProperty(), new NumberStringConverter());
         overviewLinksLabel.textProperty().bindBidirectional(dom.linksCountProperty(), new NumberStringConverter());
@@ -346,6 +379,14 @@ public class ReaperController implements Initializable {
         reaper.getDomain().loadResource(node);
         activeNode = node;
         createResourcePane(reaper.getDomain().resources().get(node));
+    }
+    
+    private void lockSettings(){
+        addBlacklistItemButton.setDisable(true);
+    }
+    
+    private void unlockSettings(){
+        addBlacklistItemButton.setDisable(false);
     }
 
 }

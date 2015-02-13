@@ -72,6 +72,12 @@
                                                       <Label text="Domain" />
                                                    </children>
                                                 </GridPane>
+                                                <TableView fx:id="blacklistTable" prefHeight="200.0" prefWidth="200.0">
+                                                  <columns>
+                                                    <TableColumn fx:id="blacklistColumn" prefWidth="946.0" text="Blacklist" />
+                                                  </columns>
+                                                </TableView>
+                                                <Button mnemonicParsing="false" onAction="#addBlacklistItem" text="Add item to blacklist" />
                                              </children>
                                           </VBox>
                                        </children></AnchorPane>
