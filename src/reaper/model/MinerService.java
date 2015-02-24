@@ -1,6 +1,7 @@
 package reaper.model;
 
 import com.orientechnologies.orient.core.exception.OStorageException;
+import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
@@ -76,6 +77,18 @@ public class MinerService extends Service<Void> {
         return this.rootId;
     }
 
+    private void queLink(URL link){
+        OrientGraph graph = graphFactory.getTx();
+        try{
+            String cmd = "BEGIN\n";
+            cmd += "let $counter = UPDATE LinkQue INCREMENT value = 1 WHERE name = 'position' return after\n";
+            cmd += "INSERT INTO LinkQue SET position = $counter.value,path = "+ link +" \n";
+            cmd += "COMMIT";
+        } finally {
+            graph.shutdown();
+        }
+    }
+    
     private Link popLink() {
         if (this.linksQueue.size() < 1) {
             return null;

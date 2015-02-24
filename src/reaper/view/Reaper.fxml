@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.chart.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.web.*?>
 <?import javafx.scene.text.*?>
@@ -14,17 +15,6 @@
    <children>
       <VBox prefHeight="611.0" prefWidth="815.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <ToolBar>
-              <items>
-                  <HBox>
-                     <children>
-                        <Button fx:id="domainButton" mnemonicParsing="false" onAction="#startMining" text="Start" />
-                      <Button fx:id="stopButton" mnemonicParsing="false" onAction="#stopMining" text="Stop" />
-                        <Button fx:id="clearButton" mnemonicParsing="false" onAction="#clearData" text="Clear" />
-                     </children>
-                  </HBox>
-              </items>
-            </ToolBar>
             <SplitPane dividerPositions="0.766721044045677" orientation="VERTICAL" VBox.vgrow="ALWAYS">
               <items>
                 <AnchorPane>
@@ -72,12 +62,24 @@
                                                       <Label text="Domain" />
                                                    </children>
                                                 </GridPane>
+                                                <HBox>
+                                                   <children>
+                                                      <Button fx:id="domainButton" mnemonicParsing="false" onAction="#startMining" text="Start Minning" />
+                                                    <Button fx:id="stopButton" mnemonicParsing="false" onAction="#stopMining" text="Stop Minning" />
+                                                      <Button fx:id="clearButton" mnemonicParsing="false" onAction="#clearData" text="Clear Data from database" />
+                                                   </children>
+                                                </HBox>
                                                 <TableView fx:id="blacklistTable" prefHeight="200.0" prefWidth="200.0">
                                                   <columns>
                                                     <TableColumn fx:id="blacklistColumn" prefWidth="946.0" text="Blacklist" />
                                                   </columns>
                                                 </TableView>
-                                                <Button mnemonicParsing="false" onAction="#addBlacklistItem" text="Add item to blacklist" />
+                                                <HBox prefHeight="100.0" prefWidth="200.0">
+                                                   <children>
+                                                      <Button mnemonicParsing="false" onAction="#addBlacklistItem" text="Add item to blacklist" />
+                                                      <Label text="Domain has to be same as scanned domain. Or blackilsted item will not have any effect" />
+                                                   </children>
+                                                </HBox>
                                              </children>
                                           </VBox>
                                        </children></AnchorPane>
@@ -114,6 +116,7 @@
                                                       <Button mnemonicParsing="false" onAction="#overviewLoadAll" text="Load All" />
                                                    </children>
                                                 </HBox>
+                                                <PieChart fx:id="overviewStatus" />
                                              </children>
                                           </VBox>
                                        </children>

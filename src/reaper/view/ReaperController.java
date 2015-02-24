@@ -109,7 +109,7 @@ public class ReaperController implements Initializable {
     private Label overviewLinksLabel;
     @FXML
     private Button addBlacklistItemButton;
-    
+
     @FXML
     private void startMining(ActionEvent event) {
         if (!"".equals(hostname.getText())) {
@@ -160,18 +160,23 @@ public class ReaperController implements Initializable {
         activeNode = reaper.getDomain().getRootID().toString();
         createResourcePane(reaper.getDomain().resources().get(activeNode));
     }
-    
+
     @FXML
-    private void addBlacklistedItem(ActionEvent event){
-        TextInputDialog dialog = new TextInputDialog("subdomain.example.com");
+    private void addBlacklistItem(ActionEvent event) {
+        TextInputDialog dialog = new TextInputDialog("http://subdomain.example.com");
         dialog.setTitle("Add blacklisted domain");
         dialog.setHeaderText("Add blacklisted domain");
         dialog.setContentText("Please enter domain you want to blacklist");
-        
+
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(domain -> {
+            String url = domain;
+            if (!url.matches("^.*:\\/\\/.*$")) {
+                url = "http://" + url;
+                logger.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
+            }
             try {
-                this.reaper.getDomain().blacklistProperty().add(new URL(domain));
+                this.reaper.getDomain().blacklistProperty().add(new URL(url));
             } catch (MalformedURLException ex) {
                 logger.log(Level.SEVERE, null, ex);
             }
@@ -216,11 +221,11 @@ public class ReaperController implements Initializable {
         dom.resources().addListener((MapChangeListener.Change<? extends String, ? extends Resource> change) -> {
             if (displayGraph.isSelected()) {
                 if (change.wasRemoved()) {
-                        removeSitemapNode(change.getValueRemoved());
-                    
+                    removeSitemapNode(change.getValueRemoved());
+
                 }
                 if (change.wasAdded()) {
-                        addSitemapNode(change.getValueAdded());
+                    addSitemapNode(change.getValueAdded());
                 }
             }
         });
@@ -231,13 +236,12 @@ public class ReaperController implements Initializable {
                     for (Link link : change.getAddedSubList()) {
                         addEdge(link);
                     }
-                 } else if (change.wasRemoved()){
-                     for(Link link : change.getRemoved()) {
-                         removeEdge(link);
-                     }
-                 }
-                
-                
+                } else if (change.wasRemoved()) {
+                    for (Link link : change.getRemoved()) {
+                        removeEdge(link);
+                    }
+                }
+
             }
         });
 
@@ -279,16 +283,17 @@ public class ReaperController implements Initializable {
         resourceMimeTypeColumn.setCellFactory(cellFactory);
         resourcePathColumn.setCellFactory(cellFactory);
         resourceURLColumn.setCellFactory(cellFactory);
-        
+
         //blacklistTable
         blacklistTable.setEditable(false);
+        blacklistTable.setItems(dom.blacklistProperty());
         blacklistColumn.setCellValueFactory((CellDataFeatures<URL, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().toString()));
 
         //overview
         overviewDomainLabel.textProperty().bindBidirectional(dom.hostnameProperty());
         overviewResourceLabel.textProperty().bindBidirectional(dom.resourcesCountProperty(), new NumberStringConverter());
         overviewLinksLabel.textProperty().bindBidirectional(dom.linksCountProperty(), new NumberStringConverter());
-        
+
         //WebView controller
         sitemap.setContextMenuEnabled(false);
         JSObject jsobs = (JSObject) sitemap.getEngine().executeScript("window");
@@ -314,7 +319,7 @@ public class ReaperController implements Initializable {
         if (link.getEdgeFormat() != null) {
             String fromUrl = link.getFromResource().getURL().toString();
             String toUrl = link.getToResource().getURL().toString();
-            String edge = "addEdgeIfNotExists('" + link.getEdgeFormat() + "', '" + fromUrl + "', '" + toUrl + "', '"+link.getCount()+"');";
+            String edge = "addEdgeIfNotExists('" + link.getEdgeFormat() + "', '" + fromUrl + "', '" + toUrl + "', '" + link.getCount() + "');";
             try {
                 this.sitemap.getEngine().executeScript(edge);
             } catch (JSException ex) {
@@ -322,9 +327,9 @@ public class ReaperController implements Initializable {
             }
         }
     }
-    
-    private void removeEdge(Link link){
-        if(link.getEdgeFormat() != null){
+
+    private void removeEdge(Link link) {
+        if (link.getEdgeFormat() != null) {
             String edge = "removeEdge('" + link.getEdgeFormat() + "');";
             try {
                 this.sitemap.getEngine().executeScript(edge);
@@ -336,7 +341,7 @@ public class ReaperController implements Initializable {
 
     private void addSitemapNode(Resource resource) {
         String path = resource.getURL().toString();
-        String script = "addResourceIfNotExists('" + path + "', '" + resource.getType().getGroup() + "','"+resource.getVertexID().toString()+"');";
+        String script = "addResourceIfNotExists('" + path + "', '" + resource.getType().getGroup() + "','" + resource.getVertexID().toString() + "');";
         try {
             this.sitemap.getEngine().executeScript(script);
         } catch (JSException ex) {
@@ -374,18 +379,18 @@ public class ReaperController implements Initializable {
                 return getClass().getResource("ResourceOutside.fxml");
         }
     }
-    
-    public void setActiveNode(String node){
+
+    public void setActiveNode(String node) {
         reaper.getDomain().loadResource(node);
         activeNode = node;
         createResourcePane(reaper.getDomain().resources().get(node));
     }
-    
-    private void lockSettings(){
+
+    private void lockSettings() {
         addBlacklistItemButton.setDisable(true);
     }
-    
-    private void unlockSettings(){
+
+    private void unlockSettings() {
         addBlacklistItemButton.setDisable(false);
     }
 
