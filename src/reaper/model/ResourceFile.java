@@ -13,8 +13,8 @@ import reaper.Reaper;
 public class ResourceFile extends ResourceAbstract {
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
     
-    ResourceFile(URL url, int depth, int maxDepth, Resource parent) throws MalformedURLException {
-        super(url, depth, maxDepth, parent);
+    ResourceFile(URL url, int depth, int maxDepth) throws MalformedURLException {
+        super(url, depth, maxDepth);
         this.type = ResourceType.FILE;
     }
     

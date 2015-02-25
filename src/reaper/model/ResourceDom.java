@@ -39,18 +39,19 @@ public class ResourceDom extends ResourceAbstract {
         this.type = ResourceType.DOM;
     }
 
-    ResourceDom(URL url, int depth, int maxDepth, Resource parent) throws UnsupportedMimeTypeException, MalformedURLException, OutsidePageException {
-        super(url, depth, maxDepth, parent);
+    ResourceDom(URL url, int depth, int maxDepth) throws UnsupportedMimeTypeException, MalformedURLException, OutsidePageException {
+        super(url, depth, maxDepth);
 
         this.forms = new ArrayList<>();
         this.type = ResourceType.DOM;
 
+        /*FIXME
         if (this.parent != null) {
             //First check if resource is in domain
             if (!InternetDomainName.from(url.getHost()).topPrivateDomain().toString().equals(InternetDomainName.from(parent.getURL().getHost()).topPrivateDomain().toString())) {
                 throw new OutsidePageException("Document isn't in scanned area");
             }
-        }
+        }*/
 
         //then check if resource has DOM element
         try {

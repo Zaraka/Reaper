@@ -1,6 +1,7 @@
 package reaper.model;
 
 import com.orientechnologies.orient.core.exception.OStorageException;
+import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
@@ -27,23 +28,20 @@ public class MinerService extends Service<Void> {
 
     private String hostname;
     private int maxDepth;
-    private String databaseHost;
-    private String databaseUser;
-    private String databasePassword;
     private ArrayList<Link> linksQueue;
     private Map<String, String> resources;
     private OrientGraphFactory graphFactory;
     private int resourceCount, linksCount;
     private Object rootId;
+    private DBConf dbConf;
+    private LinkQue linkScrambler;
 
     public void init(String hostname, int maxDepth, String dbHost, String dbUser, String dbPass) {
         this.hostname = hostname;
         this.maxDepth = maxDepth;
         this.linksQueue = new ArrayList<>();
         this.resources = new HashMap<>();
-        this.databaseHost = dbHost;
-        this.databasePassword = dbPass;
-        this.databaseUser = dbUser;
+        this.dbConf = new DBConf(dbHost, dbUser, dbPass);
 
         this.resourceCount = 0;
         this.linksCount = 0;
@@ -75,27 +73,6 @@ public class MinerService extends Service<Void> {
 
     public Object getRootId() {
         return this.rootId;
-    }
-
-    private void queLink(URL link){
-        OrientGraph graph = graphFactory.getTx();
-        try{
-            String cmd = "BEGIN\n";
-            cmd += "let $counter = UPDATE LinkQue INCREMENT value = 1 WHERE name = 'position' return after\n";
-            cmd += "INSERT INTO LinkQue SET position = $counter.value,path = "+ link +" \n";
-            cmd += "COMMIT";
-        } finally {
-            graph.shutdown();
-        }
-    }
-    
-    private Link popLink() {
-        if (this.linksQueue.size() < 1) {
-            return null;
-        }
-        Link result = this.linksQueue.get(0);
-        this.linksQueue.remove(0);
-        return result;
     }
 
     private void createSingleVertex(Resource res) {
@@ -150,31 +127,32 @@ public class MinerService extends Service<Void> {
 
                 try {
                     URL uURL = new URL(url);
-                    ResourceDom root = new ResourceDom(uURL, 0, maxDepth, null);
+                    ResourceDom root = new ResourceDom(uURL, 0, maxDepth);
                     linksQueue.addAll(root.links());
                     createSingleVertex(root);
                     rootId = root.getVertexID();
                 } catch (UnsupportedMimeTypeException | MalformedURLException ex) {
                     throw ex;
-                }
-                Link link;
-                while ((link = popLink()) != null) {
+                } 
+                while (linkScrambler.queLength() > 0) {
+                    ODocument docLink = linkScrambler.linkLeave();
+                    Link link = new Link(docLink.field("from").toString(), docLink.field("path").toString());
                     if (resources.get(link.getToURL()) == null) {
                         Resource toRes;
                         URL linkUrl = new URL(link.getFromResource().getURL(), link.getLink());
                         try {
-                            toRes = new ResourceDom(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
+                            toRes = new ResourceDom(linkUrl, link.getFromResource().getDepth() + 1, maxDepth);
                             if (toRes.getDepth() < maxDepth) {
                                 linksQueue.addAll(toRes.links());
                             }
                         } catch (UnsupportedMimeTypeException ex) {
                             try {
-                                toRes = new ResourceFile(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
+                                toRes = new ResourceFile(linkUrl, link.getFromResource().getDepth() + 1, maxDepth);
                             } catch (MalformedURLException ex1) {
                                 throw ex1;
                             }
                         } catch (OutsidePageException ex) {
-                            toRes = new ResourceOutside(linkUrl, link.getFromResource().getDepth() + 1, maxDepth, link.getFromResource());
+                            toRes = new ResourceOutside(linkUrl, link.getFromResource().getDepth() + 1, maxDepth);
                         } catch (MalformedURLException ex) {
                             throw ex;
                         }

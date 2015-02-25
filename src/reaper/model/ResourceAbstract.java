@@ -20,7 +20,6 @@ import javafx.beans.property.StringProperty;
  * @author zaraka
  */
 abstract class ResourceAbstract implements Resource{
-    protected Resource parent;
     protected ResourceType type;
     protected URL url;
     protected long downloadTime;
@@ -45,9 +44,8 @@ abstract class ResourceAbstract implements Resource{
         this.id = null;
     }
    
-    ResourceAbstract(URL url, int depth, int maxDepth, Resource parent) throws MalformedURLException {
+    ResourceAbstract(URL url, int depth, int maxDepth) throws MalformedURLException {
         this.url = url;
-        this.parent = parent;
         this.state = ResourceState.UNITIALIZED;
         this.depth = new SimpleIntegerProperty(depth);
         this.maxDepth = new SimpleIntegerProperty(maxDepth);
@@ -60,7 +58,6 @@ abstract class ResourceAbstract implements Resource{
     }
     
     ResourceAbstract(Vertex vertex) throws MalformedURLException{
-        this.parent = null;
         this.state = ResourceState.UNITIALIZED;
         this.depth = new SimpleIntegerProperty(0);
         this.maxDepth = new SimpleIntegerProperty(0);

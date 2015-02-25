@@ -32,6 +32,21 @@ public class Link {
         this.type = LinkType.UNDEFINED;
     }
 
+    Link(String fromPath, String link){
+        this.link = new SimpleStringProperty(link);
+        this.count = new SimpleIntegerProperty(1);
+        this.fromResource = null;
+        this.toResource = null;
+        this.type = LinkType.UNDEFINED;
+        this.fromURL = fromPath;
+        try {
+            URL rfromURL = new URL(fromPath);
+            this.toURL = new URL(rfromURL, link).toString();
+        } catch(MalformedURLException ex){
+            
+        }
+    }
+    
     Link(String link, Resource source) {
         this.link = new SimpleStringProperty(link);
         this.count = new SimpleIntegerProperty(1);
