@@ -20,7 +20,7 @@ public class LinkQue {
         this.dbConf = conf;
         
         db  = new ODatabaseDocumentTx(dbConf.getHostname());
-        leaveQuery = new OSQLSynchQuery<>("select * from LinkQue order by LinkQue.position DESC", 1);
+        leaveQuery = new OSQLSynchQuery<>("select * from LinkQue order by LinkQue.position DESC LIMIT 1");
         enterQuery = new OSQLSynchQuery<>("INSERT INTO LinkQue SET path = ?, from = ?, depth = ?, position = 0");
         incrementQuery = new OSQLSynchQuery<>("UPDATE LinkQue INCREMENT position = 1");
     }
@@ -29,6 +29,8 @@ public class LinkQue {
         ODatabaseDocumentTx oDB = db.open(dbConf.getUsername(), dbConf.getPassword());
         try{
             oDB.command(enterQuery).execute(path, from, depth);
+        } catch(Exception e){
+            e.printStackTrace(System.out);
         } finally {
             oDB.close();
         }

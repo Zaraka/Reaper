@@ -1,8 +1,8 @@
 package reaper.model;
 
 import com.orientechnologies.orient.core.exception.OStorageException;
+import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.record.impl.ODocument;
-import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
@@ -42,6 +42,7 @@ public class MinerService extends Service<Void> {
         this.linksQueue = new ArrayList<>();
         this.resources = new HashMap<>();
         this.dbConf = new DBConf(dbHost, dbUser, dbPass);
+        this.linkScrambler = new LinkQue(dbConf);
 
         this.resourceCount = 0;
         this.linksCount = 0;
@@ -136,23 +137,25 @@ public class MinerService extends Service<Void> {
                 } 
                 while (linkScrambler.queLength() > 0) {
                     ODocument docLink = linkScrambler.linkLeave();
+                    int docDepth = docLink.field("depth");
                     Link link = new Link(docLink.field("from").toString(), docLink.field("path").toString());
                     if (resources.get(link.getToURL()) == null) {
                         Resource toRes;
-                        URL linkUrl = new URL(link.getFromResource().getURL(), link.getLink());
+                        URL parentURL = new URL(link.getFromURL());
+                        URL linkUrl = new URL(parentURL, link.getLink());
                         try {
-                            toRes = new ResourceDom(linkUrl, link.getFromResource().getDepth() + 1, maxDepth);
+                            toRes = new ResourceDom(linkUrl, docDepth + 1, maxDepth);
                             if (toRes.getDepth() < maxDepth) {
                                 linksQueue.addAll(toRes.links());
                             }
                         } catch (UnsupportedMimeTypeException ex) {
                             try {
-                                toRes = new ResourceFile(linkUrl, link.getFromResource().getDepth() + 1, maxDepth);
+                                toRes = new ResourceFile(linkUrl, docDepth + 1, maxDepth);
                             } catch (MalformedURLException ex1) {
                                 throw ex1;
                             }
                         } catch (OutsidePageException ex) {
-                            toRes = new ResourceOutside(linkUrl, link.getFromResource().getDepth() + 1, maxDepth);
+                            toRes = new ResourceOutside(linkUrl, docDepth + 1, maxDepth);
                         } catch (MalformedURLException ex) {
                             throw ex;
                         }
