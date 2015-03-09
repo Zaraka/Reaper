@@ -24,6 +24,7 @@ import reaper.exceptions.OutsidePageException;
  * @author zaraka
  */
 public class MinerService extends Service<Void> {
+
     private static final Logger logger = Logger.getLogger(reaper.Reaper.class.getName());
 
     private String hostname;
@@ -130,11 +131,14 @@ public class MinerService extends Service<Void> {
                     URL uURL = new URL(url);
                     ResourceDom root = new ResourceDom(uURL, 0, maxDepth);
                     linksQueue.addAll(root.links());
+                    for (Link queLink : root.links()) {
+                        linkScrambler.linkEnter(queLink.getLink(), queLink.getFromURL(), queLink.getFromResource().getDepth());
+                    }
                     createSingleVertex(root);
                     rootId = root.getVertexID();
                 } catch (UnsupportedMimeTypeException | MalformedURLException ex) {
                     throw ex;
-                } 
+                }
                 while (linkScrambler.queLength() > 0) {
                     ODocument docLink = linkScrambler.linkLeave();
                     int docDepth = docLink.field("depth");
@@ -146,7 +150,9 @@ public class MinerService extends Service<Void> {
                         try {
                             toRes = new ResourceDom(linkUrl, docDepth + 1, maxDepth);
                             if (toRes.getDepth() < maxDepth) {
-                                linksQueue.addAll(toRes.links());
+                                for (Link queLink : toRes.links()) {
+                                    linkScrambler.linkEnter(queLink.getLink(), queLink.getFromURL(), queLink.getFromResource().getDepth());
+                                }
                             }
                         } catch (UnsupportedMimeTypeException ex) {
                             try {
