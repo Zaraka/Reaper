@@ -2,6 +2,7 @@ package reaper.model;
 
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.record.impl.ODocument;
+import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import java.util.List;
 
@@ -10,7 +11,7 @@ import java.util.List;
  * @author nikita.vanku
  */
 public class LinkQue {
-
+    //FINISH DATABASES
     private final DBConf dbConf;
     private final ODatabaseDocumentTx db;
     private final OSQLSynchQuery<ODocument> leaveQuery;
@@ -21,7 +22,7 @@ public class LinkQue {
         this.dbConf = conf;
         
         db = new ODatabaseDocumentTx(dbConf.getHostname());
-        leaveQuery = new OSQLSynchQuery<>("select * from LinkQue order by LinkQue.position DESC LIMIT 1");
+        leaveQuery = new OSQLSynchQuery<>("SELECT * FROM LinkQue order by LinkQue.position DESC LIMIT 1");
         enterQuery = new OSQLSynchQuery<>("INSERT INTO LinkQue SET path = ?, from = ?, depth = ?, position = 0");
         incrementQuery = new OSQLSynchQuery<>("UPDATE LinkQue INCREMENT position = 1");
     }
@@ -30,9 +31,9 @@ public class LinkQue {
         ODatabaseDocumentTx oDB = db.open(dbConf.getUsername(), dbConf.getPassword());
         try {
             oDB.command(
-                    new OSQLSynchQuery<>("INSERT INTO LinkQue SET path = ?, from = ?, depth = ?, position = 0")).execute(path, from, depth);
+                    new OCommandSQL("INSERT INTO LinkQue SET path = ?, from = ?, depth = ?, position = 0")).execute(path, from, depth);
             oDB.command(
-                    new OSQLSynchQuery("UPDATE LinkQue INCREMENT position = 1")).execute();
+                    new OCommandSQL("UPDATE LinkQue INCREMENT position = 1")).execute();
         } catch (Exception e) {
             e.printStackTrace(System.out);
         } finally {
@@ -47,7 +48,7 @@ public class LinkQue {
             List<ODocument> result = oDB.command(leaveQuery).execute();
             System.out.println("LinkLeave returned " + String.valueOf(result.size()));
             oDB.command(
-                    new OSQLSynchQuery("UPDATE LinkQue INCREMENT position = 1")).execute();
+                    new OCommandSQL("UPDATE LinkQue INCREMENT position = 1")).execute();
             
             resultDocument = result.get(0);
         } finally {
