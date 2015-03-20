@@ -43,7 +43,7 @@ public class MinerService extends Service<Void> {
         this.linksQueue = new ArrayList<>();
         this.resources = new HashMap<>();
         this.dbConf = new DBConf(dbHost, dbUser, dbPass);
-        this.linkScrambler = new LinkQue(dbConf);
+        
 
         this.resourceCount = 0;
         this.linksCount = 0;
@@ -54,6 +54,8 @@ public class MinerService extends Service<Void> {
         } catch (OStorageException ex) {
             throw ex;
         }
+        
+        this.linkScrambler = new LinkQue(graphFactory);
 
     }
 
@@ -141,6 +143,9 @@ public class MinerService extends Service<Void> {
                 }
                 while (linkScrambler.queLength() > 0) {
                     ODocument docLink = linkScrambler.linkLeave();
+                    if(docLink == null){
+                        System.out.println("No more links;");
+                    }
                     int docDepth = docLink.field("depth");
                     Link link = new Link(docLink.field("from").toString(), docLink.field("path").toString());
                     if (resources.get(link.getToURL()) == null) {
