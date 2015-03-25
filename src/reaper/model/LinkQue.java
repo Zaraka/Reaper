@@ -13,11 +13,8 @@ import java.util.List;
  */
 public class LinkQue {
     //FINISH DATABASES
-    //private final DBConf dbConf;
-    //private final ODatabaseDocumentTx db;
     private final OSQLSynchQuery<ODocument> leaveQuery;
-    private OrientGraphFactory graphFactory;
-    //private OrientGraphFactory graphFactory;
+    private final OrientGraphFactory graphFactory;
     
     LinkQue(OrientGraphFactory factory) {
         this.graphFactory = factory;
@@ -51,7 +48,6 @@ public class LinkQue {
             if(result.isEmpty()){
                 return null;
             }
-            System.out.println("LinkLeave returned " + String.valueOf(result.size()));
             resultDocument = result.get(0);
             Integer position = resultDocument.field("position");
             oDB.command(
@@ -72,7 +68,6 @@ public class LinkQue {
         } finally {
             oDB.close();
         }
-        System.out.println("Que Length " + length);
         return length;
     }
 }

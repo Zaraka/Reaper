@@ -11,7 +11,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -40,9 +42,10 @@ public class Domain {
     private final IntegerProperty resourcesCount;
     private final IntegerProperty linksCount;
     private final ObservableList<URL> blacklist;
+    private final BooleanProperty minerBusy;
     private Object rootId;
 
-    private final MinerService mining;
+    private final MinerService minerService;
 
     public Domain() {
         this.resources = FXCollections.observableHashMap();
@@ -50,20 +53,21 @@ public class Domain {
         this.hostname = new SimpleStringProperty("");
         this.maxDepth = new SimpleIntegerProperty(1);
         this.maxDownloads = new SimpleIntegerProperty(5);
-        this.mining = new MinerService();
+        this.minerService = new MinerService();
         this.dbHost = new SimpleStringProperty("remote:localhost/ReaperTest");
         this.dbPassword = new SimpleStringProperty("admin");
         this.dbUser = new SimpleStringProperty("admin");
         this.resourcesCount = new SimpleIntegerProperty(0);
         this.linksCount = new SimpleIntegerProperty(0);
         this.blacklist = FXCollections.observableArrayList();
+        this.minerBusy = new SimpleBooleanProperty(false);
         this.rootId = null;
 
         this.init();
     }
 
     public void dataReset() {
-        if (this.mining.isRunning()) {
+        if (this.minerService.isRunning()) {
             logger.log(Level.WARNING, "Cant clear data while miner is running");
             return;
         }
@@ -167,47 +171,53 @@ public class Domain {
 
     private void init() {
         try {
-            mining.init(this.getHostname(), this.getMaxDepth(),
+            minerService.init(this.getHostname(), this.getMaxDepth(),
                     this.getDbHost(), this.getDbUser(), this.getDbPassword());
         } catch (OStorageException ex) {
             logger.log(Level.SEVERE, ex.toString());
         }
-        mining.setOnSucceeded((WorkerStateEvent event) -> {
-            this.setResourcesCount(this.mining.getResourceCount());
-            this.setLinksCount(this.mining.getLinksCount());
-            this.rootId = this.mining.getRootId();
-            this.mining.reset();
+        minerService.setOnSucceeded((WorkerStateEvent event) -> {
+            this.setResourcesCount(this.minerService.getResourceCount());
+            this.setLinksCount(this.minerService.getLinksCount());
+            this.rootId = this.minerService.getRootId();
+            this.minerService.reset();
+            this.setMinerBusy(false);
             logger.log(Level.INFO, "Mining finished");
         });
-        mining.setOnFailed((WorkerStateEvent event) -> {
+        minerService.setOnFailed((WorkerStateEvent event) -> {
+            this.setMinerBusy(false);
             logger.log(Level.SEVERE, "Mining failed");
             if (event.getSource().getException() != null) {
                 logger.log(Level.SEVERE, event.getSource().getException().toString());
             }
         });
-        mining.setOnRunning((WorkerStateEvent event) -> {
+        minerService.setOnRunning((WorkerStateEvent event) -> {
+            this.setMinerBusy(true);
             logger.log(Level.INFO, "Mining service started");
         });
-        mining.setOnCancelled((WorkerStateEvent event) -> {
+        minerService.setOnCancelled((WorkerStateEvent event) -> {
+            this.setMinerBusy(false);
             logger.log(Level.INFO, "Mining canceled");
         });
+        
+        //minerService.set
 
     }
 
     public void mineStart(String hostname) {
-        if (!this.mining.isRunning()) {
+        if (!this.minerService.isRunning()) {
             logger.log(Level.INFO, "Request mining on " + hostname);
             this.clearData();
             this.hostname.set(hostname);
-            this.mining.setHostname(hostname);
-            this.mining.setMaxDepth(this.maxDepth.get());
-            this.mining.start();
+            this.minerService.setHostname(hostname);
+            this.minerService.setMaxDepth(this.maxDepth.get());
+            this.minerService.start();
         }
     }
 
     public void mineStop() {
-        if (this.mining.isRunning()) {
-            mining.cancel();
+        if (this.minerService.isRunning()) {
+            minerService.cancel();
         }
     }
 
@@ -328,5 +338,17 @@ public class Domain {
     
     public ObservableList<URL> blacklistProperty(){
         return this.blacklist;
+    }
+    
+    public boolean getMinerBusy(){
+        return this.minerBusy.get();
+    }
+    
+    public void setMinerBusy(boolean value){
+        this.minerBusy.set(value);
+    }
+    
+    public BooleanProperty minerBusy(){
+        return this.minerBusy;
     }
 }

@@ -143,9 +143,6 @@ public class MinerService extends Service<Void> {
                 }
                 while (linkScrambler.queLength() > 0) {
                     ODocument docLink = linkScrambler.linkLeave();
-                    if(docLink == null){
-                        System.out.println("No more links;");
-                    }
                     int docDepth = docLink.field("depth");
                     Link link = new Link(docLink.field("from").toString(), docLink.field("path").toString());
                     if (resources.get(link.getToURL()) == null) {

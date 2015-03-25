@@ -1,5 +1,6 @@
 package reaper.view;
 
+import com.sun.javafx.property.adapter.PropertyDescriptor;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -8,6 +9,8 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.event.ActionEvent;
@@ -16,6 +19,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.DepthTest;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -109,6 +113,12 @@ public class ReaperController implements Initializable {
     private Label overviewLinksLabel;
     @FXML
     private Button addBlacklistItemButton;
+    @FXML
+    private Button startMiningButton;
+    @FXML
+    private Button stopMiningButton;
+    @FXML
+    private Button clearDataButton;
 
     @FXML
     private void startMining(ActionEvent event) {
@@ -119,7 +129,7 @@ public class ReaperController implements Initializable {
         }
     }
 
-    @FXML
+    @FXML 
     private void stopMining(ActionEvent event) {
         reaper.getDomain().mineStop();
     }
@@ -181,6 +191,16 @@ public class ReaperController implements Initializable {
                 logger.log(Level.SEVERE, null, ex);
             }
         });
+    }
+    
+    @FXML
+    public void setupDatabase(){
+        
+    }
+    
+    @FXML
+    public void teardownDatabase(){
+        
     }
 
     @Override
@@ -300,6 +320,24 @@ public class ReaperController implements Initializable {
         SitemapController sitemapController = new SitemapController();
         sitemapController.setParentController(this);
         jsobs.setMember("controller", sitemapController);
+        
+        //Options locker while mining is running
+        dom.minerBusy().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            lockUnlockControls(newValue);
+        });
+    }
+    
+    private void lockUnlockControls(boolean value){
+        hostname.setDisable(value);
+        maxDownloads.setDisable(value);
+        maxDepth.setDisable(value);
+        databaseHost.setDisable(value);
+        databasePassword.setDisable(value);
+        databaseUser.setDisable(value);
+        addBlacklistItemButton.setDisable(value);
+        startMiningButton.setDisable(value);
+        stopMiningButton.setDisable(value);
+        clearDataButton.setDisable(value);
     }
 
     private void createResourcePane(Resource res) {
