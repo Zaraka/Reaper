@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<AnchorPane id="AnchorPane" prefHeight="445.0" prefWidth="665.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="reaper.view.NewProjectModalController">
+   <children>
+      <VBox layoutX="113.0" layoutY="38.0" prefHeight="478.0" prefWidth="941.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <GridPane>
+               <children>
+                  <Label text="Number of max Downloads" GridPane.rowIndex="1" />
+                  <Label text="Depth to search" GridPane.rowIndex="2" />
+                  <TextField fx:id="maxDownloads" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <TextField fx:id="maxDepth" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                  <TextField fx:id="hostname" onAction="#startMining" prefHeight="25.0" prefWidth="244.0" GridPane.columnIndex="1" />
+                  <Label text="Domain" />
+               </children>
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
+            </GridPane>
+            <HBox />
+            <TableView fx:id="blacklistTable" prefHeight="200.0" prefWidth="200.0">
+               <columns>
+                  <TableColumn fx:id="blacklistColumn" prefWidth="926.0" text="Blacklist" />
+               </columns>
+            </TableView>
+            <HBox>
+               <children>
+                  <Button fx:id="addBlacklistItemButton" mnemonicParsing="false" onAction="#addBlacklistItem" text="Add item to blacklist" />
+                  <Label text="Domain has to be same as scanned domain. Or blackilsted item will not have any effect" />
+               </children>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0">
+               <children>
+                  <Button mnemonicParsing="false" onAction="#createNewProject" text="Create" />
+                  <Button mnemonicParsing="false" onAction="#cancelModal" text="Cancel" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

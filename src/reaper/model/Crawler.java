@@ -1,7 +1,6 @@
 package reaper.model;
 
 import com.orientechnologies.orient.core.exception.OStorageException;
-import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -11,6 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -27,7 +27,7 @@ import reaper.Reaper;
  *
  * @author zaraka
  */
-public class Domain {
+public class Crawler {
 
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
 
@@ -43,27 +43,56 @@ public class Domain {
     private final IntegerProperty linksCount;
     private final ObservableList<URL> blacklist;
     private final BooleanProperty minerBusy;
+    private final ReaperDatabase database;
+    private final Preferences prefs;
+    private final ObservableList<Project> projects;
     private Object rootId;
 
     private final MinerService minerService;
 
-    public Domain() {
+    public Crawler() {
         this.resources = FXCollections.observableHashMap();
         this.links = FXCollections.observableArrayList();
+        this.prefs = Preferences.userNodeForPackage(Reaper.class);
         this.hostname = new SimpleStringProperty("");
         this.maxDepth = new SimpleIntegerProperty(1);
         this.maxDownloads = new SimpleIntegerProperty(5);
-        this.minerService = new MinerService();
-        this.dbHost = new SimpleStringProperty("remote:localhost/ReaperTest");
-        this.dbPassword = new SimpleStringProperty("admin");
-        this.dbUser = new SimpleStringProperty("admin");
+        this.dbHost = new SimpleStringProperty(getPrefDBHost());
+        this.dbPassword = new SimpleStringProperty(getPrefDBUser());
+        this.dbUser = new SimpleStringProperty(getPrefDBPassword());
         this.resourcesCount = new SimpleIntegerProperty(0);
         this.linksCount = new SimpleIntegerProperty(0);
         this.blacklist = FXCollections.observableArrayList();
         this.minerBusy = new SimpleBooleanProperty(false);
+        this.minerService = new MinerService();
+        this.database = new ReaperDatabase();
+        this.projects = FXCollections.observableArrayList();
+
         this.rootId = null;
 
         this.init();
+    }
+
+    public void databaseConnect() {
+        try {
+            database.connect(getDbHost(), getDbUser(), getDbPassword());
+            minerService.databaseConnect(getDbHost(), getDbUser(), getDbPassword());
+        } catch (OStorageException ex) {
+            logger.log(Level.SEVERE, "Cant connect to database " + getDbHost());
+        }
+    }
+
+    public void databaseDisconnect() {
+        database.disconnect();
+        minerService.databaseDisconnect();
+    }
+
+    public void setupDatabase() {
+        database.setupSchema();
+    }
+
+    public void removeDatabase() {
+        database.tearDown();
     }
 
     public void dataReset() {
@@ -72,21 +101,13 @@ public class Domain {
             return;
         }
 
-        OrientGraph graph = new OrientGraph(this.getDbHost(), this.getDbUser(), this.getDbPassword());
-        try {
-            long resourcesModified = graph.command(new OCommandSQL("TRUNCATE class Resource")).execute();
-            logger.log(Level.INFO, String.valueOf(resourcesModified) + " Resources deleted.");
-            long linksModified = graph.command(new OCommandSQL("TRUNCATE class LinkTo")).execute();
-            logger.log(Level.INFO, String.valueOf(linksModified) + " Links deleted.");
-            long formsModified = graph.command(new OCommandSQL("TRUNCATE class Resource")).execute();
-            logger.log(Level.INFO, String.valueOf(formsModified) + " Forms deleted");
-            long queModified = graph.command(new OCommandSQL("TRUNCATE class LinkQue")).execute();
-            logger.log(Level.INFO, String.valueOf(queModified) + " link in que deleted");
-            
-        } finally {
-            graph.shutdown();
-            logger.log(Level.INFO, "Database truncated");
-        }
+        database.truncateData();
+    }
+
+    public void updateDBPref() {
+        prefs.put(PreferenceKeys.DB_HOST.getKey(), getDbHost());
+        prefs.put(PreferenceKeys.DB_USER.getKey(), getDbUser());
+        prefs.put(PreferenceKeys.DB_PASS.getKey(), getDbPassword());
     }
 
     public void loadAll() {
@@ -199,9 +220,8 @@ public class Domain {
             this.setMinerBusy(false);
             logger.log(Level.INFO, "Mining canceled");
         });
-        
-        //minerService.set
 
+        //minerService.set
     }
 
     public void mineStart(String hostname) {
@@ -331,24 +351,36 @@ public class Domain {
     public IntegerProperty linksCountProperty() {
         return this.linksCount;
     }
-    
-    public Object getRootID(){
+
+    public Object getRootID() {
         return this.rootId;
     }
-    
-    public ObservableList<URL> blacklistProperty(){
+
+    public ObservableList<URL> blacklistProperty() {
         return this.blacklist;
     }
-    
-    public boolean getMinerBusy(){
+
+    public boolean getMinerBusy() {
         return this.minerBusy.get();
     }
-    
-    public void setMinerBusy(boolean value){
+
+    public void setMinerBusy(boolean value) {
         this.minerBusy.set(value);
     }
-    
-    public BooleanProperty minerBusy(){
+
+    public BooleanProperty minerBusy() {
         return this.minerBusy;
+    }
+
+    private String getPrefDBHost() {
+        return prefs.get(PreferenceKeys.DB_HOST.getKey(), "remote:localhost/ReaperTest");
+    }
+
+    private String getPrefDBUser() {
+        return prefs.get(PreferenceKeys.DB_USER.getKey(), "admin");
+    }
+
+    private String getPrefDBPassword() {
+        return prefs.get(PreferenceKeys.DB_PASS.getKey(), "admin");
     }
 }

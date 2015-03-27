@@ -1,22 +1,51 @@
 package reaper.model;
 
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
+import com.orientechnologies.orient.core.exception.OStorageException;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OType;
+import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.impls.orient.OrientEdgeType;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 import com.tinkerpop.blueprints.impls.orient.OrientVertexType;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import reaper.Reaper;
 
 /**
  *
  * @author nikita.vanku
  */
 public class ReaperDatabase {
-    private final OrientGraphFactory factory;
     
-    ReaperDatabase(OrientGraphFactory factory){
-        this.factory = factory;
+    private static final Logger logger = Logger.getLogger(Reaper.class.getName());
+    
+    private OrientGraphFactory factory;
+    private final BooleanProperty connectionStatus;
+    
+    ReaperDatabase(){
+        this.connectionStatus = new SimpleBooleanProperty();
+    }
+    
+    public void connect(String host, String user, String password){
+        if(isConnected()){
+            this.disconnect();
+        }
+        
+        try {
+            this.factory = new OrientGraphFactory(host, user, password).setupPool(1, 10);
+            this.connectionStatus.set(true);
+        } catch (OStorageException ex) {
+            throw ex;
+        }
+    }
+    
+    public void disconnect(){
+        this.factory.close();
+        this.connectionStatus.set(false);
     }
     
     public void setupSchema(){
@@ -97,5 +126,35 @@ public class ReaperDatabase {
         } finally {
             oDB.close();
         }
+    }
+    
+    public void truncateData(){
+        OrientGraph graph = factory.getTx();
+        try {
+            long resourcesModified = graph.command(new OCommandSQL("TRUNCATE class Resource")).execute();
+            logger.log(Level.INFO, String.valueOf(resourcesModified) + " Resources deleted.");
+            long linksModified = graph.command(new OCommandSQL("TRUNCATE class LinkTo")).execute();
+            logger.log(Level.INFO, String.valueOf(linksModified) + " Links deleted.");
+            long formsModified = graph.command(new OCommandSQL("TRUNCATE class Resource")).execute();
+            logger.log(Level.INFO, String.valueOf(formsModified) + " Forms deleted");
+            long queModified = graph.command(new OCommandSQL("TRUNCATE class LinkQue")).execute();
+            logger.log(Level.INFO, String.valueOf(queModified) + " link in que deleted");
+            
+        } finally {
+            graph.shutdown();
+            logger.log(Level.INFO, "Database truncated");
+        }
+    }
+    
+    public boolean isConnected(){
+        return this.connectionStatus.get();
+    }
+    
+    public BooleanProperty connectionStatus(){
+        return this.connectionStatus;
+    }
+    
+    public OrientGraphFactory getDatabase(){
+        return this.factory;
     }
 }

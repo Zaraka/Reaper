@@ -1,6 +1,5 @@
 package reaper.view;
 
-import com.sun.javafx.property.adapter.PropertyDescriptor;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -9,7 +8,6 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
@@ -19,7 +17,6 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.DepthTest;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -48,7 +45,7 @@ import javafx.util.converter.NumberStringConverter;
 import netscape.javascript.JSException;
 import netscape.javascript.JSObject;
 import reaper.Reaper;
-import reaper.model.Domain;
+import reaper.model.Crawler;
 import reaper.model.Link;
 import reaper.model.Resource;
 
@@ -119,6 +116,14 @@ public class ReaperController implements Initializable {
     private Button stopMiningButton;
     @FXML
     private Button clearDataButton;
+    @FXML
+    private Button changeDatabaseButton;
+    @FXML
+    private Button setupDatabaseButton;
+    @FXML
+    private Button deleteDatabaseButton;
+    @FXML
+    private Label databaseStatusLabel;
 
     @FXML
     private void startMining(ActionEvent event) {
@@ -194,6 +199,17 @@ public class ReaperController implements Initializable {
     }
     
     @FXML
+    public void createNewProject(){
+        NewProjectModal project = new NewProjectModal(null);
+        project.showAndWait();
+    }
+    
+    @FXML
+    public void changeDatabase(){
+        
+    }
+    
+    @FXML
     public void setupDatabase(){
         
     }
@@ -229,7 +245,7 @@ public class ReaperController implements Initializable {
     public void setReaper(Reaper reaper) {
         //bind data
         this.reaper = reaper;
-        Domain dom = this.reaper.getDomain();
+        Crawler dom = this.reaper.getDomain();
 
         this.maxDownloads.textProperty().bindBidirectional(dom.maxDownloadsProperty(), new NumberStringConverter());
         this.maxDepth.textProperty().bindBidirectional(dom.maxDepthProperty(), new NumberStringConverter());
@@ -338,6 +354,9 @@ public class ReaperController implements Initializable {
         startMiningButton.setDisable(value);
         stopMiningButton.setDisable(value);
         clearDataButton.setDisable(value);
+        changeDatabaseButton.setDisable(value);
+        setupDatabaseButton.setDisable(value);
+        deleteDatabaseButton.setDisable(value);
     }
 
     private void createResourcePane(Resource res) {

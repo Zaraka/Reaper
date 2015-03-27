@@ -9,7 +9,7 @@ import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import reaper.model.Domain;
+import reaper.model.Crawler;
 import reaper.view.ReaperController;
 
 /**
@@ -19,7 +19,7 @@ import reaper.view.ReaperController;
 public class Reaper extends Application {
     
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
-    private Domain domain;
+    private Crawler domain;
     
     @Override
     public void start(Stage stage) throws Exception {
@@ -51,12 +51,12 @@ public class Reaper extends Application {
         launch(args);
     }
     
-    public Domain getDomain(){
+    public Crawler getDomain(){
         return this.domain;
     }
     
     private void initialize(){
-        this.domain = new Domain();
+        this.domain = new Crawler();
     }
     
 }

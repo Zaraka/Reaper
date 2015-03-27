@@ -15,6 +15,12 @@
    <children>
       <VBox prefHeight="611.0" prefWidth="815.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
+            <HBox>
+               <children>
+                  <Label text="Database:" />
+                  <Label fx:id="databaseStatusLabel" text="Not connected" />
+               </children>
+            </HBox>
             <SplitPane dividerPositions="0.766721044045677" orientation="VERTICAL" VBox.vgrow="ALWAYS">
               <items>
                 <AnchorPane>
@@ -39,7 +45,7 @@
                                                 </TableView>
                                                 <HBox>
                                                    <children>
-                                                      <Button mnemonicParsing="false" text="Create New Project" />
+                                                      <Button mnemonicParsing="false" onAction="#createNewProject" text="Create New Project" />
                                                    </children>
                                                 </HBox>
                                              </children>
@@ -83,10 +89,11 @@
                                                       <CheckBox fx:id="displayGraph" mnemonicParsing="false" onAction="#onChangeDisplayGraph" GridPane.columnIndex="1" />
                                                    </children>
                                                 </GridPane>
-                                                <HBox prefHeight="100.0" prefWidth="200.0">
+                                                <HBox>
                                                    <children>
-                                                      <Button mnemonicParsing="false" onAction="#setupDatabase" text="Setup Database" />
-                                                      <Button mnemonicParsing="false" text="Delete Database" />
+                                                      <Button fx:id="changeDatabaseButton" mnemonicParsing="false" onAction="#changeDatabase" text="Change Database" />
+                                                      <Button fx:id="setupDatabaseButton" mnemonicParsing="false" onAction="#setupDatabase" text="Setup Database" />
+                                                      <Button fx:id="deleteDatabaseButton" mnemonicParsing="false" onAction="#teardownDatabase" text="Delete Database" />
                                                    </children>
                                                 </HBox>
                                              </children>

@@ -49,14 +49,28 @@ public class MinerService extends Service<Void> {
         this.linksCount = 0;
         this.rootId = null;
 
-        try {
-            this.graphFactory = new OrientGraphFactory(dbHost, dbUser, dbPass).setupPool(1, 10);
-        } catch (OStorageException ex) {
-            throw ex;
-        }
+        this.graphFactory = null;
         
         this.linkScrambler = new LinkQue(graphFactory);
 
+    }
+    
+    public void databaseConnect(String host, String user, String pass){
+        if(graphFactory != null){
+            graphFactory.close();
+        }
+        
+        try {
+            graphFactory = new OrientGraphFactory(host, user, pass).setupPool(1, 10);
+        } catch (OStorageException ex) {
+            throw ex;
+        }
+    }
+    
+    public void databaseDisconnect(){
+        if(graphFactory != null){
+            graphFactory.close();
+        }
     }
 
     public void setHostname(String hostname) {
