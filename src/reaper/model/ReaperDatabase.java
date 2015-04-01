@@ -5,18 +5,26 @@ import com.orientechnologies.orient.core.exception.OStorageException;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdgeType;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
+import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import com.tinkerpop.blueprints.impls.orient.OrientVertexType;
+import java.net.MalformedURLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import reaper.Reaper;
 
 /**
- *
+ * This class should provide all necesarry Database operations.
+ * 
  * @author nikita.vanku
  */
 public class ReaperDatabase {
@@ -139,6 +147,8 @@ public class ReaperDatabase {
             logger.log(Level.INFO, String.valueOf(formsModified) + " Forms deleted");
             long queModified = graph.command(new OCommandSQL("TRUNCATE class LinkQue")).execute();
             logger.log(Level.INFO, String.valueOf(queModified) + " link in que deleted");
+            long projectModified = graph.command(new OCommandSQL("TRUNCATE class Project")).execute();
+            logger.log(Level.INFO, String.valueOf(projectModified) + " Projects deleted");
             
         } finally {
             graph.shutdown();
@@ -156,5 +166,94 @@ public class ReaperDatabase {
     
     public OrientGraphFactory getDatabase(){
         return this.factory;
+    }
+    
+    public void loadResource(Object id, ObservableMap<String, Resource> resources, ObservableList<Link> links) {
+        OrientGraph graph = factory.getTx();
+        try {
+            OrientVertex ver = graph.getVertex(id);
+            try {
+                Resource res = ResourceFactory.resourceFromVector(ver);
+                resources.put(ver.getId().toString(), res);
+                for (Edge edge : ver.getEdges(Direction.OUT, "LinkTo")) {
+                    Link link = new Link(edge.getProperty("path").toString(), res, LinkType.valueOf(edge.getProperty("type").toString()));
+                    link.setCount((int) edge.getProperty("count"));
+                    link.setFromResource(res);
+                    Vertex toVer = edge.getVertex(Direction.IN);
+                    Resource toRes = resources.get(toVer.getId().toString());
+                    if (toRes == null) {
+                        toRes = ResourceFactory.resourceFromVector(toVer);
+                        resources.put(toVer.getId().toString(), toRes);
+                    }
+                    link.setToResource(toRes);
+                    res.links().add(link);
+                    links.add(link);
+                }
+
+                for (Edge edge : ver.getEdges(Direction.IN, "LinkTo")) {
+                    Link link = new Link(edge.getProperty("path").toString(), res, LinkType.valueOf(edge.getProperty("type").toString()));
+                    link.setCount((int) edge.getProperty("count"));
+                    link.setToResource(res);
+                    Vertex fromVer = edge.getVertex(Direction.OUT);
+                    Resource fromRes = resources.get(fromVer.getId().toString());
+                    if (fromRes == null) {
+                        fromRes = ResourceFactory.resourceFromVector(fromVer);
+                        resources.put(fromVer.getId().toString(), fromRes);
+                    }
+                    link.setFromResource(fromRes);
+                    links.add(link);
+                }
+            } catch (MalformedURLException ex) {
+                logger.log(Level.SEVERE, null, ex);
+            }
+        } finally {
+            graph.shutdown();
+        }
+    }
+    
+    public void loadAll(ObservableMap<String, Resource> resources, ObservableList<Link> links) {
+        OrientGraph graph = factory.getTx();
+        try {
+            for (Vertex ver : graph.getVerticesOfClass("Resource", false)) {
+                Resource res = resources.get(ver.getId().toString());
+                if (res == null) {
+                    try {
+                        res = ResourceFactory.resourceFromVector(ver);
+                        resources.put(ver.getId().toString(), res);
+                    } catch (MalformedURLException ex) {
+                        logger.log(Level.SEVERE, ex.toString());
+                        return;
+                    }
+                }
+            }
+
+            for (Edge edge : graph.getEdgesOfClass("LinkTo", false)) {
+                Link link = new Link(edge.getProperty("path").toString(),
+                        resources.get(edge.getVertex(Direction.OUT).getId().toString()),
+                        resources.get(edge.getVertex(Direction.IN).getId().toString()),
+                        LinkType.valueOf(edge.getProperty("type").toString()));
+                link.setCount((int) edge.getProperty("count"));
+                links.add(link);
+            }
+        } finally {
+            graph.shutdown();
+        }
+    }
+    
+    public void getProjects(ObservableList<Project> projects){
+        OrientGraph graph = factory.getTx();
+        try {
+            for(Vertex ver : graph.getVertices("Project", false)) {
+                Project proj;
+                try {
+                    proj = new Project(ver);
+                    projects.add(proj);
+                } catch (MalformedURLException ex) {
+                    logger.log(Level.SEVERE, ex.toString());
+                }
+            }
+        } finally {
+            graph.shutdown();
+        }
     }
 }

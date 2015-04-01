@@ -56,9 +56,7 @@ public class MinerService extends Service<Void> {
     }
     
     public void databaseConnect(String host, String user, String pass){
-        if(graphFactory != null){
-            graphFactory.close();
-        }
+        this.databaseDisconnect();
         
         try {
             graphFactory = new OrientGraphFactory(host, user, pass).setupPool(1, 10);

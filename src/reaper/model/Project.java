@@ -1,5 +1,7 @@
 package reaper.model;
 
+import com.tinkerpop.blueprints.Vertex;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
@@ -17,6 +19,13 @@ public class Project {
         this.name = name;
         this.date = date;
         this.cluster = cluster;
+    }
+    
+    Project(Vertex ver) throws MalformedURLException{
+        this.cluster = ver.getProperty("cluster");
+        this.name = ver.getProperty("name");
+        this.date = ver.getProperty("date");
+        this.domain = new URL(ver.getProperty("domain"));
     }
     
     public String getName(){

@@ -10,6 +10,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.net.*?>
+<?import de.jensd.fx.glyphs.fontawesome.*?>
 
 <AnchorPane id="AnchorPane" prefHeight="731.0" prefWidth="949.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="reaper.view.ReaperController">
    <children>
@@ -17,6 +18,11 @@
          <children>
             <HBox>
                <children>
+                  <Button mnemonicParsing="false">
+                    <graphic>
+                        <FontAwesomeIcon fill="#262aab" glyphName="REFRESH" /> 
+                    </graphic>
+                  </Button>
                   <Label text="Database:" />
                   <Label fx:id="databaseStatusLabel" text="Not connected" />
                </children>
@@ -45,7 +51,10 @@
                                                 </TableView>
                                                 <HBox>
                                                    <children>
-                                                      <Button mnemonicParsing="false" onAction="#createNewProject" text="Create New Project" />
+                                                      <Button mnemonicParsing="false" onAction="#createNewProject" text="Create New Project">
+                                                         <graphic>
+                                                            <FontAwesomeIcon glyphName="FILE" />
+                                                         </graphic></Button>
                                                    </children>
                                                 </HBox>
                                              </children>
@@ -84,16 +93,19 @@
                                                       <Label text="Password" GridPane.rowIndex="4" />
                                                       <TextField fx:id="databaseHost" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                                       <TextField fx:id="databaseUser" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                                                      <TextField fx:id="databasePassword" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                                                       <Label text="Create sitemap graph" />
                                                       <CheckBox fx:id="displayGraph" mnemonicParsing="false" onAction="#onChangeDisplayGraph" GridPane.columnIndex="1" />
+                                                      <PasswordField fx:id="databasePassword" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                                                    </children>
                                                 </GridPane>
                                                 <HBox>
                                                    <children>
                                                       <Button fx:id="changeDatabaseButton" mnemonicParsing="false" onAction="#changeDatabase" text="Change Database" />
-                                                      <Button fx:id="setupDatabaseButton" mnemonicParsing="false" onAction="#setupDatabase" text="Setup Database" />
-                                                      <Button fx:id="deleteDatabaseButton" mnemonicParsing="false" onAction="#teardownDatabase" text="Delete Database" />
+                                                      <Button fx:id="setupDatabaseButton" mnemonicParsing="false" onAction="#setupDatabase" text="Setup Tables" />
+                                                      <Button fx:id="deleteDatabaseButton" mnemonicParsing="false" onAction="#teardownDatabase" text="Drop Tables">
+                                                         <graphic>
+                                                            <FontAwesomeIcon fill="RED" glyphName="TIMES" />
+                                                         </graphic></Button>
                                                    </children>
                                                 </HBox>
                                              </children>
@@ -134,8 +146,14 @@
                                                 </GridPane>
                                                 <HBox>
                                                    <children>
-                                                      <Button fx:id="startMiningButton" mnemonicParsing="false" onAction="#startMining" text="Start Minning" />
-                                                    <Button fx:id="stopMiningButton" mnemonicParsing="false" onAction="#stopMining" text="Stop Minning" />
+                                                      <Button fx:id="startMiningButton" mnemonicParsing="false" onAction="#startMining" text="Start Minning">
+                                                         <graphic>
+                                                            <FontAwesomeIcon fill="#06dd2a" glyphName="PLAY" />
+                                                         </graphic></Button>
+                                                    <Button fx:id="stopMiningButton" mnemonicParsing="false" onAction="#stopMining" text="Stop Minning">
+                                                         <graphic>
+                                                            <FontAwesomeIcon fill="RED" glyphName="STOP" />
+                                                         </graphic></Button>
                                                       <Button fx:id="clearDataButton" mnemonicParsing="false" onAction="#clearData" text="Clear Data from database" />
                                                    </children>
                                                 </HBox>

@@ -110,85 +110,22 @@ public class Crawler {
         prefs.put(PreferenceKeys.DB_PASS.getKey(), getDbPassword());
     }
 
-    public void loadAll() {
+    public void loadAll(){
         this.clearData();
-        OrientGraph graph = new OrientGraph(this.getDbHost(), this.getDbUser(), this.getDbPassword());
-        try {
-            for (Vertex ver : graph.getVerticesOfClass("Resource", false)) {
-                Resource res = this.resources.get(ver.getId().toString());
-                if (res == null) {
-                    try {
-                        res = ResourceFactory.resourceFromVector(ver);
-                        this.resources.put(ver.getId().toString(), res);
-                    } catch (MalformedURLException ex) {
-                        logger.log(Level.SEVERE, ex.toString());
-                        return;
-                    }
-                }
-            }
-
-            for (Edge edge : graph.getEdgesOfClass("LinkTo", false)) {
-                Link link = new Link(edge.getProperty("path").toString(),
-                        this.resources.get(edge.getVertex(Direction.OUT).getId().toString()),
-                        this.resources.get(edge.getVertex(Direction.IN).getId().toString()),
-                        LinkType.valueOf(edge.getProperty("type").toString()));
-                link.setCount((int) edge.getProperty("count"));
-                this.links.add(link);
-            }
-        } finally {
-            graph.shutdown();
-        }
+        database.loadAll(resources, links);
     }
 
     public void loadRoot() {
         if (rootId != null) {
-            this.loadResource(rootId);
+            database.loadResource(rootId, resources, links);
         }
     }
 
-    public void loadResource(Object id) {
+    public void loadResource(Object id){
         this.clearData();
-        OrientGraph graph = new OrientGraph(this.getDbHost(), this.getDbUser(), this.getDbPassword());
-        try {
-            OrientVertex ver = graph.getVertex(id);
-            try {
-                Resource res = ResourceFactory.resourceFromVector(ver);
-                this.resources.put(ver.getId().toString(), res);
-                for (Edge edge : ver.getEdges(Direction.OUT, "LinkTo")) {
-                    Link link = new Link(edge.getProperty("path").toString(), res, LinkType.valueOf(edge.getProperty("type").toString()));
-                    link.setCount((int) edge.getProperty("count"));
-                    link.setFromResource(res);
-                    Vertex toVer = edge.getVertex(Direction.IN);
-                    Resource toRes = this.resources.get(toVer.getId().toString());
-                    if (toRes == null) {
-                        toRes = ResourceFactory.resourceFromVector(toVer);
-                        this.resources.put(toVer.getId().toString(), toRes);
-                    }
-                    link.setToResource(toRes);
-                    res.links().add(link);
-                    this.links.add(link);
-                }
-
-                for (Edge edge : ver.getEdges(Direction.IN, "LinkTo")) {
-                    Link link = new Link(edge.getProperty("path").toString(), res, LinkType.valueOf(edge.getProperty("type").toString()));
-                    link.setCount((int) edge.getProperty("count"));
-                    link.setToResource(res);
-                    Vertex fromVer = edge.getVertex(Direction.OUT);
-                    Resource fromRes = this.resources.get(fromVer.getId().toString());
-                    if (fromRes == null) {
-                        fromRes = ResourceFactory.resourceFromVector(fromVer);
-                        this.resources.put(fromVer.getId().toString(), fromRes);
-                    }
-                    link.setFromResource(fromRes);
-                    this.links.add(link);
-                }
-            } catch (MalformedURLException ex) {
-                logger.log(Level.SEVERE, null, ex);
-            }
-        } finally {
-            graph.shutdown();
-        }
+        database.loadResource(id, resources, links);
     }
+    
 
     private void init() {
         try {

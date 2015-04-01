@@ -5,6 +5,13 @@ package reaper.model;
  * @author nikita.vanku
  */
 public enum PreferenceKeys {
+    CREATE_SITEMAP {
+
+        @Override
+        public String getKey() {
+            return "createSitemap";
+        }
+    },
     DB_HOST {
 
         @Override
