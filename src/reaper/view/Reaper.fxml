@@ -51,6 +51,11 @@
                                                 </TableView>
                                                 <HBox>
                                                    <children>
+                                                      <Button mnemonicParsing="false" onAction="#refreshProjects" text="Refresh Projects">
+                                                         <graphic>
+                                                            <FontAwesomeIcon glyphName="REFRESH" />
+                                                         </graphic>
+                                                      </Button>
                                                       <Button mnemonicParsing="false" onAction="#createNewProject" text="Create New Project">
                                                          <graphic>
                                                             <FontAwesomeIcon glyphName="FILE" />

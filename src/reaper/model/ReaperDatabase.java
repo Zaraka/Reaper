@@ -14,6 +14,9 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import com.tinkerpop.blueprints.impls.orient.OrientVertexType;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
@@ -33,6 +36,7 @@ public class ReaperDatabase {
     
     private OrientGraphFactory factory;
     private final BooleanProperty connectionStatus;
+    public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     
     ReaperDatabase(){
         this.connectionStatus = new SimpleBooleanProperty();
@@ -254,6 +258,20 @@ public class ReaperDatabase {
             }
         } finally {
             graph.shutdown();
+        }
+    }
+    
+    public void loadBlacklist(ArrayList<URL> blacklist){
+        
+    }
+    
+    public void saveBlacklist(ArrayList<URL> blacklist){
+        OrientGraph graph = factory.getTx();
+        try {
+            Vertex item = graph.addVertex(this, prop);
+            
+        } finally {
+            
         }
     }
 }

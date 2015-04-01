@@ -19,7 +19,7 @@ import reaper.view.ReaperController;
 public class Reaper extends Application {
     
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
-    private Crawler domain;
+    private Crawler crawler;
     
     @Override
     public void start(Stage stage) throws Exception {
@@ -51,12 +51,12 @@ public class Reaper extends Application {
         launch(args);
     }
     
-    public Crawler getDomain(){
-        return this.domain;
+    public Crawler getCrawler(){
+        return this.crawler;
     }
     
     private void initialize(){
-        this.domain = new Crawler();
+        this.crawler = new Crawler();
     }
     
 }

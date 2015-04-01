@@ -32,14 +32,9 @@ public class NewProjectModalController implements Initializable {
     @FXML
     private TextField hostname;
     @FXML
-    private TextField maxDownloads;
-    @FXML
-    private TextField maxDepth;
-    @FXML
     private TableView<URL> blacklistTable;
     @FXML
     private TableColumn<URL, String> blacklistColumn;
-    
     
     @FXML
     private void addBlacklistItem(){
@@ -73,22 +68,6 @@ public class NewProjectModalController implements Initializable {
             return;
         }
         
-        if(maxDownloads.getText().isEmpty()){
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Error!");
-            alert.setHeaderText(null);
-            alert.setContentText("Hostname cannot be empty");
-            return;
-        }
-        
-        if(maxDepth.getText().isEmpty()){
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Error!");
-            alert.setHeaderText(null);
-            alert.setContentText("Hostname cannot be empty");
-            return;
-        }
-        
         Stage stage = (Stage) hostname.getScene().getWindow();
         stage.close();
     }
@@ -109,17 +88,8 @@ public class NewProjectModalController implements Initializable {
         // TODO
     }    
     
-    
     public String getHostname(){
         return hostname.getText();
-    }
-    
-    public int getMaxDepth(){
-        return Integer.parseInt(maxDepth.getText());
-    }
-    
-    public int getMaxDownlods(){
-        return Integer.parseInt(maxDownloads.getText());
     }
     
     public ArrayList<URL> getBlacklist(){

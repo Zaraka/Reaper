@@ -1,12 +1,6 @@
 package reaper.model;
 
 import com.orientechnologies.orient.core.exception.OStorageException;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
-import com.tinkerpop.blueprints.impls.orient.OrientVertex;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,6 +16,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.WorkerStateEvent;
 import reaper.Reaper;
+import reaper.exceptions.DatabaseNotConnectedException;
 
 /**
  *
@@ -46,6 +41,7 @@ public class Crawler {
     private final ReaperDatabase database;
     private final Preferences prefs;
     private final ObservableList<Project> projects;
+    private String activeCluster;
     private Object rootId;
 
     private final MinerService minerService;
@@ -67,10 +63,15 @@ public class Crawler {
         this.minerService = new MinerService();
         this.database = new ReaperDatabase();
         this.projects = FXCollections.observableArrayList();
+        this.activeCluster = "";
 
         this.rootId = null;
 
         this.init();
+    }
+    
+    public void createProject(String name, String domain, String date){
+        
     }
 
     public void databaseConnect() {
@@ -87,11 +88,17 @@ public class Crawler {
         minerService.databaseDisconnect();
     }
 
-    public void setupDatabase() {
+    public void setupDatabase() throws DatabaseNotConnectedException {
+        if(!database.isConnected()){
+            throw new DatabaseNotConnectedException("Database is not connected");
+        }
         database.setupSchema();
     }
 
-    public void removeDatabase() {
+    public void removeDatabase() throws DatabaseNotConnectedException {
+        if(!database.isConnected()){
+            throw new DatabaseNotConnectedException("Database is not connected");
+        }
         database.tearDown();
     }
 

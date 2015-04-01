@@ -45,6 +45,7 @@ import javafx.util.converter.NumberStringConverter;
 import netscape.javascript.JSException;
 import netscape.javascript.JSObject;
 import reaper.Reaper;
+import reaper.exceptions.DatabaseNotConnectedException;
 import reaper.model.Crawler;
 import reaper.model.Link;
 import reaper.model.Resource;
@@ -128,7 +129,7 @@ public class ReaperController implements Initializable {
     @FXML
     private void startMining(ActionEvent event) {
         if (!"".equals(hostname.getText())) {
-            reaper.getDomain().mineStart(hostname.getText());
+            reaper.getCrawler().mineStart(hostname.getText());
         } else {
             logger.log(Level.SEVERE, "You need to specify hostname.");
         }
@@ -136,21 +137,21 @@ public class ReaperController implements Initializable {
 
     @FXML 
     private void stopMining(ActionEvent event) {
-        reaper.getDomain().mineStop();
+        reaper.getCrawler().mineStop();
     }
 
     @FXML
     private void clearData(ActionEvent event) {
-        reaper.getDomain().dataReset();
+        reaper.getCrawler().dataReset();
     }
 
     @FXML
     private void onChangeDisplayGraph(ActionEvent event) {
         if (displayGraph.isSelected()) {
-            for (Resource res : reaper.getDomain().resources().values()) {
+            for (Resource res : reaper.getCrawler().resources().values()) {
                 addSitemapNode(res);
             }
-            for (Link link : reaper.getDomain().links()) {
+            for (Link link : reaper.getCrawler().links()) {
                 addEdge(link);
             }
         } else {
@@ -164,16 +165,16 @@ public class ReaperController implements Initializable {
 
     @FXML
     private void overviewGetRoot(ActionEvent event) {
-        reaper.getDomain().loadRoot();
-        activeNode = reaper.getDomain().getRootID().toString();
-        createResourcePane(reaper.getDomain().resources().get(activeNode));
+        reaper.getCrawler().loadRoot();
+        activeNode = reaper.getCrawler().getRootID().toString();
+        createResourcePane(reaper.getCrawler().resources().get(activeNode));
     }
 
     @FXML
     private void overviewLoadAll(ActionEvent event) {
-        reaper.getDomain().loadAll();
-        activeNode = reaper.getDomain().getRootID().toString();
-        createResourcePane(reaper.getDomain().resources().get(activeNode));
+        reaper.getCrawler().loadAll();
+        activeNode = reaper.getCrawler().getRootID().toString();
+        createResourcePane(reaper.getCrawler().resources().get(activeNode));
     }
 
     @FXML
@@ -191,7 +192,7 @@ public class ReaperController implements Initializable {
                 logger.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
             }
             try {
-                this.reaper.getDomain().blacklistProperty().add(new URL(url));
+                this.reaper.getCrawler().blacklistProperty().add(new URL(url));
             } catch (MalformedURLException ex) {
                 logger.log(Level.SEVERE, null, ex);
             }
@@ -205,18 +206,31 @@ public class ReaperController implements Initializable {
     }
     
     @FXML
-    public void changeDatabase(){
+    public void refreshProjects(){
         
+    }   
+    
+    @FXML
+    public void changeDatabase(){
+        reaper.getCrawler().databaseConnect();
     }
     
     @FXML
     public void setupDatabase(){
-        
+        try {
+            reaper.getCrawler().setupDatabase();
+        } catch (DatabaseNotConnectedException ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
     }
     
     @FXML
     public void teardownDatabase(){
-        
+        try {
+            reaper.getCrawler().removeDatabase();
+        } catch (DatabaseNotConnectedException ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
@@ -245,7 +259,7 @@ public class ReaperController implements Initializable {
     public void setReaper(Reaper reaper) {
         //bind data
         this.reaper = reaper;
-        Crawler dom = this.reaper.getDomain();
+        Crawler dom = this.reaper.getCrawler();
 
         this.maxDownloads.textProperty().bindBidirectional(dom.maxDownloadsProperty(), new NumberStringConverter());
         this.maxDepth.textProperty().bindBidirectional(dom.maxDepthProperty(), new NumberStringConverter());
@@ -438,9 +452,9 @@ public class ReaperController implements Initializable {
     }
 
     public void setActiveNode(String node) {
-        reaper.getDomain().loadResource(node);
+        reaper.getCrawler().loadResource(node);
         activeNode = node;
-        createResourcePane(reaper.getDomain().resources().get(node));
+        createResourcePane(reaper.getCrawler().resources().get(node));
     }
 
     private void lockSettings() {
