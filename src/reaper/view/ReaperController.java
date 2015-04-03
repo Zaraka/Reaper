@@ -48,6 +48,7 @@ import reaper.Reaper;
 import reaper.exceptions.DatabaseNotConnectedException;
 import reaper.model.Crawler;
 import reaper.model.Link;
+import reaper.model.Project;
 import reaper.model.Resource;
 
 /**
@@ -81,6 +82,14 @@ public class ReaperController implements Initializable {
     private TableView<URL> blacklistTable;
     @FXML
     private TableColumn<URL, String> blacklistColumn;
+    @FXML
+    private TableView<Project> projectTable;
+    @FXML
+    private TableColumn<Project, String> projectNameColumn;
+    @FXML
+    private TableColumn<Project, String> projectDomainColumn;
+    @FXML
+    private TableColumn<Project, String> projectDateColumn;
     @FXML
     private WebView sitemap;
     @FXML
@@ -203,12 +212,12 @@ public class ReaperController implements Initializable {
     public void createNewProject(){
         NewProjectModal project = new NewProjectModal(null);
         project.showAndWait();
-        reaper.getCrawler().createProject(, null, null);
+        reaper.getCrawler().createProject(project.getName(), project.getDomain(), project.getBlacklist());
     }
     
     @FXML
     public void refreshProjects(){
-        
+        reaper.getCrawler().refreshProjects();
     }   
     
     @FXML
@@ -295,7 +304,24 @@ public class ReaperController implements Initializable {
 
             }
         });
+        
+        //projectTable
+        projectTable.setItems(dom.projects());
+        projectTable.setEditable(false);
+        projectNameColumn.setCellValueFactory((CellDataFeatures<Project, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().getName()));
+        projectDomainColumn.setCellValueFactory((CellDataFeatures<Project, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().getDomain().toString()));
+        projectDateColumn.setCellValueFactory((CellDataFeatures<Project, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().getDate()));
+        
+        ContextMenu projectMenu = new ContextMenu();
+        MenuItem projectViewItem = new MenuItem("View Project");
+        projectViewItem.setOnAction(new EventHandler<ActionEvent>() {
 
+            @Override
+            public void handle(ActionEvent event) {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+        });
+        
         //resourceTable
         //resourceTable.setItems(dom.resources());
         resourceTable.setEditable(false);

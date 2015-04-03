@@ -42,11 +42,11 @@
                                        <children>
                                           <VBox prefHeight="527.0" prefWidth="947.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                              <children>
-                                                <TableView prefHeight="373.0" prefWidth="927.0">
+                                                <TableView fx:id="projectTable" prefHeight="373.0" prefWidth="927.0">
                                                   <columns>
-                                                    <TableColumn prefWidth="150.0" text="Name" />
-                                                    <TableColumn minWidth="0.0" prefWidth="599.0" text="Domain" />
-                                                      <TableColumn prefWidth="197.0" text="Date" />
+                                                    <TableColumn fx:id="projectNameColumn" prefWidth="150.0" text="Name" />
+                                                    <TableColumn fx:id="projectDomainColumn" minWidth="0.0" prefWidth="599.0" text="Domain" />
+                                                      <TableColumn fx:id="projectDateColumn" prefWidth="197.0" text="Date" />
                                                   </columns>
                                                 </TableView>
                                                 <HBox>

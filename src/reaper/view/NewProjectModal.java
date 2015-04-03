@@ -2,6 +2,7 @@ package reaper.view;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.fxml.FXMLLoader;
@@ -18,6 +19,8 @@ import reaper.Reaper;
  */
 public class NewProjectModal extends Stage{
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
+    
+    private final NewProjectModalController controller;
     
     public NewProjectModal(Stage owner){
         super();
@@ -38,5 +41,19 @@ public class NewProjectModal extends Stage{
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
+        
+        controller = (NewProjectModalController) loader.getController();
+    }
+    
+    public URL getDomain(){
+        return controller.getDomain();
+    }
+    
+    public String getName(){
+        return controller.getName();
+    }
+    
+    public ArrayList<URL> getBlacklist(){
+        return controller.getBlacklist();
     }
 }

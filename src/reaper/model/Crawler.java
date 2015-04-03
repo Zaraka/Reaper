@@ -1,13 +1,8 @@
 package reaper.model;
 
-import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.exception.OStorageException;
-import com.orientechnologies.orient.core.record.impl.ODocument;
-import com.orientechnologies.orient.core.sql.OCommandSQL;
-import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -34,6 +29,8 @@ public class Crawler {
 
     private final ObservableMap<String, Resource> resources;
     private final ObservableList<Link> links;
+    private final ObservableList<Project> projects;
+    private final ObservableList<URL> blacklist;
     private final StringProperty hostname;
     private final IntegerProperty maxDownloads;
     private final IntegerProperty maxDepth;
@@ -42,11 +39,9 @@ public class Crawler {
     private final StringProperty dbPassword;
     private final IntegerProperty resourcesCount;
     private final IntegerProperty linksCount;
-    private final ObservableList<URL> blacklist;
     private final BooleanProperty minerBusy;
     private final ReaperDatabase database;
     private final Preferences prefs;
-    private final ObservableList<Project> projects;
     private String activeCluster;
     private Object rootId;
 
@@ -76,7 +71,10 @@ public class Crawler {
         this.init();
     }
     
-    
+    public void refreshProjects(){
+        projects.clear();
+        database.getProjects(projects);
+    }
 
     public void databaseConnect() {
         try {
@@ -342,5 +340,9 @@ public class Crawler {
     
     private String getActiveCluster(){
         return this.activeCluster;
+    }
+    
+    public ObservableList<Project> projects(){
+        return this.projects;
     }
 }

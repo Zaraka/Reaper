@@ -28,9 +28,12 @@ public class NewProjectModalController implements Initializable {
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
     
     private ArrayList<URL> blacklist;
+    private URL domain;
     
     @FXML
     private TextField hostname;
+    @FXML
+    private TextField name;
     @FXML
     private TableView<URL> blacklistTable;
     @FXML
@@ -68,6 +71,24 @@ public class NewProjectModalController implements Initializable {
             return;
         }
         
+        try {
+            this.domain = new URL(hostname.getText());
+        } catch (MalformedURLException ex) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Error!");
+            alert.setHeaderText(null);
+            alert.setContentText("Cant create url from " + hostname.getText());
+            return;
+        }
+        
+        if(name.getText().isEmpty()){
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Error!");
+            alert.setHeaderText(null);
+            alert.setContentText("Name cannot be empty");
+            return;
+        }
+        
         Stage stage = (Stage) hostname.getScene().getWindow();
         stage.close();
     }
@@ -88,12 +109,16 @@ public class NewProjectModalController implements Initializable {
         // TODO
     }    
     
-    public String getHostname(){
-        return hostname.getText();
+    public URL getDomain(){
+        return domain;
+    }
+    
+    public String getName(){
+        return name.getText();
     }
     
     public ArrayList<URL> getBlacklist(){
-        return this.blacklist;
+        return blacklist;
     }
     
 }
