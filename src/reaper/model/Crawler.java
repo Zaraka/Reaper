@@ -1,7 +1,13 @@
 package reaper.model;
 
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.exception.OStorageException;
+import com.orientechnologies.orient.core.record.impl.ODocument;
+import com.orientechnologies.orient.core.sql.OCommandSQL;
+import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -70,9 +76,7 @@ public class Crawler {
         this.init();
     }
     
-    public void createProject(String name, String domain, String date){
-        
-    }
+    
 
     public void databaseConnect() {
         try {
@@ -119,21 +123,25 @@ public class Crawler {
 
     public void loadAll(){
         this.clearData();
-        database.loadAll(resources, links);
+        database.loadAll(resources, links, getActiveCluster());
     }
 
     public void loadRoot() {
         if (rootId != null) {
-            database.loadResource(rootId, resources, links);
+            database.loadResource(rootId, resources, links, getActiveCluster());
         }
     }
 
     public void loadResource(Object id){
         this.clearData();
-        database.loadResource(id, resources, links);
+        database.loadResource(id, resources, links, getActiveCluster());
     }
     
 
+    public void createProject(String name, URL domain, ArrayList<URL> blacklist){
+        database.createProject(name, domain, blacklist);
+    }
+    
     private void init() {
         try {
             minerService.init(this.getHostname(), this.getMaxDepth(),
@@ -326,5 +334,13 @@ public class Crawler {
 
     private String getPrefDBPassword() {
         return prefs.get(PreferenceKeys.DB_PASS.getKey(), "admin");
+    }
+    
+    private void setActiveCluster(String cluster){
+        this.activeCluster = cluster;
+    }
+    
+    private String getActiveCluster(){
+        return this.activeCluster;
     }
 }

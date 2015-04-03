@@ -203,6 +203,7 @@ public class ReaperController implements Initializable {
     public void createNewProject(){
         NewProjectModal project = new NewProjectModal(null);
         project.showAndWait();
+        reaper.getCrawler().createProject(, null, null);
     }
     
     @FXML

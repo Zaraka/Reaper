@@ -1,10 +1,12 @@
 package reaper.model;
 
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 
 /**
  *
@@ -31,8 +33,8 @@ public class Project {
         
         Date dt = new Date();
         this.date = ReaperDatabase.dateFormat.format(dt);
-        this.cluster = clusterDate.format(dt);
-        this.cluster
+        this.cluster = "p";
+        this.cluster += UUID.randomUUID().toString();
     }
     
     Project(Vertex ver) throws MalformedURLException{
@@ -40,6 +42,16 @@ public class Project {
         this.name = ver.getProperty("name");
         this.date = ver.getProperty("date");
         this.domain = new URL(ver.getProperty("domain"));
+    }
+    
+    /**
+     * Inserts project into database
+     * @param graph 
+     */
+    public void vertexTransaction(OrientGraph graph){
+        Vertex ver = graph.addVertex("Class:Project", "name", name, 
+                "date", date, "domain", domain.toString(), "cluster", cluster);
+        
     }
     
     public String getName(){

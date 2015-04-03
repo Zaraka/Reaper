@@ -85,6 +85,10 @@ public class ReaperDatabase {
             project.createProperty("domain", OType.STRING);
             project.createProperty("name", OType.STRING);
             
+            //Vertex Blacklist
+            OrientVertexType blacklist = graph.createVertexType("Blacklist");
+            blacklist.createProperty("url", OType.STRING);
+            
             //Edge LinkTo
             OrientEdgeType linkTo = graph.createEdgeType("LinkTo");
             linkTo.createProperty("count", OType.INTEGER);
@@ -128,6 +132,7 @@ public class ReaperDatabase {
             graph.dropVertexType("Resource");
             graph.dropVertexType("Form");
             graph.dropVertexType("Project");
+            graph.dropVertexType("Blacklist");
         } finally {
             graph.shutdown();
         }
@@ -153,6 +158,8 @@ public class ReaperDatabase {
             logger.log(Level.INFO, String.valueOf(queModified) + " link in que deleted");
             long projectModified = graph.command(new OCommandSQL("TRUNCATE class Project")).execute();
             logger.log(Level.INFO, String.valueOf(projectModified) + " Projects deleted");
+            long blacklistModified = graph.command(new OCommandSQL("TRUNCATE class Blacklist")).execute();
+            logger.log(Level.INFO, String.valueOf(blacklistModified) + " Blacklist items deleted");
             
         } finally {
             graph.shutdown();
@@ -172,7 +179,7 @@ public class ReaperDatabase {
         return this.factory;
     }
     
-    public void loadResource(Object id, ObservableMap<String, Resource> resources, ObservableList<Link> links) {
+    public void loadResource(Object id, ObservableMap<String, Resource> resources, ObservableList<Link> links, String cluster) {
         OrientGraph graph = factory.getTx();
         try {
             OrientVertex ver = graph.getVertex(id);
@@ -215,7 +222,7 @@ public class ReaperDatabase {
         }
     }
     
-    public void loadAll(ObservableMap<String, Resource> resources, ObservableList<Link> links) {
+    public void loadAll(ObservableMap<String, Resource> resources, ObservableList<Link> links, String cluster) {
         OrientGraph graph = factory.getTx();
         try {
             for (Vertex ver : graph.getVerticesOfClass("Resource", false)) {
@@ -261,17 +268,47 @@ public class ReaperDatabase {
         }
     }
     
-    public void loadBlacklist(ArrayList<URL> blacklist){
-        
-    }
-    
-    public void saveBlacklist(ArrayList<URL> blacklist){
+    public void loadBlacklist(ArrayList<URL> blacklist, String cluster){
         OrientGraph graph = factory.getTx();
         try {
-            Vertex item = graph.addVertex(this, prop);
-            
+            graph.getVerticesOfClass("", false);
         } finally {
-            
+            graph.shutdown();
         }
+    }
+    
+    public void saveBlacklist(ArrayList<URL> blacklist, String cluster){
+        OrientGraph graph = factory.getTx();
+        try {
+            Vertex item = graph.addVertex("Class:Blacklist", "Cluster:"+cluster);
+            item.setProperty(cluster, item);
+        } finally {
+            graph.shutdown();
+        }
+    }
+    
+    public void createProject(String name, URL domain, ArrayList<URL> blacklist){
+        Project project = new Project(name, domain);
+        
+        //save project into database
+        OrientGraph graph = factory.getTx();
+        try {
+            project.vertexTransaction(graph);
+        } finally {
+            graph.shutdown();
+        }
+        
+        
+        //create new cluster for project
+        ODatabaseDocumentTx oDB = factory.getDatabase();
+        try {
+            oDB.command(
+                    new OCommandSQL("CREATE CLUSTER ? physical append"))
+                    .execute(project.getCluster());
+        } finally {
+            oDB.close();
+        }
+        
+        saveBlacklist(blacklist, project.getCluster());
     }
 }
