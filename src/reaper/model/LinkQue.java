@@ -8,7 +8,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 import java.util.List;
 
 /**
- *
+ * Queue of Links to process stored in DB
  * @author nikita.vanku
  */
 public class LinkQue {
@@ -23,7 +23,6 @@ public class LinkQue {
     }
 
     public void linkEnter(String path, String from, int depth) {
-        //ODatabaseDocumentTx oDB = db.open(dbConf.getUsername(), dbConf.getPassword());
         ODatabaseDocumentTx oDB = graphFactory.getDatabase();
         try {
             oDB.command(

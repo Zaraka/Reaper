@@ -1,7 +1,7 @@
 package reaper.model;
 
 /**
- *
+ * TODO: check if usable
  * @author zaraka
  */
 public enum LinkType {

@@ -36,13 +36,15 @@ public class MinerService extends Service<Void> {
     private Object rootId;
     private DBConf dbConf;
     private LinkQue linkScrambler;
+    private String cluster;
 
-    public void init(String hostname, int maxDepth, String dbHost, String dbUser, String dbPass) {
+    public void init(String hostname, int maxDepth, String dbHost, String dbUser, String dbPass, String cluster) {
         this.hostname = hostname;
         this.maxDepth = maxDepth;
         this.linksQueue = new ArrayList<>();
         this.resources = new HashMap<>();
         this.dbConf = new DBConf(dbHost, dbUser, dbPass);
+        this.cluster = cluster;
         
 
         this.resourceCount = 0;
@@ -94,7 +96,7 @@ public class MinerService extends Service<Void> {
     private void createSingleVertex(Resource res) {
         OrientGraph graph = graphFactory.getTx();
         try {
-            res.vertexTransaction(graph);
+            res.vertexTransaction(graph, cluster);
             resourceCount++;
             resources.put(res.getURL().toString(), res.getVertexID().toString());
         } finally {

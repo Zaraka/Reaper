@@ -8,6 +8,7 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
@@ -36,6 +37,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebErrorEvent;
@@ -134,6 +136,8 @@ public class ReaperController implements Initializable {
     private Button deleteDatabaseButton;
     @FXML
     private Label databaseStatusLabel;
+    @FXML
+    private Button databaseConnectButton;
 
     @FXML
     private void startMining(ActionEvent event) {
@@ -144,7 +148,7 @@ public class ReaperController implements Initializable {
         }
     }
 
-    @FXML 
+    @FXML
     private void stopMining(ActionEvent event) {
         reaper.getCrawler().mineStop();
     }
@@ -152,6 +156,11 @@ public class ReaperController implements Initializable {
     @FXML
     private void clearData(ActionEvent event) {
         reaper.getCrawler().dataReset();
+    }
+    
+    @FXML
+    private void clearProjectData(ActionEvent event){
+        
     }
 
     @FXML
@@ -174,9 +183,13 @@ public class ReaperController implements Initializable {
 
     @FXML
     private void overviewGetRoot(ActionEvent event) {
-        reaper.getCrawler().loadRoot();
-        activeNode = reaper.getCrawler().getRootID().toString();
-        createResourcePane(reaper.getCrawler().resources().get(activeNode));
+        try {
+            reaper.getCrawler().loadRoot();
+            activeNode = reaper.getCrawler().getRootID().toString();
+            createResourcePane(reaper.getCrawler().resources().get(activeNode));
+        } catch (DatabaseNotConnectedException ex) {
+            logger.log(Level.SEVERE, ex.getMessage());
+        }
     }
 
     @FXML
@@ -207,40 +220,52 @@ public class ReaperController implements Initializable {
             }
         });
     }
-    
+
     @FXML
-    public void createNewProject(){
+    public void createNewProject() {
+
         NewProjectModal project = new NewProjectModal(null);
         project.showAndWait();
-        reaper.getCrawler().createProject(project.getName(), project.getDomain(), project.getBlacklist());
+        if (project.getAccepted()) {
+            try {
+                reaper.getCrawler().createProject(project.getName(), project.getDomain(), project.getBlacklist());
+                refreshProjects();
+            } catch (DatabaseNotConnectedException ex) {
+                logger.log(Level.SEVERE, ex.getMessage());
+            }
+        }
     }
-    
+
     @FXML
-    public void refreshProjects(){
-        reaper.getCrawler().refreshProjects();
-    }   
-    
-    @FXML
-    public void changeDatabase(){
-        reaper.getCrawler().databaseConnect();
+    public void refreshProjects() {
+        try {
+            reaper.getCrawler().refreshProjects();
+        } catch (DatabaseNotConnectedException ex) {
+            logger.log(Level.SEVERE, ex.getMessage());
+        }
     }
-    
+
     @FXML
-    public void setupDatabase(){
+    public void setupDatabase() {
         try {
             reaper.getCrawler().setupDatabase();
         } catch (DatabaseNotConnectedException ex) {
-            logger.log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, "Database isn't connected");
         }
     }
-    
+
     @FXML
-    public void teardownDatabase(){
+    public void teardownDatabase() {
         try {
             reaper.getCrawler().removeDatabase();
         } catch (DatabaseNotConnectedException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
+    }
+
+    @FXML
+    public void databaseConnect() {
+        reaper.getCrawler().databaseConnect();
     }
 
     @Override
@@ -304,24 +329,30 @@ public class ReaperController implements Initializable {
 
             }
         });
-        
+
         //projectTable
         projectTable.setItems(dom.projects());
         projectTable.setEditable(false);
         projectNameColumn.setCellValueFactory((CellDataFeatures<Project, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().getName()));
         projectDomainColumn.setCellValueFactory((CellDataFeatures<Project, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().getDomain().toString()));
-        projectDateColumn.setCellValueFactory((CellDataFeatures<Project, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().getDate()));
-        
+        projectDateColumn.setCellValueFactory((CellDataFeatures<Project, String> cellData) -> new ReadOnlyObjectWrapper<>(Project.niceDate.format(cellData.getValue().getDate())));
+
         ContextMenu projectMenu = new ContextMenu();
         MenuItem projectViewItem = new MenuItem("View Project");
         projectViewItem.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent event) {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                Project proj = projectTable.getSelectionModel().getSelectedItem();
+                try {
+                    dom.loadProject(proj);
+                } catch (DatabaseNotConnectedException ex) {
+                    logger.log(Level.SEVERE, ex.getMessage());
+                }
             }
         });
-        
+        projectTable.setContextMenu(projectMenu);
+
         //resourceTable
         //resourceTable.setItems(dom.resources());
         resourceTable.setEditable(false);
@@ -365,6 +396,18 @@ public class ReaperController implements Initializable {
         blacklistTable.setEditable(false);
         blacklistTable.setItems(dom.blacklistProperty());
         blacklistColumn.setCellValueFactory((CellDataFeatures<URL, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().toString()));
+        ContextMenu blacklistMenu = new ContextMenu();
+        MenuItem removeBlacklistItem = new MenuItem("Remove");
+        removeBlacklistItem.setOnAction(new EventHandler<ActionEvent>() {
+
+            @Override
+            public void handle(ActionEvent event) {
+
+                //.remove(blacklistTable.getSelectionModel().getSelectedIndex());
+            }
+        });
+        blacklistTable.setContextMenu(blacklistMenu);
+        blacklistMenu.getItems().add(removeBlacklistItem);
 
         //overview
         overviewDomainLabel.textProperty().bindBidirectional(dom.hostnameProperty());
@@ -377,14 +420,29 @@ public class ReaperController implements Initializable {
         SitemapController sitemapController = new SitemapController();
         sitemapController.setParentController(this);
         jsobs.setMember("controller", sitemapController);
-        
+
         //Options locker while mining is running
         dom.minerBusy().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
             lockUnlockControls(newValue);
         });
+
+        //Database connecter watchener
+        dom.connectionStatus().addListener(new ChangeListener<Boolean>() {
+
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                if (newValue) {
+                    databaseStatusLabel.setText("connected");
+                    databaseStatusLabel.setTextFill(Color.web("green"));
+                } else {
+                    databaseStatusLabel.setText("not connected");
+                    databaseStatusLabel.setTextFill(Color.web("red"));
+                }
+            }
+        });
     }
-    
-    private void lockUnlockControls(boolean value){
+
+    private void lockUnlockControls(boolean value) {
         hostname.setDisable(value);
         maxDownloads.setDisable(value);
         maxDepth.setDisable(value);
@@ -479,9 +537,13 @@ public class ReaperController implements Initializable {
     }
 
     public void setActiveNode(String node) {
-        reaper.getCrawler().loadResource(node);
-        activeNode = node;
-        createResourcePane(reaper.getCrawler().resources().get(node));
+        try {
+            reaper.getCrawler().loadResource(node);
+            activeNode = node;
+            createResourcePane(reaper.getCrawler().resources().get(node));
+        } catch (DatabaseNotConnectedException ex) {
+            logger.log(Level.SEVERE, ex.getMessage());
+        }
     }
 
     private void lockSettings() {

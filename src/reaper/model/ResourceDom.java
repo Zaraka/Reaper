@@ -194,9 +194,12 @@ public class ResourceDom extends ResourceAbstract {
     }
 
     @Override
-    public void vertexTransaction(OrientGraph graph) {
+    public void vertexTransaction(OrientGraph graph, String cluster) {
         try {
-            OrientVertex vertex = graph.addVertex("class:Resource",
+            OrientVertex vertex = graph.addVertex(
+                    DatabaseClasses.RESOURCE.getName(), 
+                    DatabaseClasses.RESOURCE.getName()+cluster);
+            vertex.setProperties(
                     "url", this.getURL().toString(), "code", this.getCode(),
                     "downloadTime", this.getDownloadTime(), "mimeType", this.getMimeType(),
                     "type", this.getType().toString());
@@ -204,7 +207,10 @@ public class ResourceDom extends ResourceAbstract {
             this.setVertexID(vertex.getId());
 
             for (Form form : forms) {
-                OrientVertex formVertex = graph.addVertex("class:Form",
+                OrientVertex formVertex = graph.addVertex(
+                        DatabaseClasses.FORM.getName(),
+                        DatabaseClasses.FORM.getName()+cluster);
+                formVertex.setProperties(
                         "action", form.getAction().getLink(),
                         "method", form.getMethod().toString());
                 vertex.addEdge("Includes", formVertex);

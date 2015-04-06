@@ -19,7 +19,7 @@ import javafx.beans.property.StringProperty;
  *
  * @author zaraka
  */
-abstract class ResourceAbstract implements Resource{
+abstract class ResourceAbstract extends VertexAbstract implements Resource{
     protected ResourceType type;
     protected URL url;
     protected long downloadTime;
@@ -29,7 +29,6 @@ abstract class ResourceAbstract implements Resource{
     private final StringProperty mimeType;
     private final IntegerProperty depth;
     private final IntegerProperty maxDepth;
-    private Object id;
 
     ResourceAbstract() {
         this.url = null;
@@ -58,13 +57,14 @@ abstract class ResourceAbstract implements Resource{
     }
     
     ResourceAbstract(Vertex vertex) throws MalformedURLException{
+        super(vertex);
+        
         this.state = ResourceState.UNITIALIZED;
         this.depth = new SimpleIntegerProperty(0);
         this.maxDepth = new SimpleIntegerProperty(0);
         this.links = new HashMap<>();
         this.type = ResourceType.UNDEFINED;
         
-        this.id = (ORID)vertex.getId();
         this.url = new URL(vertex.getProperty("url").toString());
         this.code = new SimpleIntegerProperty((int)vertex.getProperty("code"));
         this.downloadTime = (long)vertex.getProperty("downloadTime");
@@ -166,9 +166,12 @@ abstract class ResourceAbstract implements Resource{
     }
     
     @Override
-    public void vertexTransaction(OrientGraph graph){
+    public void vertexTransaction(OrientGraph graph, String cluster){
         try {
-            OrientVertex vertex = graph.addVertex("class:Resource",
+            OrientVertex vertex = graph.addVertex(
+                    DatabaseClasses.RESOURCE.getName(),
+                    DatabaseClasses.RESOURCE.getName() + cluster);
+            vertex.setProperties(
                     "url", this.getURL().toString(), "code", this.getCode(),
                     "downloadTime", this.getDownloadTime(), "mimeType", this.getMimeType(),
                     "type", this.getType().toString());

@@ -7,10 +7,16 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -24,12 +30,13 @@ import reaper.Reaper;
  * @author nikita.vanku
  */
 public class NewProjectModalController implements Initializable {
-    
+
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
-    
-    private ArrayList<URL> blacklist;
+
+    private ObservableList<URL> blacklist;
     private URL domain;
-    
+    private boolean modalAccepted;
+
     @FXML
     private TextField hostname;
     @FXML
@@ -38,10 +45,10 @@ public class NewProjectModalController implements Initializable {
     private TableView<URL> blacklistTable;
     @FXML
     private TableColumn<URL, String> blacklistColumn;
-    
+
     @FXML
-    private void addBlacklistItem(){
-         TextInputDialog dialog = new TextInputDialog("http://subdomain.example.com");
+    private void addBlacklistItem() {
+        TextInputDialog dialog = new TextInputDialog("http://subdomain.example.com");
         dialog.setTitle("Add blacklisted domain");
         dialog.setHeaderText("Add blacklisted domain");
         dialog.setContentText("Please enter domain you want to blacklist");
@@ -60,65 +67,90 @@ public class NewProjectModalController implements Initializable {
             }
         });
     }
-    
+
     @FXML
-    private void createNewProject(ActionEvent event){
-        if(hostname.getText().isEmpty()){
+    private void createNewProject(ActionEvent event) {
+        if (hostname.getText().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Error!");
-            alert.setHeaderText(null);
-            alert.setContentText("Hostname cannot be empty");
+            alert.setHeaderText("Domain cannot be empty");
+            alert.setContentText(null);
+            alert.show();
             return;
         }
-        
+
         try {
             this.domain = new URL(hostname.getText());
         } catch (MalformedURLException ex) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Error!");
-            alert.setHeaderText(null);
-            alert.setContentText("Cant create url from " + hostname.getText());
+            alert.setHeaderText("Cant create url from " + hostname.getText());
+            alert.setContentText(ex.getMessage());
+            alert.show();
             return;
         }
-        
-        if(name.getText().isEmpty()){
+
+        if (name.getText().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Error!");
-            alert.setHeaderText(null);
-            alert.setContentText("Name cannot be empty");
+            alert.setHeaderText("Name cannot be empty");
+            alert.setContentText(null);
+            alert.show();
             return;
         }
         
+        modalAccepted = true;
         Stage stage = (Stage) hostname.getScene().getWindow();
         stage.close();
     }
-    
+
     @FXML
-    private void cancelModal(ActionEvent event){
+    private void cancelModal(ActionEvent event) {
+        modalAccepted = false;
         Stage stage = (Stage) hostname.getScene().getWindow();
         stage.close();
     }
-    
+
     /**
      * Initializes the controller class.
+     *
      * @param url
      * @param rb
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
-    }    
-    
-    public URL getDomain(){
+        blacklist = FXCollections.observableArrayList();
+        modalAccepted = false;
+
+        blacklistTable.setItems(blacklist);
+        blacklistColumn.setCellValueFactory((TableColumn.CellDataFeatures<URL, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().toString()));
+        ContextMenu blacklistMenu = new ContextMenu();
+        MenuItem removeBlacklistItem = new MenuItem("Remove");
+        removeBlacklistItem.setOnAction(new EventHandler<ActionEvent>() {
+
+            @Override
+            public void handle(ActionEvent event) {
+                blacklist.remove(blacklistTable.getSelectionModel().getSelectedIndex());
+            }
+        });
+        blacklistMenu.getItems().add(removeBlacklistItem);
+        blacklistTable.setContextMenu(blacklistMenu);
+    }   
+
+    public URL getDomain() {
         return domain;
     }
-    
-    public String getName(){
+
+    public String getName() {
         return name.getText();
     }
-    
-    public ArrayList<URL> getBlacklist(){
-        return blacklist;
+
+    public ArrayList<URL> getBlacklist() {
+        return new ArrayList<>(blacklist);
     }
     
+    public boolean getAccepted(){
+        return modalAccepted;
+    }
+
 }

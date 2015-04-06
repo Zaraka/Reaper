@@ -24,5 +24,5 @@ public interface Resource {
     public long getDownloadTime();
     public Object getVertexID();
     public void setVertexID(Object id);
-    public void vertexTransaction(OrientGraph grapth);
+    public void vertexTransaction(OrientGraph grapth, String cluster);
 }

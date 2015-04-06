@@ -1,6 +1,7 @@
 package reaper.model;
 
 import com.orientechnologies.orient.core.exception.OStorageException;
+import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -12,6 +13,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -55,8 +57,8 @@ public class Crawler {
         this.maxDepth = new SimpleIntegerProperty(1);
         this.maxDownloads = new SimpleIntegerProperty(5);
         this.dbHost = new SimpleStringProperty(getPrefDBHost());
-        this.dbPassword = new SimpleStringProperty(getPrefDBUser());
-        this.dbUser = new SimpleStringProperty(getPrefDBPassword());
+        this.dbPassword = new SimpleStringProperty(getPrefDBPassword());
+        this.dbUser = new SimpleStringProperty(getPrefDBUser());
         this.resourcesCount = new SimpleIntegerProperty(0);
         this.linksCount = new SimpleIntegerProperty(0);
         this.blacklist = FXCollections.observableArrayList();
@@ -69,13 +71,34 @@ public class Crawler {
         this.rootId = null;
 
         this.init();
+        
+        dbHost.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+            prefs.put(PreferenceKeys.DB_HOST.getKey(), newValue);
+            logger.log(Level.INFO, "dbHost changed");
+        });
+        
+        dbPassword.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+            prefs.put(PreferenceKeys.DB_PASS.getKey(), newValue);
+            logger.log(Level.INFO, "dbPass changed");
+        });
+        
+        dbUser.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+            prefs.put(PreferenceKeys.DB_USER.getKey(), newValue);
+            logger.log(Level.INFO, "dbUser changed");
+        });
     }
     
-    public void refreshProjects(){
+    public void refreshProjects() throws DatabaseNotConnectedException{
+        if(!database.isConnected()){
+            throw new DatabaseNotConnectedException("Database is not connected");
+        }
         projects.clear();
         database.getProjects(projects);
     }
 
+    /**
+     * Connects to database
+     */
     public void databaseConnect() {
         try {
             database.connect(getDbHost(), getDbUser(), getDbPassword());
@@ -120,30 +143,56 @@ public class Crawler {
     }
 
     public void loadAll(){
-        this.clearData();
+        clearData();
         database.loadAll(resources, links, getActiveCluster());
     }
 
-    public void loadRoot() {
+    public void loadRoot() throws DatabaseNotConnectedException {
+        if(!database.isConnected()){
+            throw new DatabaseNotConnectedException("Database is not connected");
+        }
+        
         if (rootId != null) {
             database.loadResource(rootId, resources, links, getActiveCluster());
         }
     }
 
-    public void loadResource(Object id){
-        this.clearData();
+    public void loadResource(Object id) throws DatabaseNotConnectedException{
+        if(!database.isConnected()){
+            throw new DatabaseNotConnectedException("Database is not connected");
+        }
+        
+        clearData();
         database.loadResource(id, resources, links, getActiveCluster());
     }
     
 
-    public void createProject(String name, URL domain, ArrayList<URL> blacklist){
+    public void createProject(String name, URL domain, ArrayList<URL> blacklist) throws DatabaseNotConnectedException{
+        if(!database.isConnected()){
+            throw new DatabaseNotConnectedException("Database is not connected");
+        }
+        
         database.createProject(name, domain, blacklist);
+    }
+    
+    public void loadProject(Project proj) throws DatabaseNotConnectedException{
+        clearData();
+        blacklist.clear();
+        OrientGraph graph = database.getDatabase().getTx();
+        try{
+            loadResource(proj.getRoot(graph));
+        } catch (DatabaseNotConnectedException ex) {
+            throw ex;
+        } finally {
+            graph.shutdown();
+        }
+        
     }
     
     private void init() {
         try {
             minerService.init(this.getHostname(), this.getMaxDepth(),
-                    this.getDbHost(), this.getDbUser(), this.getDbPassword());
+                    this.getDbHost(), this.getDbUser(), this.getDbPassword(), this.getActiveCluster());
         } catch (OStorageException ex) {
             logger.log(Level.SEVERE, ex.toString());
         }
@@ -177,7 +226,7 @@ public class Crawler {
     public void mineStart(String hostname) {
         if (!this.minerService.isRunning()) {
             logger.log(Level.INFO, "Request mining on " + hostname);
-            this.clearData();
+            clearData();
             this.hostname.set(hostname);
             this.minerService.setHostname(hostname);
             this.minerService.setMaxDepth(this.maxDepth.get());
@@ -327,7 +376,7 @@ public class Crawler {
     }
 
     private String getPrefDBUser() {
-        return prefs.get(PreferenceKeys.DB_USER.getKey(), "admin");
+        return prefs.get(PreferenceKeys.DB_USER.getKey(), "root");
     }
 
     private String getPrefDBPassword() {
@@ -344,5 +393,9 @@ public class Crawler {
     
     public ObservableList<Project> projects(){
         return this.projects;
+    }
+    
+    public BooleanProperty connectionStatus(){
+        return database.connectionStatus();
     }
 }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.paint.*?>
 <?import javafx.scene.chart.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.web.*?>
@@ -18,13 +19,13 @@
          <children>
             <HBox>
                <children>
-                  <Button mnemonicParsing="false">
+                  <Button fx:id="databaseConnectButton" mnemonicParsing="false" onAction="#databaseConnect">
                     <graphic>
                         <FontAwesomeIcon fill="#262aab" glyphName="REFRESH" /> 
                     </graphic>
                   </Button>
                   <Label text="Database:" />
-                  <Label fx:id="databaseStatusLabel" text="Not connected" />
+                  <Label fx:id="databaseStatusLabel" text="not connected" textFill="RED" />
                </children>
             </HBox>
             <SplitPane dividerPositions="0.766721044045677" orientation="VERTICAL" VBox.vgrow="ALWAYS">
@@ -105,12 +106,13 @@
                                                 </GridPane>
                                                 <HBox>
                                                    <children>
-                                                      <Button fx:id="changeDatabaseButton" mnemonicParsing="false" onAction="#changeDatabase" text="Change Database" />
+                                                      <Button fx:id="changeDatabaseButton" mnemonicParsing="false" onAction="#databaseConnect" text="Connect to Database" />
                                                       <Button fx:id="setupDatabaseButton" mnemonicParsing="false" onAction="#setupDatabase" text="Setup Tables" />
                                                       <Button fx:id="deleteDatabaseButton" mnemonicParsing="false" onAction="#teardownDatabase" text="Drop Tables">
                                                          <graphic>
                                                             <FontAwesomeIcon fill="RED" glyphName="TIMES" />
                                                          </graphic></Button>
+                                                      <Button mnemonicParsing="false" onAction="#clearData" text="Clear ALL projects fromDatabase" />
                                                    </children>
                                                 </HBox>
                                              </children>
@@ -159,7 +161,7 @@
                                                          <graphic>
                                                             <FontAwesomeIcon fill="RED" glyphName="STOP" />
                                                          </graphic></Button>
-                                                      <Button fx:id="clearDataButton" mnemonicParsing="false" onAction="#clearData" text="Clear Data from database" />
+                                                      <Button fx:id="clearDataButton" mnemonicParsing="false" onAction="#clearProjectData" text="Clear Project from database" />
                                                    </children>
                                                 </HBox>
                                                 <TableView fx:id="blacklistTable" prefHeight="200.0" prefWidth="200.0">
@@ -208,8 +210,8 @@
                                                 </GridPane>
                                                 <HBox>
                                                    <children>
-                                                      <Button mnemonicParsing="false" onAction="#overviewGetRoot" text="Get Root" />
-                                                      <Button mnemonicParsing="false" onAction="#overviewLoadAll" text="Load All" />
+                                                      <Button mnemonicParsing="false" onAction="#overviewGetRoot" text="Load root Resource" />
+                                                      <Button mnemonicParsing="false" onAction="#overviewLoadAll" text="Load all Resources" />
                                                    </children>
                                                 </HBox>
                                                 <PieChart fx:id="overviewStatus" />

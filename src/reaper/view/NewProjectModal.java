@@ -28,7 +28,7 @@ public class NewProjectModal extends Stage{
         setTitle("Create new project");
         initModality(Modality.APPLICATION_MODAL);
         
-        URL location = getClass().getResource("view/NewProjectModal.fxml");
+        URL location = getClass().getResource("NewProjectModal.fxml");
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(location);
         loader.setBuilderFactory(new JavaFXBuilderFactory());
@@ -55,5 +55,9 @@ public class NewProjectModal extends Stage{
     
     public ArrayList<URL> getBlacklist(){
         return controller.getBlacklist();
+    }
+    
+    public boolean getAccepted(){
+        return controller.getAccepted();
     }
 }

@@ -1,5 +1,6 @@
 package reaper.model;
 
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import java.net.MalformedURLException;
@@ -12,15 +13,16 @@ import java.util.UUID;
  *
  * @author nikita.vanku
  */
-public class Project {    
+public class Project extends VertexAbstract {    
     private URL domain;
-    private String date;
+    private Date date;
     private String name;
     private String cluster;
     
     public static SimpleDateFormat clusterDate = new SimpleDateFormat("yyyy_MM_dd");
+    public static SimpleDateFormat niceDate = new SimpleDateFormat("HH:mm:ss dd.MM.yyyy");
     
-    Project(String name, URL domain, String date, String cluster){
+    Project(String name, URL domain, Date date, String cluster){
         this.domain = domain;
         this.name = name;
         this.date = date;
@@ -32,16 +34,19 @@ public class Project {
         this.domain = domain;
         
         Date dt = new Date();
-        this.date = ReaperDatabase.dateFormat.format(dt);
+        this.date = dt;
         this.cluster = "p";
         this.cluster += UUID.randomUUID().toString();
     }
     
     Project(Vertex ver) throws MalformedURLException{
+        super(ver);
+        
         this.cluster = ver.getProperty("cluster");
         this.name = ver.getProperty("name");
         this.date = ver.getProperty("date");
         this.domain = new URL(ver.getProperty("domain"));
+        
     }
     
     /**
@@ -49,9 +54,11 @@ public class Project {
      * @param graph 
      */
     public void vertexTransaction(OrientGraph graph){
-        Vertex ver = graph.addVertex("Class:Project", "name", name, 
-                "date", date, "domain", domain.toString(), "cluster", cluster);
-        
+        Vertex ver = graph.addVertex("class:"+DatabaseClasses.PROJECT.getName(),
+                "name", name,  "date", date, 
+                "domain", domain.toString(), "cluster", cluster);
+        graph.commit();
+        setID(ver.getId());
     }
     
     public String getName(){
@@ -62,11 +69,11 @@ public class Project {
         this.name = name;
     }
     
-    public String getDate(){
+    public Date getDate(){
         return this.date;
     }
     
-    public void setDate(String date){
+    public void setDate(Date date){
         this.date = date;
     }
     
@@ -84,5 +91,18 @@ public class Project {
     
     public void setCluster(String cluster){
         this.cluster = cluster;
+    }
+    
+    /**
+     * Return root resource from Project
+     * @param graph OrientGraph
+     * @return Object Id or null
+     */
+    public Object getRoot(OrientGraph graph){
+        Vertex ver = graph.getVertex(getID());
+        for(Vertex root : ver.getVertices(Direction.OUT, "Root")){
+            return root.getId();
+        }
+        return null;
     }
 }

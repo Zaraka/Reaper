@@ -1,6 +1,7 @@
 package reaper.model;
 
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
+import com.orientechnologies.orient.core.exception.ODatabaseException;
 import com.orientechnologies.orient.core.exception.OStorageException;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OType;
@@ -11,6 +12,7 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientEdgeType;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
+import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import com.tinkerpop.blueprints.impls.orient.OrientVertexType;
 import java.net.MalformedURLException;
@@ -26,43 +28,48 @@ import javafx.collections.ObservableMap;
 import reaper.Reaper;
 
 /**
- * This class should provide all necesarry Database operations.
- * 
+ * This class should provide all necesarry Database operations. all methods are
+ * expecting database to be connected
+ *
  * @author nikita.vanku
  */
 public class ReaperDatabase {
-    
+
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
-    
+
     private OrientGraphFactory factory;
     private final BooleanProperty connectionStatus;
     public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    
-    ReaperDatabase(){
-        this.connectionStatus = new SimpleBooleanProperty();
+
+    ReaperDatabase() {
+        this.connectionStatus = new SimpleBooleanProperty(false);
+        factory = null;
     }
-    
-    public void connect(String host, String user, String password){
-        if(isConnected()){
+
+    public void connect(String host, String user, String password) {
+        if (isConnected()) {
             this.disconnect();
         }
-        
+
         try {
             this.factory = new OrientGraphFactory(host, user, password).setupPool(1, 10);
             this.connectionStatus.set(true);
         } catch (OStorageException ex) {
             throw ex;
+        } catch (ODatabaseException ex) {
+            System.err.println(ex);
+            logger.log(Level.SEVERE, "database exception");
         }
     }
-    
-    public void disconnect(){
+
+    public void disconnect() {
         this.factory.close();
         this.connectionStatus.set(false);
     }
-    
-    public void setupSchema(){
+
+    public void setupSchema() {
         // Create Graph scheme
-        OrientGraph graph = factory.getTx();
+        OrientGraphNoTx graph = factory.getNoTx();
         try {
             //Vertex Resource
             OrientVertexType resource = graph.createVertexType("Resource");
@@ -72,41 +79,41 @@ public class ReaperDatabase {
             resource.createProperty("type", OType.STRING);
             resource.createProperty("url", OType.STRING);
             resource.createIndex("Resource.url", OClass.INDEX_TYPE.UNIQUE, "url");
-   
+
             //Vertex Form
             OrientVertexType form = graph.createVertexType("Form");
             form.createProperty("action", OType.STRING);
             form.createProperty("method", OType.STRING);
-            
+
             //Vertex Project
             OrientVertexType project = graph.createVertexType("Project");
             project.createProperty("cluster", OType.STRING);
             project.createProperty("date", OType.DATETIME);
             project.createProperty("domain", OType.STRING);
             project.createProperty("name", OType.STRING);
-            
+
             //Vertex Blacklist
             OrientVertexType blacklist = graph.createVertexType("Blacklist");
             blacklist.createProperty("url", OType.STRING);
-            
+
             //Edge LinkTo
             OrientEdgeType linkTo = graph.createEdgeType("LinkTo");
             linkTo.createProperty("count", OType.INTEGER);
             linkTo.createProperty("path", OType.STRING);
             linkTo.createProperty("type", OType.STRING);
-            
+
             //Edge Includes
             OrientEdgeType includes = graph.createEdgeType("Includes");
-            
+
             //Edge Root
             OrientEdgeType root = graph.createEdgeType("Root");
-            
+
         } finally {
             graph.shutdown();
         }
-        
+
         ODatabaseDocumentTx oDB = factory.getDatabase();
-        try{
+        try {
             //Link Queue
             OClass linkQue = oDB.getMetadata().getSchema().createClass("LinkQue");
             linkQue.createProperty("depth", OType.INTEGER);
@@ -117,17 +124,17 @@ public class ReaperDatabase {
         } finally {
             oDB.close();
         }
-            
+
     }
-    
-    public void tearDown(){
-        OrientGraph graph = factory.getTx();
+
+    public void tearDown() {
+        OrientGraphNoTx graph = factory.getNoTx();
         try {
             //Edges
             graph.dropEdgeType("Includes");
             graph.dropEdgeType("LinkTo");
             graph.dropEdgeType("Root");
-            
+
             //Vertices
             graph.dropVertexType("Resource");
             graph.dropVertexType("Form");
@@ -136,7 +143,7 @@ public class ReaperDatabase {
         } finally {
             graph.shutdown();
         }
-        
+
         ODatabaseDocumentTx oDB = factory.getDatabase();
         try {
             oDB.getMetadata().getSchema().dropClass("LinkQue");
@@ -145,8 +152,40 @@ public class ReaperDatabase {
         }
     }
     
-    public void truncateData(){
-        OrientGraph graph = factory.getTx();
+    public void truncateProject(Project proj){
+        OrientGraphNoTx graph = factory.getNoTx();
+        try {
+            long resourcesModified = graph.command(
+                    new OCommandSQL("TRUNCATE class "+DatabaseClasses.RESOURCE.getName()+proj.getCluster())
+            ).execute();
+            logger.log(Level.INFO, String.valueOf(resourcesModified) + " Resources deleted.");
+            
+            long formsModified = graph.command(
+                    new OCommandSQL("TRUNCATE class "+DatabaseClasses.FORM.getName()+proj.getCluster())
+            ).execute();
+            logger.log(Level.INFO, String.valueOf(formsModified) + " Forms deleted.");
+            
+            long linksModified = graph.command(
+                    new OCommandSQL("TRUNCATE class "+DatabaseClasses.LINKTO.getName()+proj.getCluster())
+            ).execute();
+            logger.log(Level.INFO, String.valueOf(linksModified) + " Links deleted.");
+            
+            long queModified = graph.command(
+                    new OCommandSQL("TRUNCATE class "+DatabaseClasses.LINKQUE.getName()+proj.getCluster())
+            ).execute();
+            logger.log(Level.INFO, String.valueOf(queModified) + " Que deleted.");
+            
+            long includesModified = graph.command(
+                    new OCommandSQL("TRUNCATE class "+DatabaseClasses.INCLUDES.getName()+proj.getCluster())
+            ).execute();
+            logger.log(Level.INFO, String.valueOf(includesModified) + " Includes deleted.");
+        } finally {
+            graph.shutdown();
+        }
+    }
+
+    public void truncateData() {
+        OrientGraphNoTx graph = factory.getNoTx();
         try {
             long resourcesModified = graph.command(new OCommandSQL("TRUNCATE class Resource")).execute();
             logger.log(Level.INFO, String.valueOf(resourcesModified) + " Resources deleted.");
@@ -160,25 +199,25 @@ public class ReaperDatabase {
             logger.log(Level.INFO, String.valueOf(projectModified) + " Projects deleted");
             long blacklistModified = graph.command(new OCommandSQL("TRUNCATE class Blacklist")).execute();
             logger.log(Level.INFO, String.valueOf(blacklistModified) + " Blacklist items deleted");
-            
+
         } finally {
             graph.shutdown();
             logger.log(Level.INFO, "Database truncated");
         }
     }
-    
-    public boolean isConnected(){
+
+    public boolean isConnected() {
         return this.connectionStatus.get();
     }
-    
-    public BooleanProperty connectionStatus(){
+
+    public BooleanProperty connectionStatus() {
         return this.connectionStatus;
     }
-    
-    public OrientGraphFactory getDatabase(){
+
+    public OrientGraphFactory getDatabase() {
         return this.factory;
     }
-    
+
     public void loadResource(Object id, ObservableMap<String, Resource> resources, ObservableList<Link> links, String cluster) {
         OrientGraph graph = factory.getTx();
         try {
@@ -221,11 +260,13 @@ public class ReaperDatabase {
             graph.shutdown();
         }
     }
-    
+
     public void loadAll(ObservableMap<String, Resource> resources, ObservableList<Link> links, String cluster) {
         OrientGraph graph = factory.getTx();
         try {
-            for (Vertex ver : graph.getVerticesOfClass("Resource", false)) {
+            for (Vertex ver : (Iterable<Vertex>) graph.command(
+                    new OCommandSQL("SELECT * FROM " + DatabaseClasses.PROJECT.getName() + cluster)
+            ).execute()) {
                 Resource res = resources.get(ver.getId().toString());
                 if (res == null) {
                     try {
@@ -237,8 +278,10 @@ public class ReaperDatabase {
                     }
                 }
             }
-
-            for (Edge edge : graph.getEdgesOfClass("LinkTo", false)) {
+            //FIXME
+            for (Edge edge : (Iterable<Edge>) graph.command(
+                    new OCommandSQL("SELECT * FROM " + DatabaseClasses.LINKTO.getName() + cluster)
+            ).execute()) {
                 Link link = new Link(edge.getProperty("path").toString(),
                         resources.get(edge.getVertex(Direction.OUT).getId().toString()),
                         resources.get(edge.getVertex(Direction.IN).getId().toString()),
@@ -250,11 +293,11 @@ public class ReaperDatabase {
             graph.shutdown();
         }
     }
-    
-    public void getProjects(ObservableList<Project> projects){
+
+    public void getProjects(ObservableList<Project> projects) {
         OrientGraph graph = factory.getTx();
         try {
-            for(Vertex ver : graph.getVertices("Project", false)) {
+            for (Vertex ver : graph.getVerticesOfClass(DatabaseClasses.PROJECT.getName(), false)) {
                 Project proj;
                 try {
                     proj = new Project(ver);
@@ -267,48 +310,85 @@ public class ReaperDatabase {
             graph.shutdown();
         }
     }
-    
-    public void loadBlacklist(ArrayList<URL> blacklist, String cluster){
+
+    public void loadBlacklist(ArrayList<URL> blacklist, String cluster) {
         OrientGraph graph = factory.getTx();
         try {
-            graph.getVerticesOfClass("", false);
+            for (Vertex ver : (Iterable<Vertex>) graph.command(
+                    new OCommandSQL("SELECT * FROM " + DatabaseClasses.BLACKLIST.getName() + cluster)
+            ).execute()) {
+                try {
+                    blacklist.add(new URL(ver.getProperty("url")));
+                } catch (MalformedURLException ex) {
+                    logger.log(Level.WARNING, "Invalid blacklisted link in database");
+                }
+            }
         } finally {
             graph.shutdown();
         }
     }
-    
-    public void saveBlacklist(ArrayList<URL> blacklist, String cluster){
+
+    public void saveBlacklist(ArrayList<URL> blacklist, String cluster) {
         OrientGraph graph = factory.getTx();
         try {
-            Vertex item = graph.addVertex("Class:Blacklist", "Cluster:"+cluster);
-            item.setProperty(cluster, item);
+            for (URL url : blacklist) {
+                Vertex item = graph.addVertex(
+                        DatabaseClasses.BLACKLIST.getName(),
+                        DatabaseClasses.BLACKLIST.getName() + cluster);
+                item.setProperty("url", url.toString());
+            }
         } finally {
             graph.shutdown();
         }
     }
-    
-    public void createProject(String name, URL domain, ArrayList<URL> blacklist){
+
+    public void createProject(String name, URL domain, ArrayList<URL> blacklist) {
         Project project = new Project(name, domain);
-        
-        //save project into database
+
+        //save project into database and create clusters
         OrientGraph graph = factory.getTx();
         try {
             project.vertexTransaction(graph);
+
+            //Vertices clusters
+            new OCommandSQL(
+                    "ALTER CLASS Resource ADDCLUSTER " +DatabaseClasses.RESOURCE.getName()+project.getCluster()
+            ).execute();
+            new OCommandSQL(
+                    "ALTER CLASS Form ADDCLUSTER " +DatabaseClasses.FORM.getName()+project.getCluster()
+            ).execute();
+            new OCommandSQL(
+                    "ALTER CLASS Blacklist ADDCLUSTER " +DatabaseClasses.BLACKLIST.getName()+project.getCluster()
+            ).execute();
+            
+            //Edges clusters
+            new OCommandSQL(
+                    "ALTER CLASS LinkTo ADDCLUSTER " +DatabaseClasses.LINKTO.getName()+project.getCluster()
+            ).execute();
+            
+            new OCommandSQL(
+                    "ALTER CLASS Includes ADDCLUSTER " +DatabaseClasses.INCLUDES.getName()+project.getCluster()
+            ).execute();
+            
+            //Que cluster
+            new OCommandSQL(
+                    "ALTER CLASS LinkQue ADDCLUSTER " +DatabaseClasses.LINKQUE.getName()+project.getCluster()
+            ).execute();
+            
         } finally {
             graph.shutdown();
         }
-        
-        
-        //create new cluster for project
-        ODatabaseDocumentTx oDB = factory.getDatabase();
-        try {
-            oDB.command(
-                    new OCommandSQL("CREATE CLUSTER ? physical append"))
-                    .execute(project.getCluster());
-        } finally {
-            oDB.close();
-        }
-        
+        logger.log(Level.INFO, project.getID().toString());
+
         saveBlacklist(blacklist, project.getCluster());
+    }
+    
+    public void deleteProject(Project proj){
+        OrientGraph graph = factory.getTx();
+        try {
+            //TODO: How to drop cluster?
+        } finally {
+            graph.shutdown();
+        }
     }
 }
