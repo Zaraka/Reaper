@@ -17,6 +17,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import com.tinkerpop.blueprints.impls.orient.OrientVertexType;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -302,8 +303,8 @@ public class ReaperDatabase {
                 try {
                     proj = new Project(ver);
                     projects.add(proj);
-                } catch (MalformedURLException ex) {
-                    logger.log(Level.SEVERE, ex.toString());
+                } catch (MalformedURLException | ParseException ex) {
+                    logger.log(Level.SEVERE, ex.getMessage());
                 }
             }
         } finally {
@@ -378,7 +379,6 @@ public class ReaperDatabase {
         } finally {
             graph.shutdown();
         }
-        logger.log(Level.INFO, project.getID().toString());
 
         saveBlacklist(blacklist, project.getCluster());
     }

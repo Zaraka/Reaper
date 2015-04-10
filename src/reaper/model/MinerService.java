@@ -1,7 +1,6 @@
 package reaper.model;
 
 import com.orientechnologies.orient.core.exception.OStorageException;
-import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
@@ -34,17 +33,15 @@ public class MinerService extends Service<Void> {
     private OrientGraphFactory graphFactory;
     private int resourceCount, linksCount;
     private Object rootId;
-    private DBConf dbConf;
     private LinkQue linkScrambler;
     private String cluster;
 
-    public void init(String hostname, int maxDepth, String dbHost, String dbUser, String dbPass, String cluster) {
-        this.hostname = hostname;
-        this.maxDepth = maxDepth;
+    public void init() {
+        this.hostname = "";
+        this.maxDepth = 5;
         this.linksQueue = new ArrayList<>();
         this.resources = new HashMap<>();
-        this.dbConf = new DBConf(dbHost, dbUser, dbPass);
-        this.cluster = cluster;
+        this.cluster = "";
         
 
         this.resourceCount = 0;
@@ -55,6 +52,12 @@ public class MinerService extends Service<Void> {
         
         this.linkScrambler = new LinkQue(graphFactory);
 
+    }
+    
+    public void prepare(String hostname, String cluster, int maxDepth){
+        this.hostname = hostname;
+        this.cluster = cluster;
+        this.maxDepth = maxDepth;
     }
     
     public void databaseConnect(String host, String user, String pass){
@@ -148,15 +151,15 @@ public class MinerService extends Service<Void> {
                     ResourceDom root = new ResourceDom(uURL, 0, maxDepth);
                     linksQueue.addAll(root.links());
                     for (Link queLink : root.links()) {
-                        linkScrambler.linkEnter(queLink.getLink(), queLink.getFromURL(), queLink.getFromResource().getDepth());
+                        linkScrambler.linkEnter(cluster, queLink.getLink(), queLink.getFromURL(), queLink.getFromResource().getDepth());
                     }
                     createSingleVertex(root);
                     rootId = root.getVertexID();
                 } catch (UnsupportedMimeTypeException | MalformedURLException ex) {
                     throw ex;
                 }
-                while (linkScrambler.queLength() > 0) {
-                    ODocument docLink = linkScrambler.linkLeave();
+                while (linkScrambler.queLength(cluster) > 0) {
+                    ODocument docLink = linkScrambler.linkLeave(cluster);
                     int docDepth = docLink.field("depth");
                     Link link = new Link(docLink.field("from").toString(), docLink.field("path").toString());
                     if (resources.get(link.getToURL()) == null) {
@@ -167,7 +170,7 @@ public class MinerService extends Service<Void> {
                             toRes = new ResourceDom(linkUrl, docDepth + 1, maxDepth);
                             if (toRes.getDepth() < maxDepth) {
                                 for (Link queLink : toRes.links()) {
-                                    linkScrambler.linkEnter(queLink.getLink(), queLink.getFromURL(), queLink.getFromResource().getDepth());
+                                    linkScrambler.linkEnter(cluster, queLink.getLink(), queLink.getFromURL(), queLink.getFromResource().getDepth());
                                 }
                             }
                         } catch (UnsupportedMimeTypeException ex) {

@@ -2,6 +2,7 @@ package reaper.model;
 
 import com.orientechnologies.orient.core.exception.OStorageException;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -44,8 +45,7 @@ public class Crawler {
     private final BooleanProperty minerBusy;
     private final ReaperDatabase database;
     private final Preferences prefs;
-    private String activeCluster;
-    private Object rootId;
+    private Project activeProject;
 
     private final MinerService minerService;
 
@@ -66,9 +66,7 @@ public class Crawler {
         this.minerService = new MinerService();
         this.database = new ReaperDatabase();
         this.projects = FXCollections.observableArrayList();
-        this.activeCluster = "";
-
-        this.rootId = null;
+        this.activeProject = null;
 
         this.init();
         
@@ -144,7 +142,7 @@ public class Crawler {
 
     public void loadAll(){
         clearData();
-        database.loadAll(resources, links, getActiveCluster());
+        database.loadAll(resources, links, activeProject.getCluster());
     }
 
     public void loadRoot() throws DatabaseNotConnectedException {
@@ -152,8 +150,12 @@ public class Crawler {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
         
-        if (rootId != null) {
-            database.loadResource(rootId, resources, links, getActiveCluster());
+        if (activeProject.getRoot() != null) {
+            database.loadResource(
+                    activeProject.getRoot(), 
+                    resources, 
+                    links, 
+                    activeProject.getCluster());
         }
     }
 
@@ -163,7 +165,7 @@ public class Crawler {
         }
         
         clearData();
-        database.loadResource(id, resources, links, getActiveCluster());
+        database.loadResource(id, resources, links, activeProject.getCluster());
     }
     
 
@@ -178,28 +180,36 @@ public class Crawler {
     public void loadProject(Project proj) throws DatabaseNotConnectedException{
         clearData();
         blacklist.clear();
+        
+        activeProject = proj;
+        
+        if(activeProject.getRoot() == null){
+            logger.log(Level.INFO, "Project not yet mined");
+            return;
+        }
+        
         OrientGraph graph = database.getDatabase().getTx();
         try{
-            loadResource(proj.getRoot(graph));
+            loadResource(activeProject.getRoot());
         } catch (DatabaseNotConnectedException ex) {
             throw ex;
         } finally {
             graph.shutdown();
         }
         
+        setHostname(activeProject.getDomain().toString());
+        
     }
     
     private void init() {
         try {
-            minerService.init(this.getHostname(), this.getMaxDepth(),
-                    this.getDbHost(), this.getDbUser(), this.getDbPassword(), this.getActiveCluster());
+            minerService.init();
         } catch (OStorageException ex) {
             logger.log(Level.SEVERE, ex.toString());
         }
         minerService.setOnSucceeded((WorkerStateEvent event) -> {
             this.setResourcesCount(this.minerService.getResourceCount());
             this.setLinksCount(this.minerService.getLinksCount());
-            this.rootId = this.minerService.getRootId();
             this.minerService.reset();
             this.setMinerBusy(false);
             logger.log(Level.INFO, "Mining finished");
@@ -223,15 +233,28 @@ public class Crawler {
         //minerService.set
     }
 
-    public void mineStart(String hostname) {
-        if (!this.minerService.isRunning()) {
+    public void mineStart() throws MalformedURLException{
+        if (!minerService.isRunning()) {
             logger.log(Level.INFO, "Request mining on " + hostname);
+            
+            //delete data
             clearData();
-            this.hostname.set(hostname);
-            this.minerService.setHostname(hostname);
-            this.minerService.setMaxDepth(this.maxDepth.get());
-            this.minerService.start();
+            blacklist.clear();
+            
+            URL url = new URL(hostname.get());
+            activeProject.setDomain(url);
+            
+            minerService.prepare(hostname.get(), activeProject.getCluster(), maxDepth.get());
+            minerService.start();
         }
+    }
+    
+    public void setActiveProject(Project proj){
+        this.activeProject = proj;
+    } 
+    
+    public Project getActiveProject(){
+        return this.activeProject;
     }
 
     public void mineStop() {
@@ -351,10 +374,6 @@ public class Crawler {
         return this.linksCount;
     }
 
-    public Object getRootID() {
-        return this.rootId;
-    }
-
     public ObservableList<URL> blacklistProperty() {
         return this.blacklist;
     }
@@ -383,19 +402,15 @@ public class Crawler {
         return prefs.get(PreferenceKeys.DB_PASS.getKey(), "admin");
     }
     
-    private void setActiveCluster(String cluster){
-        this.activeCluster = cluster;
-    }
-    
-    private String getActiveCluster(){
-        return this.activeCluster;
-    }
-    
     public ObservableList<Project> projects(){
         return this.projects;
     }
     
     public BooleanProperty connectionStatus(){
         return database.connectionStatus();
+    }
+    
+    public ReaperDatabase getDatabase(){
+        return database;
     }
 }
