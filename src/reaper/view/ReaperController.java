@@ -141,11 +141,16 @@ public class ReaperController implements Initializable {
 
     @FXML
     private void startMining(ActionEvent event) {
-        if (!"".equals(hostname.getText())) {
-            reaper.getCrawler().mineStart(hostname.getText());
-        } else {
+        if ("".equals(hostname.getText())) {
             logger.log(Level.SEVERE, "You need to specify hostname.");
         }
+            
+        try {
+            reaper.getCrawler().mineStart();
+        } catch (MalformedURLException ex){
+            logger.log(Level.SEVERE, "Invalid hostname " + ex.getMessage());
+        }
+        
     }
 
     @FXML
@@ -184,8 +189,9 @@ public class ReaperController implements Initializable {
     @FXML
     private void overviewGetRoot(ActionEvent event) {
         try {
-            reaper.getCrawler().loadRoot();
-            activeNode = reaper.getCrawler().getRootID().toString();
+            Crawler crawl = reaper.getCrawler();
+            crawl.loadRoot();
+            activeNode = crawl.getActiveProject().getRoot().toString();
             createResourcePane(reaper.getCrawler().resources().get(activeNode));
         } catch (DatabaseNotConnectedException ex) {
             logger.log(Level.SEVERE, ex.getMessage());
@@ -195,7 +201,7 @@ public class ReaperController implements Initializable {
     @FXML
     private void overviewLoadAll(ActionEvent event) {
         reaper.getCrawler().loadAll();
-        activeNode = reaper.getCrawler().getRootID().toString();
+        activeNode = reaper.getCrawler().getActiveProject().getRoot().toString();
         createResourcePane(reaper.getCrawler().resources().get(activeNode));
     }
 
@@ -223,7 +229,6 @@ public class ReaperController implements Initializable {
 
     @FXML
     public void createNewProject() {
-
         NewProjectModal project = new NewProjectModal(null);
         project.showAndWait();
         if (project.getAccepted()) {
@@ -249,6 +254,7 @@ public class ReaperController implements Initializable {
     public void setupDatabase() {
         try {
             reaper.getCrawler().setupDatabase();
+            logger.log(Level.INFO, "Tables in Database created");
         } catch (DatabaseNotConnectedException ex) {
             logger.log(Level.SEVERE, "Database isn't connected");
         }
@@ -258,8 +264,9 @@ public class ReaperController implements Initializable {
     public void teardownDatabase() {
         try {
             reaper.getCrawler().removeDatabase();
+            logger.log(Level.INFO, "Tables in Database dropped");
         } catch (DatabaseNotConnectedException ex) {
-            logger.log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, "Database isn't connected");
         }
     }
 
@@ -351,6 +358,7 @@ public class ReaperController implements Initializable {
                 }
             }
         });
+        projectMenu.getItems().addAll(projectViewItem);
         projectTable.setContextMenu(projectMenu);
 
         //resourceTable

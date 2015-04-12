@@ -12,23 +12,22 @@ import java.util.List;
  * @author nikita.vanku
  */
 public class LinkQue {
-
-    private final OSQLSynchQuery<ODocument> leaveQuery;
     private final OrientGraphFactory graphFactory;
 
     LinkQue(OrientGraphFactory factory) {
         this.graphFactory = factory;
-
-        leaveQuery = new OSQLSynchQuery<>("SELECT * FROM LinkQue order by LinkQue.position DESC LIMIT 1");
     }
 
-    public void linkEnter(String path, String from, int depth) {
+    public void linkEnter(String cluster, String path, String from, int depth) {
         ODatabaseDocumentTx oDB = graphFactory.getDatabase();
         try {
             oDB.command(
                     new OCommandSQL("INSERT INTO LinkQue SET path = ?, from = ?, depth = ?, position = 0")).execute(path, from, depth);
             oDB.command(
-                    new OCommandSQL("UPDATE LinkQue INCREMENT position = 1")).execute();
+                    new OCommandSQL("UPDATE "+
+                            DatabaseClasses.LINKQUE.getName()+
+                            cluster+
+                            " INCREMENT position = 1")).execute();
         } catch (Exception e) {
             e.printStackTrace(System.out);
         } finally {
@@ -36,18 +35,25 @@ public class LinkQue {
         }
     }
 
-    public ODocument linkLeave() {
+    public ODocument linkLeave(String cluster) {
         ODatabaseDocumentTx oDB = graphFactory.getDatabase();
         ODocument resultDocument;
         try {
-            List<ODocument> result = oDB.command(leaveQuery).execute();
+            List<ODocument> result = oDB.command(new OCommandSQL("SELECT * FROM"+
+                    DatabaseClasses.LINKQUE.getName()+
+                    cluster+
+                    " order by LinkQue.position DESC LIMIT 1"
+            )).execute();
             if (result.isEmpty()) {
                 return null;
             }
             resultDocument = result.get(0);
             Integer position = resultDocument.field("position");
             oDB.command(
-                    new OCommandSQL("DELETE From LinkQue where position = ?"))
+                    new OCommandSQL("DELETE From "+
+                            DatabaseClasses.LINKQUE.getName()+
+                            cluster
+                            +" where position = ?"))
                     .execute(position);
         } finally {
             oDB.close();
@@ -56,11 +62,14 @@ public class LinkQue {
         return resultDocument;
     }
 
-    public long queLength() {
+    public long queLength(String cluster) {
         long length = 0;
         ODatabaseDocumentTx oDB = graphFactory.getDatabase();
         try {
-            length = oDB.countClass("LinkQue");
+            //length = oDB.countClass("LinkQue");
+            length = oDB.countClusterElements(
+                    DatabaseClasses.LINKQUE.getName() + cluster
+            );
         } finally {
             oDB.close();
         }

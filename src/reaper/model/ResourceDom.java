@@ -1,6 +1,7 @@
 package reaper.model;
 
-import com.google.common.net.InternetDomainName;
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
@@ -66,6 +67,12 @@ public class ResourceDom extends ResourceAbstract {
 
         this.forms = new ArrayList<>();
         this.type = ResourceType.DOM;
+        
+        //Load forms in resource
+        for(Edge edge : vertex.getEdges(Direction.OUT, DatabaseClasses.INCLUDES.getName())){
+            Form form = new Form(edge.getVertex(Direction.OUT));
+            forms.add(form);
+        }
 
     }
 
@@ -219,4 +226,18 @@ public class ResourceDom extends ResourceAbstract {
             graph.shutdown();
         }
     }
+
+    @Override
+    public void save(OrientGraph graph) {
+        OrientVertex ver = graph.getVertex(id);
+        ver.setProperties(
+        "url", this.getURL().toString(), "code", this.getCode(),
+                    "downloadTime", this.getDownloadTime(), "mimeType", this.getMimeType(),
+                    "type", this.getType().toString()
+        ); 
+        
+        for (Form form : forms) {
+            
+        }
+   }
 }

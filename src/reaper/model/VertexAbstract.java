@@ -6,7 +6,7 @@ import com.tinkerpop.blueprints.Vertex;
  *
  * @author zaraka
  */
-public abstract class VertexAbstract {
+public abstract class VertexAbstract implements VertexObject{
     Object id;
     
     public VertexAbstract(){
@@ -17,11 +17,14 @@ public abstract class VertexAbstract {
         this.id = ver.getId();
     }
     
+    @Override
     public Object getID(){
         return this.id;
     }
     
+    @Override
     public void setID(Object id){
         this.id = id;
     }
+    
 }
