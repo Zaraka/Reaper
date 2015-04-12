@@ -112,7 +112,7 @@
                                                          <graphic>
                                                             <FontAwesomeIcon fill="RED" glyphName="TIMES" />
                                                          </graphic></Button>
-                                                      <Button mnemonicParsing="false" onAction="#clearData" text="Clear ALL projects fromDatabase" />
+                                                      <Button fx:id="databaseTruncateButton" mnemonicParsing="false" onAction="#truncateDBData" text="Clear ALL projects fromDatabase" />
                                                    </children>
                                                 </HBox>
                                              </children>
@@ -161,7 +161,8 @@
                                                          <graphic>
                                                             <FontAwesomeIcon fill="RED" glyphName="STOP" />
                                                          </graphic></Button>
-                                                      <Button fx:id="clearDataButton" mnemonicParsing="false" onAction="#clearProjectData" text="Clear Project from database" />
+                                                      <Button fx:id="clearDataButton" mnemonicParsing="false" onAction="#clearProjectData" text="Clear project data" />
+                                                      <Button fx:id="deleteProjectButton" mnemonicParsing="false" onAction="#deleteProject" text="Delete project" />
                                                    </children>
                                                 </HBox>
                                                 <TableView fx:id="blacklistTable" prefHeight="200.0" prefWidth="200.0">

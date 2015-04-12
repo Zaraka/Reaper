@@ -1,9 +1,9 @@
 package reaper.model;
 
+import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
-import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
@@ -45,8 +45,6 @@ public class Project extends VertexAbstract {
 
     Project(Vertex ver) throws MalformedURLException, ParseException {
         super(ver);
-        
-        OrientVertex overtex = (OrientVertex) ver;
 
         this.cluster = ver.getProperty("cluster");
         this.name = ver.getProperty("name");
@@ -54,7 +52,7 @@ public class Project extends VertexAbstract {
         this.date = ver.getProperty("date");
 
         this.domain = new URL(ver.getProperty("domain"));
-        
+
         this.rootID = null;
         for (Vertex root : ver.getVertices(Direction.OUT, "Root")) {
             this.rootID = root.getId();
@@ -123,5 +121,53 @@ public class Project extends VertexAbstract {
         ver.setProperty("date", date);
         ver.setProperty("domain", domain.toString());
         ver.setProperty("cluster", cluster);
+    }
+
+    @Override
+    public void remove(OrientGraph graph) {
+        //Remove project clusters
+        new OCommandSQL(
+                "DROP CLUSTER " + DatabaseClasses.RESOURCE.getName() + getCluster()
+        ).execute();
+        new OCommandSQL(
+                "DROP CLUSTER " + DatabaseClasses.FORM.getName() + getCluster()
+        ).execute();
+        new OCommandSQL(
+                "DROP CLUSTER " + DatabaseClasses.BLACKLIST.getName() + getCluster()
+        ).execute();
+        new OCommandSQL(
+                "DROP CLUSTER " + DatabaseClasses.LINKTO.getName() + getCluster()
+        ).execute();
+        new OCommandSQL(
+                "DROP CLUSTER " + DatabaseClasses.INCLUDES.getName() + getCluster()
+        ).execute();
+        new OCommandSQL(
+                "DROP CLUSTER " + DatabaseClasses.LINKQUE.getName() + getCluster()
+        ).execute();
+
+        //remove Project entry
+        super.remove(graph);
+    }
+    
+    public void truncate(OrientGraph graph) {
+        //Truncate project clusters
+        new OCommandSQL(
+                "TRUNCATE CLUSTER " + DatabaseClasses.RESOURCE.getName() + getCluster()
+        ).execute();
+        new OCommandSQL(
+                "TRUNCATE CLUSTER " + DatabaseClasses.FORM.getName() + getCluster()
+        ).execute();
+        new OCommandSQL(
+                "TRUNCATE CLUSTER " + DatabaseClasses.BLACKLIST.getName() + getCluster()
+        ).execute();
+        new OCommandSQL(
+                "TRUNCATE CLUSTER " + DatabaseClasses.LINKTO.getName() + getCluster()
+        ).execute();
+        new OCommandSQL(
+                "TRUNCATE CLUSTER " + DatabaseClasses.INCLUDES.getName() + getCluster()
+        ).execute();
+        new OCommandSQL(
+                "TRUNCATE CLUSTER " + DatabaseClasses.LINKQUE.getName() + getCluster()
+        ).execute();
     }
 }
