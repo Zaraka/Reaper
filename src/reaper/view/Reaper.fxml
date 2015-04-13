@@ -34,7 +34,7 @@
                      <children>
                         <TabPane fx:id="tabPane" prefHeight="303.0" prefWidth="828.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <tabs>
-                              <Tab text="Projects">
+                              <Tab fx:id="projectsTab" text="Projects">
                                 <content>
                                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                        <padding>
@@ -121,7 +121,7 @@
                                     </AnchorPane>
                                 </content>
                               </Tab>
-                              <Tab text="Project Options">
+                              <Tab fx:id="projectOptionsTab" text="Project Options">
                                  <content>
                                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                        <children>
@@ -136,16 +136,19 @@
                                                   </columnConstraints>
                                                   <rowConstraints>
                                                       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                                                   </rowConstraints>
                                                    <children>
-                                                      <Label text="Number of max Downloads" GridPane.rowIndex="1" />
-                                                      <Label text="Depth to search" GridPane.rowIndex="2" />
-                                                      <TextField fx:id="maxDownloads" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                                                      <TextField fx:id="maxDepth" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                                                      <TextField fx:id="hostname" onAction="#startMining" prefHeight="25.0" prefWidth="195.0" GridPane.columnIndex="1" />
-                                                      <Label text="Domain" />
+                                                      <Label text="Number of max Downloads" GridPane.rowIndex="2" />
+                                                      <Label text="Depth to search" GridPane.rowIndex="3" />
+                                                      <TextField fx:id="maxDownloads" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                      <TextField fx:id="maxDepth" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                                      <TextField fx:id="hostname" onAction="#startMining" prefHeight="25.0" prefWidth="195.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                                      <Label text="Domain" GridPane.rowIndex="1" />
+                                                      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Name" />
+                                                      <Text fx:id="projectName" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="229.13671875" GridPane.columnIndex="1" />
                                                    </children>
                                                    <VBox.margin>
                                                       <Insets />
@@ -161,7 +164,8 @@
                                                          <graphic>
                                                             <FontAwesomeIcon fill="RED" glyphName="STOP" />
                                                          </graphic></Button>
-                                                      <Button fx:id="clearDataButton" mnemonicParsing="false" onAction="#clearProjectData" text="Clear Project from database" />
+                                                      <Button fx:id="clearDataButton" mnemonicParsing="false" onAction="#clearProjectData" text="Clear project data" />
+                                                      <Button fx:id="deleteProjectButton" mnemonicParsing="false" onAction="#deleteActiveProject" text="Delete project" />
                                                    </children>
                                                 </HBox>
                                                 <TableView fx:id="blacklistTable" prefHeight="200.0" prefWidth="200.0">
@@ -255,7 +259,7 @@
                                        </padding></AnchorPane>
                               </content>
                             </Tab>
-                            <Tab text="Details">
+                            <Tab fx:id="detailsTab" text="Details">
                               <content>
                                 <AnchorPane>
                                        <children>

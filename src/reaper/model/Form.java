@@ -2,6 +2,7 @@ package reaper.model;
 
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 
 /**
  *
@@ -17,13 +18,14 @@ public class Form extends VertexAbstract{
     }
     
     Form(Vertex ver){
-        
+        this.method = RestMethod.valueOf(ver.getProperty("method"));
     }
     
     Form(Link action, RestMethod method){
         this.action = action;
         this.method = method;
     }
+    
     
     public Link getAction(){
         return this.action;
@@ -43,6 +45,14 @@ public class Form extends VertexAbstract{
 
     @Override
     public void save(OrientGraph graph) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        graph.getVertex(id).setProperties("action", action.getLink(), "method", method.toString());
+    }
+
+    @Override
+    public void update(OrientGraph graph) {
+        OrientVertex ver = graph.getVertex(id);
+        
+        //TODO action;
+        method = RestMethod.valueOf("method");
     }
 }

@@ -1,7 +1,9 @@
 package reaper.view;
 
+import com.sun.javafx.runtime.VersionInfo;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -20,8 +22,10 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
+import javafx.util.converter.NumberStringConverter;
 import reaper.Reaper;
 
 /**
@@ -41,6 +45,8 @@ public class NewProjectModalController implements Initializable {
     private TextField hostname;
     @FXML
     private TextField name;
+    @FXML
+    private TextField depth;
     @FXML
     private TableView<URL> blacklistTable;
     @FXML
@@ -135,6 +141,8 @@ public class NewProjectModalController implements Initializable {
         });
         blacklistMenu.getItems().add(removeBlacklistItem);
         blacklistTable.setContextMenu(blacklistMenu);
+        
+        depth.setTextFormatter(new TextFormatter<>(new NumberStringConverter(NumberFormat.getIntegerInstance())));
     }   
 
     public URL getDomain() {
@@ -152,5 +160,10 @@ public class NewProjectModalController implements Initializable {
     public boolean getAccepted(){
         return modalAccepted;
     }
+    
+    public int getDepth(){
+        return Integer.valueOf(depth.getText());
+    }
+    
 
 }

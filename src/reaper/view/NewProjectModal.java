@@ -60,4 +60,8 @@ public class NewProjectModal extends Stage{
     public boolean getAccepted(){
         return controller.getAccepted();
     }
+    
+    public int getDepth(){
+        return controller.getDepth();
+    }
 }

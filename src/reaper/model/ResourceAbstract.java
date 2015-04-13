@@ -9,6 +9,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -189,5 +191,19 @@ abstract class ResourceAbstract extends VertexAbstract implements Resource {
                 "url", this.getURL().toString(), "code", this.getCode(),
                 "downloadTime", this.getDownloadTime(), "mimeType", this.getMimeType(),
                 "type", this.getType().toString());
+    }
+
+    @Override
+    public void update(OrientGraph graph) {
+        OrientVertex vertex = graph.getVertex(id);
+        
+        try {
+            url = new URL(vertex.getProperty("url").toString());
+        } catch (MalformedURLException ex) {
+            url = null;
+        }
+        code.set((int) vertex.getProperty("code"));
+        downloadTime = (long) vertex.getProperty("downloadTime");
+        mimeType.set(vertex.getProperty("mimeType").toString());
     }
 }

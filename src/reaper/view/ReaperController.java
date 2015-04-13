@@ -3,8 +3,10 @@ package reaper.view;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.NumberFormat;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -34,10 +36,12 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebErrorEvent;
@@ -103,6 +107,10 @@ public class ReaperController implements Initializable {
     @FXML
     private Tab detailsTab;
     @FXML
+    private Tab projectOptionsTab;
+    @FXML
+    private Tab projectsTab;
+    @FXML
     private TabPane tabPane;
     @FXML
     private CheckBox displayGraph;
@@ -138,6 +146,10 @@ public class ReaperController implements Initializable {
     private Label databaseStatusLabel;
     @FXML
     private Button databaseConnectButton;
+    @FXML
+    private Button deleteProjectButton;
+    @FXML
+    private Text projectName;
 
     @FXML
     private void startMining(ActionEvent event) {
@@ -165,7 +177,22 @@ public class ReaperController implements Initializable {
     
     @FXML
     private void clearProjectData(ActionEvent event){
-        
+        try {
+            reaper.getCrawler().truncateActiveProject();
+        } catch (DatabaseNotConnectedException ex) {
+            logger.log(Level.SEVERE, ex.getMessage());
+        }
+    }
+    
+    @FXML
+    private void deleteActiveProject(ActionEvent event){
+        try {
+            reaper.getCrawler().removeActiveProject();
+            
+            tabPane.getSelectionModel().select(projectsTab);
+        } catch (DatabaseNotConnectedException ex) {
+            logger.log(Level.SEVERE, ex.getMessage());
+        }
     }
 
     @FXML
@@ -233,7 +260,7 @@ public class ReaperController implements Initializable {
         project.showAndWait();
         if (project.getAccepted()) {
             try {
-                reaper.getCrawler().createProject(project.getName(), project.getDomain(), project.getBlacklist());
+                reaper.getCrawler().createProject(project.getName(), project.getDomain(), project.getDepth(), project.getBlacklist());
                 refreshProjects();
             } catch (DatabaseNotConnectedException ex) {
                 logger.log(Level.SEVERE, ex.getMessage());
@@ -296,6 +323,9 @@ public class ReaperController implements Initializable {
         engine.setOnAlert((WebEvent<String> event) -> {
             logger.log(Level.INFO, event.toString());
         });
+        
+        maxDepth.setTextFormatter(new TextFormatter<>(new NumberStringConverter(NumberFormat.getIntegerInstance())));
+        maxDownloads.setTextFormatter(new TextFormatter<>(new NumberStringConverter(NumberFormat.getIntegerInstance())));
     }
 
     public void setReaper(Reaper reaper) {
@@ -303,6 +333,7 @@ public class ReaperController implements Initializable {
         this.reaper = reaper;
         Crawler dom = this.reaper.getCrawler();
 
+        this.hostname.textProperty().bindBidirectional(dom.hostnameProperty());
         this.maxDownloads.textProperty().bindBidirectional(dom.maxDownloadsProperty(), new NumberStringConverter());
         this.maxDepth.textProperty().bindBidirectional(dom.maxDepthProperty(), new NumberStringConverter());
 
@@ -353,6 +384,7 @@ public class ReaperController implements Initializable {
                 Project proj = projectTable.getSelectionModel().getSelectedItem();
                 try {
                     dom.loadProject(proj);
+                    tabPane.getSelectionModel().select(projectOptionsTab);
                 } catch (DatabaseNotConnectedException ex) {
                     logger.log(Level.SEVERE, ex.getMessage());
                 }
@@ -464,6 +496,7 @@ public class ReaperController implements Initializable {
         changeDatabaseButton.setDisable(value);
         setupDatabaseButton.setDisable(value);
         deleteDatabaseButton.setDisable(value);
+        deleteProjectButton.setDisable(value);
     }
 
     private void createResourcePane(Resource res) {

@@ -35,6 +35,7 @@ public class MinerService extends Service<Void> {
     private Object rootId;
     private LinkQue linkScrambler;
     private String cluster;
+    private Project project;
 
     public void init() {
         this.hostname = "";
@@ -65,6 +66,7 @@ public class MinerService extends Service<Void> {
         
         try {
             graphFactory = new OrientGraphFactory(host, user, pass).setupPool(1, 10);
+            linkScrambler.setGraphFactory(graphFactory);
         } catch (OStorageException ex) {
             throw ex;
         }

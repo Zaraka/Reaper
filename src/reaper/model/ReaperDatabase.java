@@ -1,5 +1,6 @@
 package reaper.model;
 
+import com.orientechnologies.orient.client.remote.OServerAdmin;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.exception.ODatabaseException;
 import com.orientechnologies.orient.core.exception.OStorageException;
@@ -15,6 +16,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import com.tinkerpop.blueprints.impls.orient.OrientVertexType;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
@@ -39,6 +41,7 @@ public class ReaperDatabase {
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
 
     private OrientGraphFactory factory;
+    private OServerAdmin serverAdmin;
     private final BooleanProperty connectionStatus;
     public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -47,20 +50,18 @@ public class ReaperDatabase {
         factory = null;
     }
 
-    public void connect(String host, String user, String password) {
+    public void connect(String host, String user, String password) throws IOException {
         if (isConnected()) {
             this.disconnect();
         }
 
-        try {
-            this.factory = new OrientGraphFactory(host, user, password).setupPool(1, 10);
-            this.connectionStatus.set(true);
-        } catch (OStorageException ex) {
-            throw ex;
-        } catch (ODatabaseException ex) {
-            System.err.println(ex);
-            logger.log(Level.SEVERE, "database exception");
-        }
+        serverAdmin = new OServerAdmin(host);
+        
+        serverAdmin.connect(user, password);
+        
+        this.factory = new OrientGraphFactory(host, user, password).setupPool(1, 10);
+        this.connectionStatus.set(true);
+
     }
 
     public void disconnect() {
@@ -150,38 +151,6 @@ public class ReaperDatabase {
             oDB.getMetadata().getSchema().dropClass("LinkQue");
         } finally {
             oDB.close();
-        }
-    }
-    
-    public void truncateProject(Project proj){
-        OrientGraphNoTx graph = factory.getNoTx();
-        try {
-            long resourcesModified = graph.command(
-                    new OCommandSQL("TRUNCATE class "+DatabaseClasses.RESOURCE.getName()+proj.getCluster())
-            ).execute();
-            logger.log(Level.INFO, String.valueOf(resourcesModified) + " Resources deleted.");
-            
-            long formsModified = graph.command(
-                    new OCommandSQL("TRUNCATE class "+DatabaseClasses.FORM.getName()+proj.getCluster())
-            ).execute();
-            logger.log(Level.INFO, String.valueOf(formsModified) + " Forms deleted.");
-            
-            long linksModified = graph.command(
-                    new OCommandSQL("TRUNCATE class "+DatabaseClasses.LINKTO.getName()+proj.getCluster())
-            ).execute();
-            logger.log(Level.INFO, String.valueOf(linksModified) + " Links deleted.");
-            
-            long queModified = graph.command(
-                    new OCommandSQL("TRUNCATE class "+DatabaseClasses.LINKQUE.getName()+proj.getCluster())
-            ).execute();
-            logger.log(Level.INFO, String.valueOf(queModified) + " Que deleted.");
-            
-            long includesModified = graph.command(
-                    new OCommandSQL("TRUNCATE class "+DatabaseClasses.INCLUDES.getName()+proj.getCluster())
-            ).execute();
-            logger.log(Level.INFO, String.valueOf(includesModified) + " Includes deleted.");
-        } finally {
-            graph.shutdown();
         }
     }
 
@@ -343,8 +312,8 @@ public class ReaperDatabase {
         }
     }
 
-    public void createProject(String name, URL domain, ArrayList<URL> blacklist) {
-        Project project = new Project(name, domain);
+    public void createProject(String name, URL domain, int depth, ArrayList<URL> blacklist) {
+        Project project = new Project(name, domain, depth);
 
         //save project into database and create clusters
         OrientGraph graph = factory.getTx();
@@ -353,40 +322,49 @@ public class ReaperDatabase {
 
             //Vertices clusters
             new OCommandSQL(
-                    "ALTER CLASS Resource ADDCLUSTER " +DatabaseClasses.RESOURCE.getName()+project.getCluster()
+                    "ALTER CLASS Resource ADDCLUSTER " + DatabaseClasses.RESOURCE.getName() + project.getCluster()
             ).execute();
             new OCommandSQL(
-                    "ALTER CLASS Form ADDCLUSTER " +DatabaseClasses.FORM.getName()+project.getCluster()
+                    "ALTER CLASS Form ADDCLUSTER " + DatabaseClasses.FORM.getName() + project.getCluster()
             ).execute();
             new OCommandSQL(
-                    "ALTER CLASS Blacklist ADDCLUSTER " +DatabaseClasses.BLACKLIST.getName()+project.getCluster()
+                    "ALTER CLASS Blacklist ADDCLUSTER " + DatabaseClasses.BLACKLIST.getName() + project.getCluster()
             ).execute();
-            
+
             //Edges clusters
             new OCommandSQL(
-                    "ALTER CLASS LinkTo ADDCLUSTER " +DatabaseClasses.LINKTO.getName()+project.getCluster()
+                    "ALTER CLASS LinkTo ADDCLUSTER " + DatabaseClasses.LINKTO.getName() + project.getCluster()
             ).execute();
-            
+
             new OCommandSQL(
-                    "ALTER CLASS Includes ADDCLUSTER " +DatabaseClasses.INCLUDES.getName()+project.getCluster()
+                    "ALTER CLASS Includes ADDCLUSTER " + DatabaseClasses.INCLUDES.getName() + project.getCluster()
             ).execute();
-            
+
             //Que cluster
             new OCommandSQL(
-                    "ALTER CLASS LinkQue ADDCLUSTER " +DatabaseClasses.LINKQUE.getName()+project.getCluster()
+                    "ALTER CLASS LinkQue ADDCLUSTER " + DatabaseClasses.LINKQUE.getName() + project.getCluster()
             ).execute();
-            
+
         } finally {
             graph.shutdown();
         }
 
         saveBlacklist(blacklist, project.getCluster());
     }
-    
-    public void deleteProject(Project proj){
+
+    public void removeProject(Project proj) {
         OrientGraph graph = factory.getTx();
         try {
-            //TODO: How to drop cluster?
+            proj.remove(graph);
+        } finally {
+            graph.shutdown();
+        }
+    }
+
+    public void truncateProject(Project proj) {
+        OrientGraph graph = factory.getTx();
+        try {
+            proj.truncate(graph);
         } finally {
             graph.shutdown();
         }
