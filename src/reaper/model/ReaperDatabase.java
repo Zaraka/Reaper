@@ -152,6 +152,38 @@ public class ReaperDatabase {
             oDB.close();
         }
     }
+    
+    public void truncateProject(Project proj){
+        OrientGraphNoTx graph = factory.getNoTx();
+        try {
+            long resourcesModified = graph.command(
+                    new OCommandSQL("TRUNCATE class "+DatabaseClasses.RESOURCE.getName()+proj.getCluster())
+            ).execute();
+            logger.log(Level.INFO, String.valueOf(resourcesModified) + " Resources deleted.");
+            
+            long formsModified = graph.command(
+                    new OCommandSQL("TRUNCATE class "+DatabaseClasses.FORM.getName()+proj.getCluster())
+            ).execute();
+            logger.log(Level.INFO, String.valueOf(formsModified) + " Forms deleted.");
+            
+            long linksModified = graph.command(
+                    new OCommandSQL("TRUNCATE class "+DatabaseClasses.LINKTO.getName()+proj.getCluster())
+            ).execute();
+            logger.log(Level.INFO, String.valueOf(linksModified) + " Links deleted.");
+            
+            long queModified = graph.command(
+                    new OCommandSQL("TRUNCATE class "+DatabaseClasses.LINKQUE.getName()+proj.getCluster())
+            ).execute();
+            logger.log(Level.INFO, String.valueOf(queModified) + " Que deleted.");
+            
+            long includesModified = graph.command(
+                    new OCommandSQL("TRUNCATE class "+DatabaseClasses.INCLUDES.getName()+proj.getCluster())
+            ).execute();
+            logger.log(Level.INFO, String.valueOf(includesModified) + " Includes deleted.");
+        } finally {
+            graph.shutdown();
+        }
+    }
 
     public void truncateData() {
         OrientGraphNoTx graph = factory.getNoTx();
@@ -354,16 +386,7 @@ public class ReaperDatabase {
     public void deleteProject(Project proj){
         OrientGraph graph = factory.getTx();
         try {
-            proj.remove(graph);
-        } finally {
-            graph.shutdown();
-        }
-    }
-    
-    public void truncateProject(Project proj){
-        OrientGraph graph = factory.getTx();
-        try {
-            proj.truncate(graph);
+            //TODO: How to drop cluster?
         } finally {
             graph.shutdown();
         }

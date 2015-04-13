@@ -138,10 +138,6 @@ public class ReaperController implements Initializable {
     private Label databaseStatusLabel;
     @FXML
     private Button databaseConnectButton;
-    @FXML
-    private Button deleteProjectButton;
-    @FXML
-    private Button databaseTruncateButton;
 
     @FXML
     private void startMining(ActionEvent event) {
@@ -163,22 +159,13 @@ public class ReaperController implements Initializable {
     }
 
     @FXML
-    private void truncateDBData(ActionEvent event) {
+    private void clearData(ActionEvent event) {
         reaper.getCrawler().dataReset();
     }
     
     @FXML
     private void clearProjectData(ActionEvent event){
         
-    }
-    
-    @FXML
-    private void deleteProject(ActionEvent event){
-        try {
-            reaper.getCrawler().deleteActiveProject();
-        } catch (DatabaseNotConnectedException ex) {
-            logger.log(Level.SEVERE, ex.getMessage());
-        }
     }
 
     @FXML

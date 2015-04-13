@@ -10,8 +10,6 @@ public interface VertexObject {
     
     public void save(OrientGraph graph);
     
-    public void remove(OrientGraph graph);
-    
     public Object getID();
     
     public void setID(Object id);
