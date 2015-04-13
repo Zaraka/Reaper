@@ -2,6 +2,9 @@ package reaper.model;
 
 import com.orientechnologies.orient.core.exception.OStorageException;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -19,6 +22,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.WorkerStateEvent;
+
 import reaper.Reaper;
 import reaper.exceptions.DatabaseNotConnectedException;
 
@@ -69,25 +73,25 @@ public class Crawler {
         this.activeProject = null;
 
         this.init();
-        
+
         dbHost.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             prefs.put(PreferenceKeys.DB_HOST.getKey(), newValue);
             logger.log(Level.INFO, "dbHost changed");
         });
-        
+
         dbPassword.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             prefs.put(PreferenceKeys.DB_PASS.getKey(), newValue);
             logger.log(Level.INFO, "dbPass changed");
         });
-        
+
         dbUser.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             prefs.put(PreferenceKeys.DB_USER.getKey(), newValue);
             logger.log(Level.INFO, "dbUser changed");
         });
     }
-    
-    public void refreshProjects() throws DatabaseNotConnectedException{
-        if(!database.isConnected()){
+
+    public void refreshProjects() throws DatabaseNotConnectedException {
+        if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
         projects.clear();
@@ -101,8 +105,8 @@ public class Crawler {
         try {
             database.connect(getDbHost(), getDbUser(), getDbPassword());
             minerService.databaseConnect(getDbHost(), getDbUser(), getDbPassword());
-        } catch (OStorageException ex) {
-            logger.log(Level.SEVERE, "Cant connect to database " + getDbHost());
+        } catch (IOException | OStorageException ex) {
+            logger.log(Level.SEVERE, ex.getMessage());
         }
     }
 
@@ -112,14 +116,14 @@ public class Crawler {
     }
 
     public void setupDatabase() throws DatabaseNotConnectedException {
-        if(!database.isConnected()){
+        if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
         database.setupSchema();
     }
 
     public void removeDatabase() throws DatabaseNotConnectedException {
-        if(!database.isConnected()){
+        if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
         database.tearDown();
@@ -134,73 +138,101 @@ public class Crawler {
         database.truncateData();
     }
 
+    public void removeActiveProject() throws DatabaseNotConnectedException {
+        if (!database.isConnected()) {
+            throw new DatabaseNotConnectedException("Database is not connected");
+        }
+
+        if (activeProject == null) {
+            logger.log(Level.SEVERE, "Project not set");
+            return;
+        }
+
+        clearData();
+        blacklist.clear();
+        database.removeProject(activeProject);
+        
+        refreshProjects();
+
+    }
+
+    public void truncateActiveProject() throws DatabaseNotConnectedException {
+        if (!database.isConnected()) {
+            throw new DatabaseNotConnectedException("Database is not connected");
+        }
+
+        if (activeProject == null) {
+            logger.log(Level.SEVERE, "Project not set");
+            return;
+        }
+
+        clearData();
+        blacklist.clear();
+        database.truncateProject(activeProject);
+    }
+
     public void updateDBPref() {
         prefs.put(PreferenceKeys.DB_HOST.getKey(), getDbHost());
         prefs.put(PreferenceKeys.DB_USER.getKey(), getDbUser());
         prefs.put(PreferenceKeys.DB_PASS.getKey(), getDbPassword());
     }
 
-    public void loadAll(){
+    public void loadAll() {
         clearData();
         database.loadAll(resources, links, activeProject.getCluster());
     }
 
     public void loadRoot() throws DatabaseNotConnectedException {
-        if(!database.isConnected()){
+        if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
-        
+
         if (activeProject.getRoot() != null) {
             database.loadResource(
-                    activeProject.getRoot(), 
-                    resources, 
-                    links, 
+                    activeProject.getRoot(),
+                    resources,
+                    links,
                     activeProject.getCluster());
         }
     }
 
-    public void loadResource(Object id) throws DatabaseNotConnectedException{
-        if(!database.isConnected()){
+    public void loadResource(Object id) throws DatabaseNotConnectedException {
+        if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
-        
+
         clearData();
         database.loadResource(id, resources, links, activeProject.getCluster());
     }
-    
 
-    public void createProject(String name, URL domain, ArrayList<URL> blacklist) throws DatabaseNotConnectedException{
-        if(!database.isConnected()){
+    public void createProject(String name, URL domain, int depth, ArrayList<URL> blacklist) throws DatabaseNotConnectedException {
+        if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
-        
-        database.createProject(name, domain, blacklist);
+
+        database.createProject(name, domain, depth, blacklist);
     }
-    
-    public void loadProject(Project proj) throws DatabaseNotConnectedException{
+
+    public void loadProject(Project proj) throws DatabaseNotConnectedException {
         clearData();
         blacklist.clear();
-        
+
         activeProject = proj;
-        
-        if(activeProject.getRoot() == null){
-            logger.log(Level.INFO, "Project not yet mined");
-            return;
-        }
-        
-        OrientGraph graph = database.getDatabase().getTx();
-        try{
-            loadResource(activeProject.getRoot());
-        } catch (DatabaseNotConnectedException ex) {
-            throw ex;
-        } finally {
-            graph.shutdown();
-        }
-        
+
         setHostname(activeProject.getDomain().toString());
-        
+
+        if (activeProject.getRoot() == null) {
+            logger.log(Level.INFO, "Project not yet mined");
+        } else {
+            OrientGraph graph = database.getDatabase().getTx();
+            try {
+                loadResource(activeProject.getRoot());
+            } finally {
+                graph.shutdown();
+            }
+        }
     }
-    
+
     private void init() {
         try {
             minerService.init();
@@ -208,6 +240,13 @@ public class Crawler {
             logger.log(Level.SEVERE, ex.toString());
         }
         minerService.setOnSucceeded((WorkerStateEvent event) -> {
+            OrientGraph graph = database.getDatabase().getTx();
+            try {
+                activeProject.update(graph);
+            } finally {
+                graph.shutdown();
+            }
+            
             this.setResourcesCount(this.minerService.getResourceCount());
             this.setLinksCount(this.minerService.getLinksCount());
             this.minerService.reset();
@@ -218,7 +257,12 @@ public class Crawler {
             this.setMinerBusy(false);
             logger.log(Level.SEVERE, "Mining failed");
             if (event.getSource().getException() != null) {
-                logger.log(Level.SEVERE, event.getSource().getException().toString());
+                logger.log(Level.SEVERE, event.getSource().getMessage());
+                //logger.log(Level.SEVERE, event.getSource().getException().fillInStackTrace());
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                event.getSource().getException().printStackTrace(pw);
+                logger.log(Level.SEVERE, sw.toString());
             }
         });
         minerService.setOnRunning((WorkerStateEvent event) -> {
@@ -233,27 +277,27 @@ public class Crawler {
         //minerService.set
     }
 
-    public void mineStart() throws MalformedURLException{
+    public void mineStart() throws MalformedURLException {
         if (!minerService.isRunning()) {
-            logger.log(Level.INFO, "Request mining on " + hostname);
-            
+            logger.log(Level.INFO, "Request mining on " + hostname.get());
+
             //delete data
             clearData();
             blacklist.clear();
-            
+
             URL url = new URL(hostname.get());
             activeProject.setDomain(url);
-            
+
             minerService.prepare(hostname.get(), activeProject.getCluster(), maxDepth.get());
             minerService.start();
         }
     }
-    
-    public void setActiveProject(Project proj){
+
+    public void setActiveProject(Project proj) {
         this.activeProject = proj;
-    } 
-    
-    public Project getActiveProject(){
+    }
+
+    public Project getActiveProject() {
         return this.activeProject;
     }
 
@@ -401,16 +445,16 @@ public class Crawler {
     private String getPrefDBPassword() {
         return prefs.get(PreferenceKeys.DB_PASS.getKey(), "admin");
     }
-    
-    public ObservableList<Project> projects(){
+
+    public ObservableList<Project> projects() {
         return this.projects;
     }
-    
-    public BooleanProperty connectionStatus(){
+
+    public BooleanProperty connectionStatus() {
         return database.connectionStatus();
     }
-    
-    public ReaperDatabase getDatabase(){
+
+    public ReaperDatabase getDatabase() {
         return database;
     }
 }

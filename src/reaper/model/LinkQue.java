@@ -3,7 +3,6 @@ package reaper.model;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
-import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 import java.util.List;
 
@@ -12,19 +11,26 @@ import java.util.List;
  * @author nikita.vanku
  */
 public class LinkQue {
-    private final OrientGraphFactory graphFactory;
+    private OrientGraphFactory graphFactory;
 
     LinkQue(OrientGraphFactory factory) {
         this.graphFactory = factory;
+    }
+    
+    public void setGraphFactory(OrientGraphFactory factory){
+        graphFactory = factory;
     }
 
     public void linkEnter(String cluster, String path, String from, int depth) {
         ODatabaseDocumentTx oDB = graphFactory.getDatabase();
         try {
             oDB.command(
-                    new OCommandSQL("INSERT INTO LinkQue SET path = ?, from = ?, depth = ?, position = 0")).execute(path, from, depth);
+                    new OCommandSQL("INSERT INTO "
+                            + DatabaseClasses.LINKQUE.getName() + " cluster "
+                            + DatabaseClasses.LINKQUE.getName() + cluster + 
+                            " SET path = ?, from = ?, depth = ?, position = 0")).execute(path, from, depth);
             oDB.command(
-                    new OCommandSQL("UPDATE "+
+                    new OCommandSQL("UPDATE cluster:"+
                             DatabaseClasses.LINKQUE.getName()+
                             cluster+
                             " INCREMENT position = 1")).execute();
@@ -39,7 +45,7 @@ public class LinkQue {
         ODatabaseDocumentTx oDB = graphFactory.getDatabase();
         ODocument resultDocument;
         try {
-            List<ODocument> result = oDB.command(new OCommandSQL("SELECT * FROM"+
+            List<ODocument> result = oDB.command(new OCommandSQL("SELECT * FROM cluster:"+
                     DatabaseClasses.LINKQUE.getName()+
                     cluster+
                     " order by LinkQue.position DESC LIMIT 1"
@@ -50,7 +56,7 @@ public class LinkQue {
             resultDocument = result.get(0);
             Integer position = resultDocument.field("position");
             oDB.command(
-                    new OCommandSQL("DELETE From "+
+                    new OCommandSQL("DELETE From cluster:"+
                             DatabaseClasses.LINKQUE.getName()+
                             cluster
                             +" where position = ?"))
