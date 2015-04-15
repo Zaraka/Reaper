@@ -2,6 +2,7 @@ package reaper.model;
 
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 
 /**
  *
@@ -31,5 +32,10 @@ public abstract class VertexAbstract implements VertexObject{
     @Override
     public void remove(OrientGraph graph) {
         graph.removeVertex(graph.getVertex(id));
+    }
+
+    @Override
+    public OrientVertex getVertex(OrientGraph graph) {
+        return graph.getVertex(id);
     }
 }

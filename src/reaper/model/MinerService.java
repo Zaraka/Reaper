@@ -26,39 +26,26 @@ public class MinerService extends Service<Void> {
 
     private static final Logger logger = Logger.getLogger(reaper.Reaper.class.getName());
 
-    private String hostname;
-    private int maxDepth;
     private ArrayList<Link> linksQueue;
     private Map<String, String> resources;
     private OrientGraphFactory graphFactory;
     private int resourceCount, linksCount;
-    private Object rootId;
     private LinkQue linkScrambler;
-    private String cluster;
     private Project project;
 
     public void init() {
-        this.hostname = "";
-        this.maxDepth = 5;
         this.linksQueue = new ArrayList<>();
         this.resources = new HashMap<>();
-        this.cluster = "";
-        
-
         this.resourceCount = 0;
         this.linksCount = 0;
-        this.rootId = null;
-
         this.graphFactory = null;
-        
+        this.project = null;
         this.linkScrambler = new LinkQue(graphFactory);
 
     }
     
-    public void prepare(String hostname, String cluster, int maxDepth){
-        this.hostname = hostname;
-        this.cluster = cluster;
-        this.maxDepth = maxDepth;
+    public void prepare(Project proj){
+        this.project = proj;
     }
     
     public void databaseConnect(String host, String user, String pass){
@@ -78,14 +65,6 @@ public class MinerService extends Service<Void> {
         }
     }
 
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    public void setMaxDepth(int maxDepth) {
-        this.maxDepth = maxDepth;
-    }
-
     public int getResourceCount() {
         return this.resourceCount;
     }
@@ -94,14 +73,10 @@ public class MinerService extends Service<Void> {
         return this.linksCount;
     }
 
-    public Object getRootId() {
-        return this.rootId;
-    }
-
     private void createSingleVertex(Resource res) {
         OrientGraph graph = graphFactory.getTx();
         try {
-            res.vertexTransaction(graph, cluster);
+            res.vertexTransaction(graph, project.getCluster());
             resourceCount++;
             resources.put(res.getURL().toString(), res.getVertexID().toString());
         } finally {
@@ -140,7 +115,7 @@ public class MinerService extends Service<Void> {
 
             @Override
             protected Void call() throws Exception {
-                String url = hostname;
+                String url = project.getDomain().toString();
                 if (!url.matches("^.*:\\/\\/.*$")) {
                     url = "http://" + url;
                     Platform.runLater(() -> {
@@ -150,18 +125,23 @@ public class MinerService extends Service<Void> {
 
                 try {
                     URL uURL = new URL(url);
-                    ResourceDom root = new ResourceDom(uURL, 0, maxDepth);
+                    ResourceDom root = new ResourceDom(uURL, 0, project.getDepth());
                     linksQueue.addAll(root.links());
                     for (Link queLink : root.links()) {
-                        linkScrambler.linkEnter(cluster, queLink.getLink(), queLink.getFromURL(), queLink.getFromResource().getDepth());
+                        linkScrambler.linkEnter(project.getCluster(), queLink.getLink(), queLink.getFromURL(), queLink.getFromResource().getDepth());
                     }
                     createSingleVertex(root);
-                    rootId = root.getVertexID();
+                    OrientGraph graph = graphFactory.getTx();
+                    try {
+                        project.getVertex(graph).addEdge(DatabaseClasses.ROOT.getName(), root.getVertex(graph));
+                    } finally {
+                        graph.shutdown();
+                    }
                 } catch (UnsupportedMimeTypeException | MalformedURLException ex) {
                     throw ex;
                 }
-                while (linkScrambler.queLength(cluster) > 0) {
-                    ODocument docLink = linkScrambler.linkLeave(cluster);
+                while (linkScrambler.queLength(project.getCluster()) > 0) {
+                    ODocument docLink = linkScrambler.linkLeave(project.getCluster());
                     int docDepth = docLink.field("depth");
                     Link link = new Link(docLink.field("from").toString(), docLink.field("path").toString());
                     if (resources.get(link.getToURL()) == null) {
@@ -169,20 +149,20 @@ public class MinerService extends Service<Void> {
                         URL parentURL = new URL(link.getFromURL());
                         URL linkUrl = new URL(parentURL, link.getLink());
                         try {
-                            toRes = new ResourceDom(linkUrl, docDepth + 1, maxDepth);
-                            if (toRes.getDepth() < maxDepth) {
+                            toRes = new ResourceDom(linkUrl, docDepth + 1, project.getDepth());
+                            if (toRes.getDepth() < project.getDepth()) {
                                 for (Link queLink : toRes.links()) {
-                                    linkScrambler.linkEnter(cluster, queLink.getLink(), queLink.getFromURL(), queLink.getFromResource().getDepth());
+                                    linkScrambler.linkEnter(project.getCluster(), queLink.getLink(), queLink.getFromURL(), queLink.getFromResource().getDepth());
                                 }
                             }
                         } catch (UnsupportedMimeTypeException ex) {
                             try {
-                                toRes = new ResourceFile(linkUrl, docDepth + 1, maxDepth);
+                                toRes = new ResourceFile(linkUrl, docDepth + 1, project.getDepth());
                             } catch (MalformedURLException ex1) {
                                 throw ex1;
                             }
                         } catch (OutsidePageException ex) {
-                            toRes = new ResourceOutside(linkUrl, docDepth + 1, maxDepth);
+                            toRes = new ResourceOutside(linkUrl, docDepth + 1, project.getDepth());
                         } catch (MalformedURLException ex) {
                             throw ex;
                         }
