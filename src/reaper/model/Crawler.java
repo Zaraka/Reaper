@@ -287,8 +287,18 @@ public class Crawler {
 
             URL url = new URL(hostname.get());
             activeProject.setDomain(url);
-
-            minerService.prepare(hostname.get(), activeProject.getCluster(), maxDepth.get());
+            activeProject.setDepth(getMaxDepth());
+            
+            //Save project before minning
+            OrientGraph graph = database.getDatabase().getTx();
+            try {
+                activeProject.save(graph);
+            } finally {
+                graph.shutdown();
+            }
+            
+            //Set miner and start
+            minerService.prepare(activeProject);
             minerService.start();
         }
     }
