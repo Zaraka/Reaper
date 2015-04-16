@@ -6,7 +6,6 @@ import java.net.URL;
 import java.text.NumberFormat;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -122,8 +121,6 @@ public class ReaperController implements Initializable {
     private PasswordField databasePassword;
     @FXML
     private StackPane detailsPanel;
-    @FXML
-    private Label overviewDomainLabel;
     @FXML
     private Label overviewResourceLabel;
     @FXML
@@ -281,7 +278,7 @@ public class ReaperController implements Initializable {
     public void setupDatabase() {
         try {
             reaper.getCrawler().setupDatabase();
-            logger.log(Level.INFO, "Tables in Database created");
+            logger.log(Level.INFO, "Database created");
         } catch (DatabaseNotConnectedException ex) {
             logger.log(Level.SEVERE, "Database isn't connected");
         }
@@ -291,7 +288,7 @@ public class ReaperController implements Initializable {
     public void teardownDatabase() {
         try {
             reaper.getCrawler().removeDatabase();
-            logger.log(Level.INFO, "Tables in Database dropped");
+            logger.log(Level.INFO, "Database dropped");
         } catch (DatabaseNotConnectedException ex) {
             logger.log(Level.SEVERE, "Database isn't connected");
         }
@@ -394,7 +391,7 @@ public class ReaperController implements Initializable {
         projectTable.setContextMenu(projectMenu);
 
         //resourceTable
-        //resourceTable.setItems(dom.resources());
+        resourceTable.setItems(dom.activeResources());
         resourceTable.setEditable(false);
         resourceCodeColumn.setCellValueFactory(cellData -> cellData.getValue().codeProperty());
         resourceMimeTypeColumn.setCellValueFactory(cellData -> cellData.getValue().mimeTypeProperty());
@@ -450,7 +447,6 @@ public class ReaperController implements Initializable {
         blacklistMenu.getItems().add(removeBlacklistItem);
 
         //overview
-        overviewDomainLabel.textProperty().bindBidirectional(dom.hostnameProperty());
         overviewResourceLabel.textProperty().bindBidirectional(dom.resourcesCountProperty(), new NumberStringConverter());
         overviewLinksLabel.textProperty().bindBidirectional(dom.linksCountProperty(), new NumberStringConverter());
 

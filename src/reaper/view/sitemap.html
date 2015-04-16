@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="UTF-8">
         <title></title>
         <!--<script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>-->
-        <script src="./assets/vis.min.js"></script>
-        <script src="./assets/vis.min.css"></script>
+        <script src="./assets/vis.js"></script>
+        <script src="./assets/vis.css"></script>
         <style type="text/css">
             body {
                 margin: 0;
+                background-color: white;
             }
             #container {
                 position: absolute;
@@ -121,6 +123,9 @@
                 
             </div>
         <script type="text/javascript">
+            /* global vis */
+            /* global controller */
+            
             var edges = new vis.DataSet();
             var nodes = new vis.DataSet();
 

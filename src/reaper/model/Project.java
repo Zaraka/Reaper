@@ -1,5 +1,6 @@
 package reaper.model;
 
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
@@ -221,8 +222,21 @@ public class Project extends VertexAbstract {
         } catch (MalformedURLException ex) {
             domain = null;
         }
+        rootID = null;
         for (Vertex root : vertex.getVertices(Direction.OUT, "Root")) {
             rootID = root.getId();
         }
+    }
+    
+    public long getResourceCount(ODatabaseDocumentTx oDB){
+        return oDB.countClusterElements(
+                    DatabaseClasses.RESOURCE.getName() + cluster
+        );
+    }
+    
+    public long getLinksCount(ODatabaseDocumentTx oDB){
+        return oDB.countClusterElements(
+                    DatabaseClasses.LINKTO.getName() + cluster
+        );
     }
 }

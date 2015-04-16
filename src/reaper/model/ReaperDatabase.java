@@ -2,7 +2,6 @@ package reaper.model;
 
 import com.orientechnologies.orient.client.remote.OServerAdmin;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
-import com.orientechnologies.orient.core.exception.ODatabaseException;
 import com.orientechnologies.orient.core.exception.OStorageException;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OType;
@@ -70,6 +69,17 @@ public class ReaperDatabase {
     }
 
     public void setupSchema() {
+        
+        try {
+            if(!serverAdmin.existsDatabase()){
+                serverAdmin.createDatabase("ReaperTest","graph", "plocal");
+            }
+        } catch (IOException ex) {
+            logger.log(Level.SEVERE, ex.getMessage());
+            return;
+        }
+        
+        
         // Create Graph scheme
         OrientGraphNoTx graph = factory.getNoTx();
         try {
@@ -130,6 +140,7 @@ public class ReaperDatabase {
     }
 
     public void tearDown() {
+        /*
         OrientGraphNoTx graph = factory.getNoTx();
         try {
             //Edges
@@ -152,6 +163,14 @@ public class ReaperDatabase {
         } finally {
             oDB.close();
         }
+        */
+        
+        try {
+            serverAdmin.dropDatabase("remote");
+        } catch (IOException | OStorageException ex) {
+            logger.log(Level.SEVERE, ex.getMessage());
+        }
+        
     }
 
     public void truncateData() {

@@ -70,7 +70,7 @@ public class ResourceDom extends ResourceAbstract {
         
         //Load forms in resource
         for(Edge edge : vertex.getEdges(Direction.OUT, DatabaseClasses.INCLUDES.getName())){
-            Form form = new Form(edge.getVertex(Direction.OUT));
+            Form form = new Form(edge.getVertex(Direction.IN));
             forms.add(form);
         }
 

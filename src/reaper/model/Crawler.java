@@ -1,5 +1,6 @@
 package reaper.model;
 
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.exception.OStorageException;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import java.io.IOException;
@@ -35,6 +36,7 @@ public class Crawler {
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
 
     private final ObservableMap<String, Resource> resources;
+    private final ObservableList<Resource> activeResources; //Nasty hack
     private final ObservableList<Link> links;
     private final ObservableList<Project> projects;
     private final ObservableList<URL> blacklist;
@@ -70,6 +72,7 @@ public class Crawler {
         this.minerService = new MinerService();
         this.database = new ReaperDatabase();
         this.projects = FXCollections.observableArrayList();
+        this.activeResources = FXCollections.observableArrayList();
         this.activeProject = null;
 
         this.init();
@@ -151,7 +154,7 @@ public class Crawler {
         clearData();
         blacklist.clear();
         database.removeProject(activeProject);
-        
+
         refreshProjects();
 
     }
@@ -203,6 +206,7 @@ public class Crawler {
 
         clearData();
         database.loadResource(id, resources, links, activeProject.getCluster());
+        activeResources.setAll(resources.values()); //LOL
     }
 
     public void createProject(String name, URL domain, int depth, ArrayList<URL> blacklist) throws DatabaseNotConnectedException {
@@ -219,17 +223,25 @@ public class Crawler {
 
         activeProject = proj;
 
-        setHostname(activeProject.getDomain().toString());
-
-        if (activeProject.getRoot() == null) {
-            logger.log(Level.INFO, "Project not yet mined");
-        } else {
-            OrientGraph graph = database.getDatabase().getTx();
-            try {
+        OrientGraph graph = database.getDatabase().getTx();
+        try {
+            activeProject.update(graph);
+            if (activeProject.getRoot() == null) {
+                logger.log(Level.INFO, "Project not yet mined");
+            } else {
                 loadResource(activeProject.getRoot());
-            } finally {
-                graph.shutdown();
             }
+        } finally {
+            graph.shutdown();
+        }
+        setHostname(activeProject.getDomain().toString());
+        
+        ODatabaseDocumentTx oDB = database.getDatabase().getDatabase();
+        try {
+            resourcesCount.set((int) activeProject.getResourceCount(oDB));
+            linksCount.set((int) activeProject.getLinksCount(oDB));
+        } finally {
+            oDB.close();
         }
     }
 
@@ -240,15 +252,11 @@ public class Crawler {
             logger.log(Level.SEVERE, ex.toString());
         }
         minerService.setOnSucceeded((WorkerStateEvent event) -> {
-            OrientGraph graph = database.getDatabase().getTx();
             try {
-                activeProject.update(graph);
-            } finally {
-                graph.shutdown();
+                loadProject(activeProject);
+            } catch (DatabaseNotConnectedException ex) {
+                logger.log(Level.SEVERE, ex.getMessage());
             }
-            
-            this.setResourcesCount(this.minerService.getResourceCount());
-            this.setLinksCount(this.minerService.getLinksCount());
             this.minerService.reset();
             this.setMinerBusy(false);
             logger.log(Level.INFO, "Mining finished");
@@ -288,7 +296,7 @@ public class Crawler {
             URL url = new URL(hostname.get());
             activeProject.setDomain(url);
             activeProject.setDepth(getMaxDepth());
-            
+
             //Save project before minning
             OrientGraph graph = database.getDatabase().getTx();
             try {
@@ -296,7 +304,7 @@ public class Crawler {
             } finally {
                 graph.shutdown();
             }
-            
+
             //Set miner and start
             minerService.prepare(activeProject);
             minerService.start();
@@ -318,6 +326,7 @@ public class Crawler {
     }
 
     private void clearData() {
+        this.activeResources.clear();
         this.links.clear();
         this.resources.clear();
     }
@@ -466,5 +475,9 @@ public class Crawler {
 
     public ReaperDatabase getDatabase() {
         return database;
+    }
+
+    public ObservableList<Resource> activeResources() {
+        return activeResources;
     }
 }
