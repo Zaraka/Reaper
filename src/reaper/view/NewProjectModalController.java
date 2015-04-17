@@ -1,6 +1,5 @@
 package reaper.view;
 
-import com.sun.javafx.runtime.VersionInfo;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.NumberFormat;
@@ -76,6 +75,15 @@ public class NewProjectModalController implements Initializable {
 
     @FXML
     private void createNewProject(ActionEvent event) {
+        if(depth.getText().isEmpty()){
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Error!");
+            alert.setHeaderText("Depth canot be empty");
+            alert.setContentText(null);
+            alert.show();
+            return;
+        }
+        
         if (hostname.getText().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Error!");

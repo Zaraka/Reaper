@@ -388,4 +388,8 @@ public class ReaperDatabase {
             graph.shutdown();
         }
     }
+    
+    public void getStatistics(){
+        
+    }
 }

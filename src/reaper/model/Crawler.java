@@ -141,7 +141,7 @@ public class Crawler {
         database.truncateData();
     }
 
-    public void removeActiveProject() throws DatabaseNotConnectedException {
+    public void deleteActiveProject() throws DatabaseNotConnectedException {
         if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
@@ -156,7 +156,19 @@ public class Crawler {
         database.removeProject(activeProject);
 
         refreshProjects();
-
+    }
+    
+    public void deleteProject(Project proj) throws DatabaseNotConnectedException {
+        if (!database.isConnected()) {
+            throw new DatabaseNotConnectedException("Database is not connected");
+        }
+        
+        if(proj == activeProject){
+            deleteActiveProject();
+        } else {
+            database.removeProject(proj);
+            refreshProjects();
+        }
     }
 
     public void truncateActiveProject() throws DatabaseNotConnectedException {

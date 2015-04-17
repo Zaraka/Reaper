@@ -153,13 +153,13 @@ public class ReaperController implements Initializable {
         if ("".equals(hostname.getText())) {
             logger.log(Level.SEVERE, "You need to specify hostname.");
         }
-            
+
         try {
             reaper.getCrawler().mineStart();
-        } catch (MalformedURLException ex){
-            logger.log(Level.SEVERE, "Invalid hostname " + ex.getMessage());
+        } catch (MalformedURLException ex) {
+            logger.log(Level.SEVERE, ex.getMessage());
         }
-        
+
     }
 
     @FXML
@@ -171,21 +171,21 @@ public class ReaperController implements Initializable {
     private void clearData(ActionEvent event) {
         reaper.getCrawler().dataReset();
     }
-    
+
     @FXML
-    private void clearProjectData(ActionEvent event){
+    private void clearProjectData(ActionEvent event) {
         try {
             reaper.getCrawler().truncateActiveProject();
         } catch (DatabaseNotConnectedException ex) {
             logger.log(Level.SEVERE, ex.getMessage());
         }
     }
-    
+
     @FXML
-    private void deleteActiveProject(ActionEvent event){
+    private void deleteActiveProject(ActionEvent event) {
         try {
-            reaper.getCrawler().removeActiveProject();
-            
+            reaper.getCrawler().deleteActiveProject();
+
             tabPane.getSelectionModel().select(projectsTab);
         } catch (DatabaseNotConnectedException ex) {
             logger.log(Level.SEVERE, ex.getMessage());
@@ -320,7 +320,7 @@ public class ReaperController implements Initializable {
         engine.setOnAlert((WebEvent<String> event) -> {
             logger.log(Level.INFO, event.toString());
         });
-        
+
         maxDepth.setTextFormatter(new TextFormatter<>(new NumberStringConverter(NumberFormat.getIntegerInstance())));
         maxDownloads.setTextFormatter(new TextFormatter<>(new NumberStringConverter(NumberFormat.getIntegerInstance())));
     }
@@ -361,7 +361,6 @@ public class ReaperController implements Initializable {
                         removeEdge(link);
                     }
                 }
-
             }
         });
 
@@ -387,7 +386,21 @@ public class ReaperController implements Initializable {
                 }
             }
         });
+        MenuItem projectDeleteItem = new MenuItem("Delete Project");
+        projectDeleteItem.setOnAction(new EventHandler<ActionEvent>() {
+
+            @Override
+            public void handle(ActionEvent event) {
+                Project proj = projectTable.getSelectionModel().getSelectedItem();
+                try {
+                    dom.deleteProject(proj);
+                } catch (DatabaseNotConnectedException ex) {
+                    logger.log(Level.SEVERE, ex.getMessage());
+                }
+            }
+        });
         projectMenu.getItems().addAll(projectViewItem);
+        projectMenu.getItems().addAll(projectDeleteItem);
         projectTable.setContextMenu(projectMenu);
 
         //resourceTable
@@ -412,7 +425,7 @@ public class ReaperController implements Initializable {
         });
         menu.getItems().addAll(item);
 
-        EventHandler click = new EventHandler<MouseEvent>() {
+        EventHandler clickResourceTable = new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 if (event.getClickCount() == 2) {
@@ -424,10 +437,10 @@ public class ReaperController implements Initializable {
             }
         };
 
-        GenericCellFactory cellFactory = new GenericCellFactory(click, menu);
-        resourceMimeTypeColumn.setCellFactory(cellFactory);
-        resourcePathColumn.setCellFactory(cellFactory);
-        resourceURLColumn.setCellFactory(cellFactory);
+        GenericCellFactory resourceClickCellFactory = new GenericCellFactory(clickResourceTable, menu);
+        resourceMimeTypeColumn.setCellFactory(resourceClickCellFactory);
+        resourcePathColumn.setCellFactory(resourceClickCellFactory);
+        resourceURLColumn.setCellFactory(resourceClickCellFactory);
 
         //blacklistTable
         blacklistTable.setEditable(false);

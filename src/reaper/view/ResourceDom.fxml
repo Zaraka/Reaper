@@ -6,7 +6,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<StackPane layoutX="20.0" layoutY="20.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="reaper.view.ResourceDomController">
+<StackPane layoutX="20.0" layoutY="20.0" prefHeight="661.0" prefWidth="1264.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="reaper.view.ResourceDomController">
     <children>
         <VBox>
             <children>
@@ -41,12 +41,18 @@
                         <TableColumn fx:id="typeColumn" prefWidth="184.0" text="Type" />
                         <TableColumn fx:id="countColumn" prefWidth="88.0" text="Count" />
                     </columns>
+               <columnResizePolicy>
+                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+               </columnResizePolicy>
                 </TableView>
                 <TableView fx:id="formTable">
                     <columns>
                         <TableColumn fx:id="formActionColumn" prefWidth="150.0" text="Action" />
                         <TableColumn minWidth="0.0" prefWidth="172.0" text="Method" />
                     </columns>
+               <columnResizePolicy>
+                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+               </columnResizePolicy>
                 </TableView>
             </children>
         </VBox>
