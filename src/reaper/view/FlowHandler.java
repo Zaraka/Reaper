@@ -3,6 +3,7 @@ package reaper.view;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
+import javafx.application.Platform;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -41,7 +42,9 @@ public class FlowHandler extends Handler {
             msg.setFill(Color.BLACK);
         }
         
-        console.getChildren().add(msg);
+        Platform.runLater(() -> {
+            console.getChildren().add(msg);
+        });
     }
 
     @Override

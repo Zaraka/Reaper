@@ -1,5 +1,6 @@
 package reaper.model;
 
+import com.google.common.net.InternetDomainName;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -10,6 +11,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
@@ -45,15 +47,7 @@ public class ResourceDom extends ResourceAbstract {
 
         this.forms = new ArrayList<>();
         this.type = ResourceType.DOM;
-
-        /*FIXME
-        if (this.parent != null) {
-            //First check if resource is in domain
-            if (!InternetDomainName.from(url.getHost()).topPrivateDomain().toString().equals(InternetDomainName.from(parent.getURL().getHost()).topPrivateDomain().toString())) {
-                throw new OutsidePageException("Document isn't in scanned area");
-            }
-        }*/
-
+         
         //then check if resource has DOM element
         try {
             this.load();
@@ -67,9 +61,9 @@ public class ResourceDom extends ResourceAbstract {
 
         this.forms = new ArrayList<>();
         this.type = ResourceType.DOM;
-        
+
         //Load forms in resource
-        for(Edge edge : vertex.getEdges(Direction.OUT, DatabaseClasses.INCLUDES.getName())){
+        for (Edge edge : vertex.getEdges(Direction.OUT, DatabaseClasses.INCLUDES.getName())) {
             Form form = new Form(edge.getVertex(Direction.IN));
             forms.add(form);
         }
@@ -168,7 +162,7 @@ public class ResourceDom extends ResourceAbstract {
 
     private void load() throws UnsupportedMimeTypeException {
         this.state = ResourceState.PROCESSING;
-        System.out.println("Resource " + this.url.toString() + " loading START");
+        logger.log(Level.INFO, "Resource " + url.toString() + " loading START");
         try {
             long startTime = System.currentTimeMillis();
             Connection.Response response = Jsoup.connect(this.url.toString()).userAgent(JsoupUserAgent).execute();
@@ -187,10 +181,10 @@ public class ResourceDom extends ResourceAbstract {
             System.out.println("URL " + ex.getUrl() + " code: " + ex.getStatusCode());
             this.state = ResourceState.ERROR;
         } catch (UnknownHostException ex) {
-            System.out.println("Cannot reach host " + url);
+            logger.log(Level.INFO, "Cannot reach host " + ex.getMessage());
             this.state = ResourceState.ERROR;
         } catch (IOException ex) {
-            System.out.println(ex);
+            logger.log(Level.INFO, ex.getMessage());
             this.state = ResourceState.ERROR;
         }
 
@@ -201,11 +195,12 @@ public class ResourceDom extends ResourceAbstract {
     }
 
     @Override
+
     public void vertexTransaction(OrientGraph graph, String cluster) {
         try {
             OrientVertex vertex = graph.addVertex(
-                    DatabaseClasses.RESOURCE.getName(), 
-                    DatabaseClasses.RESOURCE.getName()+cluster);
+                    DatabaseClasses.RESOURCE.getName(),
+                    DatabaseClasses.RESOURCE.getName() + cluster);
             vertex.setProperties(
                     "url", this.getURL().toString(), "code", this.getCode(),
                     "downloadTime", this.getDownloadTime(), "mimeType", this.getMimeType(),
@@ -216,7 +211,7 @@ public class ResourceDom extends ResourceAbstract {
             for (Form form : forms) {
                 OrientVertex formVertex = graph.addVertex(
                         DatabaseClasses.FORM.getName(),
-                        DatabaseClasses.FORM.getName()+cluster);
+                        DatabaseClasses.FORM.getName() + cluster);
                 formVertex.setProperties(
                         "action", form.getAction().getLink(),
                         "method", form.getMethod().toString());
@@ -231,13 +226,13 @@ public class ResourceDom extends ResourceAbstract {
     public void save(OrientGraph graph) {
         OrientVertex ver = graph.getVertex(id);
         ver.setProperties(
-        "url", this.getURL().toString(), "code", this.getCode(),
-                    "downloadTime", this.getDownloadTime(), "mimeType", this.getMimeType(),
-                    "type", this.getType().toString()
-        ); 
-        
+                "url", this.getURL().toString(), "code", this.getCode(),
+                "downloadTime", this.getDownloadTime(), "mimeType", this.getMimeType(),
+                "type", this.getType().toString()
+        );
+
         for (Form form : forms) {
             //TODO save all forms;
         }
-   }
+    }
 }

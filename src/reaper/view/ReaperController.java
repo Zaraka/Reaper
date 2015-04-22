@@ -278,7 +278,6 @@ public class ReaperController implements Initializable {
     public void setupDatabase() {
         try {
             reaper.getCrawler().setupDatabase();
-            logger.log(Level.INFO, "Database created");
         } catch (DatabaseNotConnectedException ex) {
             logger.log(Level.SEVERE, "Database isn't connected");
         }
@@ -288,7 +287,6 @@ public class ReaperController implements Initializable {
     public void teardownDatabase() {
         try {
             reaper.getCrawler().removeDatabase();
-            logger.log(Level.INFO, "Database dropped");
         } catch (DatabaseNotConnectedException ex) {
             logger.log(Level.SEVERE, "Database isn't connected");
         }
@@ -297,6 +295,7 @@ public class ReaperController implements Initializable {
     @FXML
     public void databaseConnect() {
         reaper.getCrawler().databaseConnect();
+        refreshProjects();
     }
 
     @Override

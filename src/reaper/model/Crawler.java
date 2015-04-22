@@ -22,13 +22,15 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 
 import reaper.Reaper;
 import reaper.exceptions.DatabaseNotConnectedException;
 
 /**
- *
+ * Main Crawler class
+ * Also spawns a number of worker when executing DB tasks
  * @author zaraka
  */
 public class Crawler {
@@ -122,14 +124,54 @@ public class Crawler {
         if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
-        database.setupSchema();
+        
+        Task<Void> setupTask = new Task<Void>() {
+
+            @Override
+            protected Void call() throws Exception {
+                database.setupSchema();
+                return null;
+            }  
+        };
+        setupTask.setOnSucceeded((WorkerStateEvent event) -> {
+            logger.log(Level.INFO, "Database created");
+        });
+        setupTask.setOnFailed((WorkerStateEvent event) -> {
+            if (event.getSource().getException() != null) {
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                event.getSource().getException().printStackTrace(pw);
+                logger.log(Level.SEVERE, sw.toString());
+            }
+        });
+        new Thread(setupTask).start();
     }
 
     public void removeDatabase() throws DatabaseNotConnectedException {
         if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
-        database.tearDown();
+        
+        
+        Task <Void>teardownTask = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                database.tearDown();
+                return null;
+            }
+        };
+        teardownTask.setOnSucceeded((WorkerStateEvent event) -> {
+            logger.log(Level.INFO, "Database dropped");
+        });
+        teardownTask.setOnFailed((WorkerStateEvent event) -> {
+            if (event.getSource().getException() != null) {
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                event.getSource().getException().printStackTrace(pw);
+                logger.log(Level.SEVERE, sw.toString());
+            }
+        });
+        new Thread(teardownTask).start();
     }
 
     public void dataReset() {
@@ -184,6 +226,7 @@ public class Crawler {
         clearData();
         blacklist.clear();
         database.truncateProject(activeProject);
+        logger.log(Level.INFO, "Project data deleted");
     }
 
     public void updateDBPref() {
@@ -278,7 +321,6 @@ public class Crawler {
             logger.log(Level.SEVERE, "Mining failed");
             if (event.getSource().getException() != null) {
                 logger.log(Level.SEVERE, event.getSource().getMessage());
-                //logger.log(Level.SEVERE, event.getSource().getException().fillInStackTrace());
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
                 event.getSource().getException().printStackTrace(pw);

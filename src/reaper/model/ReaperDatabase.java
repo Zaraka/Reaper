@@ -2,6 +2,7 @@ package reaper.model;
 
 import com.orientechnologies.orient.client.remote.OServerAdmin;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
+import com.orientechnologies.orient.core.exception.OSchemaException;
 import com.orientechnologies.orient.core.exception.OStorageException;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OType;
@@ -21,6 +22,8 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
@@ -40,9 +43,9 @@ public class ReaperDatabase {
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
 
     private OrientGraphFactory factory;
-    private OServerAdmin serverAdmin;
     private final BooleanProperty connectionStatus;
     public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private DBConf dbConf;
 
     ReaperDatabase() {
         this.connectionStatus = new SimpleBooleanProperty(false);
@@ -53,10 +56,8 @@ public class ReaperDatabase {
         if (isConnected()) {
             this.disconnect();
         }
-
-        serverAdmin = new OServerAdmin(host);
         
-        serverAdmin.connect(user, password);
+        this.dbConf = new DBConf(host, user, password);
         
         this.factory = new OrientGraphFactory(host, user, password).setupPool(1, 10);
         this.connectionStatus.set(true);
@@ -69,16 +70,18 @@ public class ReaperDatabase {
     }
 
     public void setupSchema() {
-        
         try {
-            if(!serverAdmin.existsDatabase()){
-                serverAdmin.createDatabase("ReaperTest","graph", "plocal");
+            OServerAdmin serverAdmin = new OServerAdmin(dbConf.getHostname())
+                    .connect(dbConf.getUsername(), dbConf.getPassword());
+            if(!serverAdmin.existsDatabase("plocal")){
+                serverAdmin.createDatabase("ReaperTest", "graph", "plocal");
             }
         } catch (IOException ex) {
             logger.log(Level.SEVERE, ex.getMessage());
             return;
         }
         
+        logger.log(Level.INFO, "Database tables creation started, this could take a moment");
         
         // Create Graph scheme
         OrientGraphNoTx graph = factory.getNoTx();
@@ -119,7 +122,8 @@ public class ReaperDatabase {
 
             //Edge Root
             OrientEdgeType root = graph.createEdgeType("Root");
-
+        } catch(OSchemaException ex) {
+            logger.log(Level.SEVERE, "Some classes already exists in database");
         } finally {
             graph.shutdown();
         }
@@ -166,7 +170,9 @@ public class ReaperDatabase {
         */
         
         try {
-            serverAdmin.dropDatabase("remote");
+            OServerAdmin serverAdmin = new OServerAdmin(dbConf.getHostname())
+                    .connect(dbConf.getUsername(), dbConf.getPassword());
+            serverAdmin.dropDatabase("plocal");
         } catch (IOException | OStorageException ex) {
             logger.log(Level.SEVERE, ex.getMessage());
         }
@@ -389,7 +395,14 @@ public class ReaperDatabase {
         }
     }
     
-    public void getStatistics(){
-        
+    public Map<String, Integer> getStatistics(){
+        HashMap<String, Integer> result = new HashMap<>();
+        OrientGraph graph = factory.getTx();
+        try {
+            
+        } finally {
+            graph.shutdown();
+        }
+        return result;
     }
 }

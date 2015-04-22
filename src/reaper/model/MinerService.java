@@ -1,5 +1,6 @@
 package reaper.model;
 
+import com.google.common.net.InternetDomainName;
 import com.orientechnologies.orient.core.exception.OStorageException;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
@@ -12,11 +13,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import org.jsoup.UnsupportedMimeTypeException;
-import reaper.exceptions.OutsidePageException;
 
 /**
  *
@@ -43,14 +42,14 @@ public class MinerService extends Service<Void> {
         this.linkScrambler = new LinkQue(graphFactory);
 
     }
-    
-    public void prepare(Project proj){
+
+    public void prepare(Project proj) {
         this.project = proj;
     }
-    
-    public void databaseConnect(String host, String user, String pass){
+
+    public void databaseConnect(String host, String user, String pass) {
         this.databaseDisconnect();
-        
+
         try {
             graphFactory = new OrientGraphFactory(host, user, pass).setupPool(1, 10);
             linkScrambler.setGraphFactory(graphFactory);
@@ -58,9 +57,9 @@ public class MinerService extends Service<Void> {
             throw ex;
         }
     }
-    
-    public void databaseDisconnect(){
-        if(graphFactory != null){
+
+    public void databaseDisconnect() {
+        if (graphFactory != null) {
             graphFactory.close();
         }
     }
@@ -91,18 +90,20 @@ public class MinerService extends Service<Void> {
             String fromID, toID;
             fromID = resources.get(link.getFromURL());
             if (fromID == null) {
-                System.out.println("error");
+                logger.log(Level.INFO, "error");
                 return;
             }
             toID = resources.get(link.getToURL());
             if (toID == null) {
-                System.out.println("error");
+                logger.log(Level.INFO, "error");
                 return;
             }
             from = graph.getVertex(fromID);
             to = graph.getVertex(toID);
-            from.addEdge("LinkTo", to, null, null, "path", link.getLink(),
-                    "count", link.getCount(), "type", link.getType().toString());
+            from.addEdge("LinkTo", to, "LinkTo", 
+                    DatabaseClasses.LINKTO.getName() + project.getCluster(), 
+                    "path", link.getLink(), "count", link.getCount(), 
+                    "type", link.getType().toString());
             linksCount += link.getCount();
         } finally {
             graph.shutdown();
@@ -118,9 +119,7 @@ public class MinerService extends Service<Void> {
                 String url = project.getDomain().toString();
                 if (!url.matches("^.*:\\/\\/.*$")) {
                     url = "http://" + url;
-                    Platform.runLater(() -> {
-                        logger.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
-                    });
+                    logger.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
                 }
 
                 try {
@@ -148,23 +147,29 @@ public class MinerService extends Service<Void> {
                         Resource toRes;
                         URL parentURL = new URL(link.getFromURL());
                         URL linkUrl = new URL(parentURL, link.getLink());
-                        try {
-                            toRes = new ResourceDom(linkUrl, docDepth + 1, project.getDepth());
-                            if (toRes.getDepth() < project.getDepth()) {
-                                for (Link queLink : toRes.links()) {
-                                    linkScrambler.linkEnter(project.getCluster(), queLink.getLink(), queLink.getFromURL(), queLink.getFromResource().getDepth());
-                                }
-                            }
-                        } catch (UnsupportedMimeTypeException ex) {
+
+                        //First check if resource is in domain
+                        if (InternetDomainName.from(linkUrl.getHost()).topPrivateDomain().toString().equals(InternetDomainName.from(project.getDomain().getHost()).topPrivateDomain().toString())) {
+                            //If so try to create DOM or FILE
                             try {
-                                toRes = new ResourceFile(linkUrl, docDepth + 1, project.getDepth());
-                            } catch (MalformedURLException ex1) {
-                                throw ex1;
+                                toRes = new ResourceDom(linkUrl, docDepth + 1, project.getDepth());
+                                if (toRes.getDepth() < project.getDepth()) {
+                                    for (Link queLink : toRes.links()) {
+                                        linkScrambler.linkEnter(project.getCluster(), queLink.getLink(), queLink.getFromURL(), queLink.getFromResource().getDepth());
+                                    }
+                                }
+                            } catch (UnsupportedMimeTypeException ex) {
+                                try {
+                                    toRes = new ResourceFile(linkUrl, docDepth + 1, project.getDepth());
+                                } catch (MalformedURLException ex1) {
+                                    throw ex1;
+                                }
+                            } catch (MalformedURLException ex) {
+                                throw ex;
                             }
-                        } catch (OutsidePageException ex) {
+                        } else {
+                            //Otherwise fallback to outside.
                             toRes = new ResourceOutside(linkUrl, docDepth + 1, project.getDepth());
-                        } catch (MalformedURLException ex) {
-                            throw ex;
                         }
                         link.setToResource(toRes);
                         createSingleVertex(toRes);

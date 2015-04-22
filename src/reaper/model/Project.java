@@ -10,7 +10,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -238,5 +240,15 @@ public class Project extends VertexAbstract {
         return oDB.countClusterElements(
                     DatabaseClasses.LINKTO.getName() + cluster
         );
+    }
+    
+    public List<URL> getBlacklist(OrientGraph graph){
+        ArrayList<URL> result = new ArrayList<>();
+        try {
+            //TODO:!
+        } finally {
+            graph.shutdown();
+        }
+        return result;
     }
 }
