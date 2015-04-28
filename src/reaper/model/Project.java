@@ -3,6 +3,7 @@ package reaper.model;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
@@ -14,6 +15,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import reaper.Reaper;
 
 /**
  *
@@ -21,11 +25,15 @@ import java.util.UUID;
  */
 public class Project extends VertexAbstract {
 
+    private static final Logger logger = Logger.getLogger(Reaper.class.getName());
+
     private URL domain;
     private Date date;
     private String name;
     private String cluster;
     private Object rootID;
+    private List<URL> blacklist;
+    private List<URL> whitelist;
     private int depth;
 
     public static SimpleDateFormat clusterDate = new SimpleDateFormat("yyyy_MM_dd");
@@ -37,9 +45,12 @@ public class Project extends VertexAbstract {
         this.date = date;
         this.cluster = cluster;
         this.depth = depth;
+        
+        this.blacklist = new ArrayList<>();
+        this.whitelist = new ArrayList<>();
     }
 
-    Project(String name, URL domain, int depth) {
+    Project(String name, URL domain, int depth, List<URL> blacklist, List<URL> whitelist) {
         this.name = name;
         this.domain = domain;
         this.depth = depth;
@@ -48,6 +59,9 @@ public class Project extends VertexAbstract {
         this.date = dt;
         this.cluster = "p";
         this.cluster += UUID.randomUUID().toString();
+        
+        this.blacklist = blacklist;
+        this.whitelist = whitelist;
     }
 
     Project(Vertex ver) throws MalformedURLException, ParseException {
@@ -63,7 +77,51 @@ public class Project extends VertexAbstract {
         for (Vertex root : ver.getVertices(Direction.OUT, "Root")) {
             this.rootID = root.getId();
         }
+        
+        this.blacklist = new ArrayList<>();
+        this.whitelist = new ArrayList<>();
+    }
 
+    private void loadBlacklist(OrientGraph graph) {        
+        for (Vertex ver : (Iterable<Vertex>) graph.command(
+                new OCommandSQL("SELECT * FROM cluster:" + 
+                        DatabaseClasses.BLACWHITEKLIST.getName() + 
+                        cluster + " WHERE type = 'BLACKLIST'")
+        ).execute()) {
+            try {
+                blacklist.add(new URL(ver.getProperty("url")));
+            } catch (MalformedURLException ex) {
+                logger.log(Level.WARNING, "Invalid blacklisted link in database");
+            }
+        }
+    }
+    
+    private void loadWhitelist(OrientGraph graph) {        
+        for (Vertex ver : (Iterable<Vertex>) graph.command(
+                new OCommandSQL("SELECT * FROM cluster:" + 
+                        DatabaseClasses.BLACWHITEKLIST.getName() + 
+                        cluster + " WHERE type = 'WHITELIST'")
+        ).execute()) {
+            try {
+                whitelist.add(new URL(ver.getProperty("url")));
+            } catch (MalformedURLException ex) {
+                logger.log(Level.WARNING, "Invalid whitelisted link in database");
+            }
+        }
+    }
+    
+    private void saveBlackWhiteList(OrientGraph graph, List<URL> blackWhiteList, String cluster, String type) {
+        try {
+            for (URL url : blackWhiteList) {
+                Vertex item = graph.addVertex(
+                        DatabaseClasses.BLACWHITEKLIST.getName(),
+                        DatabaseClasses.BLACWHITEKLIST.getName() + cluster);
+                item.setProperty("url", url.toString());
+                item.setProperty("type", type);
+            }
+        } finally {
+            graph.shutdown();
+        }
     }
 
     /**
@@ -77,6 +135,44 @@ public class Project extends VertexAbstract {
                 "domain", domain.toString(), "cluster", cluster, "depth", depth);
         graph.commit();
         setID(ver.getId());
+        
+        saveBlackWhiteList(graph, blacklist, cluster, "BLACKLIST");
+        saveBlackWhiteList(graph, whitelist, cluster, "WHITELIST");
+        
+        //Vertices clusters
+            graph.command(new OCommandSQL(
+                    "ALTER CLASS " + DatabaseClasses.RESOURCE.getName()
+                    + " ADDCLUSTER " + DatabaseClasses.RESOURCE.getName() + getCluster()
+            )).execute();
+            graph.command(new OCommandSQL(
+                    "ALTER CLASS " + DatabaseClasses.FORM.getName()
+                    + " ADDCLUSTER " + DatabaseClasses.FORM.getName() + getCluster()
+            )).execute();
+            graph.command(new OCommandSQL(
+                    "ALTER CLASS " + DatabaseClasses.FORM.getName()
+                    + " ADDCLUSTER " + DatabaseClasses.FORM.getName() + getCluster()
+            )).execute();
+            graph.command(new OCommandSQL(
+                    "ALTER CLASS " + DatabaseClasses.BLACWHITEKLIST.getName()
+                    + " ADDCLUSTER " + DatabaseClasses.BLACWHITEKLIST.getName() + getCluster()
+            )).execute();
+
+            //Edges clusters
+            graph.command(new OCommandSQL(
+                    "ALTER CLASS " + DatabaseClasses.LINKTO.getName()
+                    + " ADDCLUSTER " + DatabaseClasses.LINKTO.getName() + getCluster()
+            )).execute();
+
+            graph.command(new OCommandSQL(
+                    "ALTER CLASS " + DatabaseClasses.INCLUDES.getName()
+                    + " ADDCLUSTER " + DatabaseClasses.INCLUDES.getName() + getCluster()
+            )).execute();
+
+            //Que cluster
+            graph.command(new OCommandSQL(
+                    "ALTER CLASS " + DatabaseClasses.LINKQUE.getName()
+                    + " ADDCLUSTER " + DatabaseClasses.LINKQUE.getName() + getCluster()
+            )).execute();
     }
 
     public String getName() {
@@ -110,12 +206,12 @@ public class Project extends VertexAbstract {
     public void setCluster(String cluster) {
         this.cluster = cluster;
     }
-    
-    public int getDepth(){
+
+    public int getDepth() {
         return this.depth;
     }
-    
-    public void setDepth(int depth){
+
+    public void setDepth(int depth) {
         this.depth = depth;
     }
 
@@ -131,7 +227,7 @@ public class Project extends VertexAbstract {
     @Override
     public void save(OrientGraph graph) {
         OrientVertex ver = graph.getVertex(getID());
-        ver.setProperties("name", name, "date", date, 
+        ver.setProperties("name", name, "date", date,
                 "domain", domain.toString(), "cluster", cluster, "depth", depth);
     }
 
@@ -146,7 +242,7 @@ public class Project extends VertexAbstract {
         graph.command(
                 new OCommandSQL("DROP CLUSTER " + DatabaseClasses.RESOURCE.getName() + getCluster())
         ).execute();
-        
+
         graph.command(
                 new OCommandSQL(
                         "ALTER CLASS " + DatabaseClasses.FORM.getName() + " REMOVECLUSTER "
@@ -155,7 +251,7 @@ public class Project extends VertexAbstract {
         graph.command(
                 new OCommandSQL("DROP CLUSTER " + DatabaseClasses.FORM.getName() + getCluster())
         ).execute();
-        
+
         graph.command(
                 new OCommandSQL(
                         "ALTER CLASS " + DatabaseClasses.LINKTO.getName() + " REMOVECLUSTER "
@@ -164,7 +260,7 @@ public class Project extends VertexAbstract {
         graph.command(
                 new OCommandSQL("DROP CLUSTER " + DatabaseClasses.LINKTO.getName() + getCluster())
         ).execute();
-        
+
         graph.command(
                 new OCommandSQL(
                         "ALTER CLASS " + DatabaseClasses.LINKQUE.getName() + " REMOVECLUSTER "
@@ -173,7 +269,7 @@ public class Project extends VertexAbstract {
         graph.command(
                 new OCommandSQL("DROP CLUSTER " + DatabaseClasses.LINKQUE.getName() + getCluster())
         ).execute();
-        
+
         graph.command(
                 new OCommandSQL(
                         "ALTER CLASS " + DatabaseClasses.INCLUDES.getName() + " REMOVECLUSTER "
@@ -182,19 +278,27 @@ public class Project extends VertexAbstract {
         graph.command(
                 new OCommandSQL("DROP CLUSTER " + DatabaseClasses.INCLUDES.getName() + getCluster())
         ).execute();
-        
+
         graph.command(
                 new OCommandSQL(
-                        "ALTER CLASS " + DatabaseClasses.BLACKLIST.getName() + " REMOVECLUSTER "
-                        + DatabaseClasses.BLACKLIST.getName() + getCluster())
+                        "ALTER CLASS " + DatabaseClasses.BLACWHITEKLIST.getName() + " REMOVECLUSTER "
+                        + DatabaseClasses.BLACWHITEKLIST.getName() + getCluster())
         ).execute();
         graph.command(
-                new OCommandSQL("DROP CLUSTER " + DatabaseClasses.BLACKLIST.getName() + getCluster())
+                new OCommandSQL("DROP CLUSTER " + DatabaseClasses.BLACWHITEKLIST.getName() + getCluster())
         ).execute();
         super.remove(graph);
     }
 
     public void truncate(OrientGraph graph) {
+
+        //Delete Root connection
+        OrientVertex ver = graph.getVertex(id);
+        for (Edge edge : ver.getEdges(Direction.OUT, "Root")) {
+            graph.removeEdge(edge);
+        }
+
+        //Truncate clusters
         graph.command(
                 new OCommandSQL("TRUNCATE CLUSTER " + DatabaseClasses.RESOURCE.getName() + getCluster())
         ).execute();
@@ -215,7 +319,7 @@ public class Project extends VertexAbstract {
     @Override
     public void update(OrientGraph graph) {
         OrientVertex vertex = graph.getVertex(id);
-        
+
         cluster = vertex.getProperty("cluster");
         date = vertex.getProperty("date");
         name = vertex.getProperty("name");
@@ -228,27 +332,38 @@ public class Project extends VertexAbstract {
         for (Vertex root : vertex.getVertices(Direction.OUT, "Root")) {
             rootID = root.getId();
         }
+        
+        blacklist.clear();
+        whitelist.clear();
+        loadBlacklist(graph);
+        loadWhitelist(graph);
     }
-    
-    public long getResourceCount(ODatabaseDocumentTx oDB){
+
+    public long getResourceCount(ODatabaseDocumentTx oDB) {
         return oDB.countClusterElements(
-                    DatabaseClasses.RESOURCE.getName() + cluster
+                DatabaseClasses.RESOURCE.getName() + cluster
         );
     }
-    
-    public long getLinksCount(ODatabaseDocumentTx oDB){
+
+    public long getLinksCount(ODatabaseDocumentTx oDB) {
         return oDB.countClusterElements(
-                    DatabaseClasses.LINKTO.getName() + cluster
+                DatabaseClasses.LINKTO.getName() + cluster
         );
     }
-    
-    public List<URL> getBlacklist(OrientGraph graph){
-        ArrayList<URL> result = new ArrayList<>();
-        try {
-            //TODO:!
-        } finally {
-            graph.shutdown();
-        }
-        return result;
+
+    public List<URL> getBlacklist() {
+        return blacklist;
+    }
+
+    public List<URL> getWhitelist() {
+        return whitelist;
+    }
+
+    public void setBlacklist(List<URL> blacklist) {
+        this.blacklist = blacklist;
+    }
+
+    public void setWhitelist(List<URL> whitelist) {
+        this.whitelist = whitelist;
     }
 }

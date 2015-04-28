@@ -23,7 +23,7 @@ import org.jsoup.UnsupportedMimeTypeException;
  */
 public class MinerService extends Service<Void> {
 
-    private static final Logger logger = Logger.getLogger(reaper.Reaper.class.getName());
+    private static final Logger loggerMiner = Logger.getLogger(MinerService.class.getName());
 
     private ArrayList<Link> linksQueue;
     private Map<String, String> resources;
@@ -90,12 +90,12 @@ public class MinerService extends Service<Void> {
             String fromID, toID;
             fromID = resources.get(link.getFromURL());
             if (fromID == null) {
-                logger.log(Level.INFO, "error");
+                loggerMiner.log(Level.INFO, "error");
                 return;
             }
             toID = resources.get(link.getToURL());
             if (toID == null) {
-                logger.log(Level.INFO, "error");
+                loggerMiner.log(Level.INFO, "error");
                 return;
             }
             from = graph.getVertex(fromID);
@@ -109,6 +109,36 @@ public class MinerService extends Service<Void> {
             graph.shutdown();
         }
     }
+    
+    private boolean blackWhiteCheck(String host){
+        InternetDomainName check = InternetDomainName.from(host);
+        
+        //check main scanning domain or whitelist
+        if(!check.topPrivateDomain().equals(InternetDomainName.from(project.getDomain().getHost()))){
+            //loop by whitelist if result is found continue
+            boolean whitelisted = false;
+            for(URL whiteURL : project.getWhitelist()){
+                if(check.equals(InternetDomainName.from(whiteURL.getHost()))){
+                    whitelisted = true;
+                    break;
+                }
+            }
+            
+            if(!whitelisted){
+                return false;
+            }
+        }
+        
+        for(URL blackURL : project.getBlacklist()){
+            if(check.equals(InternetDomainName.from(blackURL.getHost()))){
+                return false;
+            }
+        }
+        
+        
+        //loop by blacklist if result is found deny 
+        return true;
+    }
 
     @Override
     protected Task<Void> createTask() {
@@ -119,7 +149,7 @@ public class MinerService extends Service<Void> {
                 String url = project.getDomain().toString();
                 if (!url.matches("^.*:\\/\\/.*$")) {
                     url = "http://" + url;
-                    logger.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
+                    loggerMiner.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
                 }
 
                 try {
@@ -147,9 +177,14 @@ public class MinerService extends Service<Void> {
                         Resource toRes;
                         URL parentURL = new URL(link.getFromURL());
                         URL linkUrl = new URL(parentURL, link.getLink());
-
+                        
+                        //TODO: better protocol check
+                        if(linkUrl.getProtocol().equals("mailto")){
+                            continue;
+                        }
+                        
                         //First check if resource is in domain
-                        if (InternetDomainName.from(linkUrl.getHost()).topPrivateDomain().toString().equals(InternetDomainName.from(project.getDomain().getHost()).topPrivateDomain().toString())) {
+                        if (blackWhiteCheck(linkUrl.getHost())) {
                             //If so try to create DOM or FILE
                             try {
                                 toRes = new ResourceDom(linkUrl, docDepth + 1, project.getDepth());

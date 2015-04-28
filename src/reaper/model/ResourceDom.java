@@ -1,6 +1,5 @@
 package reaper.model;
 
-import com.google.common.net.InternetDomainName;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -11,6 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.jsoup.Connection;
@@ -20,7 +20,6 @@ import org.jsoup.UnsupportedMimeTypeException;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import reaper.Reaper;
 import reaper.exceptions.OutsidePageException;
 
 /**
@@ -29,7 +28,7 @@ import reaper.exceptions.OutsidePageException;
  */
 public class ResourceDom extends ResourceAbstract {
 
-    private static final Logger logger = Logger.getLogger(Reaper.class.getName());
+    private static final Logger loggerMiner = Logger.getLogger(reaper.model.MinerService.class.getName());
 
     private Document doc;
     private ArrayList<Form> forms;
@@ -162,7 +161,7 @@ public class ResourceDom extends ResourceAbstract {
 
     private void load() throws UnsupportedMimeTypeException {
         this.state = ResourceState.PROCESSING;
-        logger.log(Level.INFO, "Resource " + url.toString() + " loading START");
+        loggerMiner.log(Level.INFO, "Resource " + url.toString() + " loading START");
         try {
             long startTime = System.currentTimeMillis();
             Connection.Response response = Jsoup.connect(this.url.toString()).userAgent(JsoupUserAgent).execute();
@@ -181,10 +180,10 @@ public class ResourceDom extends ResourceAbstract {
             System.out.println("URL " + ex.getUrl() + " code: " + ex.getStatusCode());
             this.state = ResourceState.ERROR;
         } catch (UnknownHostException ex) {
-            logger.log(Level.INFO, "Cannot reach host " + ex.getMessage());
+            loggerMiner.log(Level.INFO, "Cannot reach host " + ex.getMessage());
             this.state = ResourceState.ERROR;
         } catch (IOException ex) {
-            logger.log(Level.INFO, ex.getMessage());
+            loggerMiner.log(Level.INFO, ex.getMessage());
             this.state = ResourceState.ERROR;
         }
 
@@ -235,4 +234,9 @@ public class ResourceDom extends ResourceAbstract {
             //TODO save all forms;
         }
     }
+    
+    public List<Form> forms(){
+        return forms;
+    }
+    
 }

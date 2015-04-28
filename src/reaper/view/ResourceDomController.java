@@ -1,6 +1,8 @@
 package reaper.view;
 
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -9,6 +11,7 @@ import reaper.model.Form;
 import reaper.model.Link;
 import reaper.model.RestMethod;
 import reaper.model.Resource;
+import reaper.model.ResourceDom;
 
 /**
  * FXML Controller class
@@ -16,6 +19,9 @@ import reaper.model.Resource;
  * @author zaraka
  */
 public class ResourceDomController implements ResourceController {
+    
+    private ObservableList<Form> forms;
+    private ObservableList<Link> links;
 
     @FXML
     private TableView<Form> formTable;
@@ -26,11 +32,11 @@ public class ResourceDomController implements ResourceController {
     @FXML
     private TableView<Link> urlTable;
     @FXML
-    private TableColumn<Link, String> urlColumn;
+    private TableColumn<Link, String> urlURLColumn;
     @FXML
-    private TableColumn<Link, String> typeColumn;
+    private TableColumn<Link, String> urlTypeColumn;
     @FXML
-    private TableColumn<Link, Integer> countColumn;
+    private TableColumn<Link, Integer> urlCountColumn;
     @FXML
     private Label resourceURL;
     @FXML
@@ -43,16 +49,31 @@ public class ResourceDomController implements ResourceController {
     private Label resourceType;
 
     @Override
-    public void loadResource(Resource resource) {
+    public void loadResource(Resource resource) {        
         if (resource == null) {
             return;
         }
+        forms = FXCollections.observableArrayList();
+        links = FXCollections.observableArrayList();
+        links.addAll(resource.links());
+        ResourceDom dom = (ResourceDom) resource;
+        forms.addAll(dom.forms());
+        
+        
+        urlTable.setItems(links);
+        urlURLColumn.setCellValueFactory(cellData -> cellData.getValue().linkProperty());
+        urlTypeColumn.setCellValueFactory((TableColumn.CellDataFeatures<Link, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getType().toString()));
+        urlCountColumn.setCellValueFactory((TableColumn.CellDataFeatures<Link, Integer> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getCount()));
+        
+        formTable.setItems(forms);
+        
+        
         resourceURL.setText(resource.getPath());
-        urlTable.setItems(FXCollections.observableArrayList(resource.links()));
-        urlColumn.setCellValueFactory(cellData -> cellData.getValue().linkProperty());
         resourceMimeTypeProperty.setText(resource.mimeTypeProperty().get());
         resourceStatusCodeProperty.setText(Integer.toString(resource.codeProperty().get()));
         resourceDownloadTime.setText(String.valueOf(resource.getDownloadTime()));
         resourceType.setText(resource.getType().toString());
+        
+        
     }
 }

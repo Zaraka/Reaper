@@ -18,8 +18,10 @@ public interface Resource {
     public ResourceType getType();
     public Link getLinkWithPath(String Path);
     public IntegerProperty codeProperty();
-    public int getCode();
+    public IntegerProperty depthProperty();
+    public StringProperty pathProperty();
     public StringProperty mimeTypeProperty();
+    public int getCode();
     public String getMimeType();
     public long getDownloadTime();
     public Object getVertexID();

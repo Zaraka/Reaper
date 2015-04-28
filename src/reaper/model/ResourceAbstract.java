@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -18,15 +19,18 @@ import javafx.beans.property.StringProperty;
  *
  * @author zaraka
  */
-abstract class ResourceAbstract extends VertexAbstract implements Resource {
+public abstract class ResourceAbstract extends VertexAbstract implements Resource {
+    private static final Logger loggerReaper = Logger.getLogger(reaper.Reaper.class.getName());
+    private static final Logger loggerMiner = Logger.getLogger(reaper.model.MinerService.class.getName());
 
     protected ResourceType type;
     protected URL url;
     protected long downloadTime;
     protected ResourceState state;
     protected Map<String, Link> links;
-    private final IntegerProperty code;
     private final StringProperty mimeType;
+    private final StringProperty path;
+    private final IntegerProperty code;
     private final IntegerProperty depth;
     private final IntegerProperty maxDepth;
 
@@ -39,6 +43,7 @@ abstract class ResourceAbstract extends VertexAbstract implements Resource {
         this.type = ResourceType.UNDEFINED;
         this.code = new SimpleIntegerProperty(0);
         this.mimeType = new SimpleStringProperty("");
+        this.path = new SimpleStringProperty("");
         this.downloadTime = 0;
         this.id = null;
     }
@@ -52,6 +57,7 @@ abstract class ResourceAbstract extends VertexAbstract implements Resource {
         this.type = ResourceType.UNDEFINED;
         this.code = new SimpleIntegerProperty(0);
         this.mimeType = new SimpleStringProperty("");
+        this.path = new SimpleStringProperty(url.getPath());
         this.downloadTime = 0;
         this.id = null;
     }
@@ -69,11 +75,12 @@ abstract class ResourceAbstract extends VertexAbstract implements Resource {
         this.code = new SimpleIntegerProperty((int) vertex.getProperty("code"));
         this.downloadTime = (long) vertex.getProperty("downloadTime");
         this.mimeType = new SimpleStringProperty(vertex.getProperty("mimeType").toString());
+        this.path = new SimpleStringProperty(url.getPath());
     }
 
     @Override
     public String getPath() {
-        return this.url.getPath();
+        return this.path.get();
     }
 
     @Override
@@ -81,8 +88,8 @@ abstract class ResourceAbstract extends VertexAbstract implements Resource {
         return this.url;
     }
 
-    public void setPath(URL url) {
-        this.url = url;
+    public void setPath(String path) {
+        this.path.set(path);
     }
 
     public void setDepth(int depth) {
@@ -149,6 +156,16 @@ abstract class ResourceAbstract extends VertexAbstract implements Resource {
         this.mimeType.set(type);
     }
 
+    @Override
+    public StringProperty pathProperty(){
+        return path;
+    }
+    
+    @Override
+    public IntegerProperty depthProperty(){
+        return this.depth;
+    }
+    
     @Override
     public long getDownloadTime() {
         return this.downloadTime;

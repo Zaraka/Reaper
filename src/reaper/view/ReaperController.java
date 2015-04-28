@@ -1,16 +1,18 @@
 package reaper.view;
 
+import com.orientechnologies.orient.core.exception.OStorageException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.NumberFormat;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.event.ActionEvent;
@@ -20,6 +22,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.chart.PieChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
@@ -53,6 +56,7 @@ import reaper.Reaper;
 import reaper.exceptions.DatabaseNotConnectedException;
 import reaper.model.Crawler;
 import reaper.model.Link;
+import reaper.model.MinerService;
 import reaper.model.Project;
 import reaper.model.Resource;
 
@@ -62,7 +66,8 @@ import reaper.model.Resource;
  */
 public class ReaperController implements Initializable {
 
-    private static final Logger logger = Logger.getLogger(Reaper.class.getName());
+    private static final Logger loggerReaper = Logger.getLogger(Reaper.class.getName());
+    private static final Logger loggerMiner = Logger.getLogger(MinerService.class.getName());
 
     private Reaper reaper;
     private String activeNode;
@@ -70,7 +75,11 @@ public class ReaperController implements Initializable {
     @FXML
     private TextField hostname;
     @FXML
-    private TextFlow console;
+    private TextFlow consoleReaper;
+    @FXML
+    private TextFlow consoleMiner;
+    @FXML
+    private TextFlow consolePostScanner;
     @FXML
     private TableView<Resource> resourceTable;
     @FXML
@@ -88,6 +97,10 @@ public class ReaperController implements Initializable {
     @FXML
     private TableColumn<URL, String> blacklistColumn;
     @FXML
+    private TableView<URL> whitelistTable;
+    @FXML
+    private TableColumn<URL, String> whitelistColumn;
+    @FXML
     private TableView<Project> projectTable;
     @FXML
     private TableColumn<Project, String> projectNameColumn;
@@ -100,9 +113,11 @@ public class ReaperController implements Initializable {
     @FXML
     private TextField maxDepth;
     @FXML
-    private TextField maxDownloads;
+    private ScrollPane consoleReaperScroll;
     @FXML
-    private ScrollPane consoleScroll;
+    private ScrollPane consoleMinerScroll;
+    @FXML
+    private ScrollPane consolePostScannerScroll;
     @FXML
     private Tab detailsTab;
     @FXML
@@ -128,6 +143,8 @@ public class ReaperController implements Initializable {
     @FXML
     private Button addBlacklistItemButton;
     @FXML
+    private Button addWhitelistItemButton;
+    @FXML
     private Button startMiningButton;
     @FXML
     private Button stopMiningButton;
@@ -147,17 +164,19 @@ public class ReaperController implements Initializable {
     private Button deleteProjectButton;
     @FXML
     private Text projectName;
+    @FXML
+    private PieChart overviewStatus;
 
     @FXML
     private void startMining(ActionEvent event) {
         if ("".equals(hostname.getText())) {
-            logger.log(Level.SEVERE, "You need to specify hostname.");
+            loggerReaper.log(Level.SEVERE, "You need to specify hostname.");
         }
 
         try {
             reaper.getCrawler().mineStart();
         } catch (MalformedURLException ex) {
-            logger.log(Level.SEVERE, ex.getMessage());
+            loggerReaper.log(Level.SEVERE, ex.getMessage());
         }
 
     }
@@ -177,7 +196,7 @@ public class ReaperController implements Initializable {
         try {
             reaper.getCrawler().truncateActiveProject();
         } catch (DatabaseNotConnectedException ex) {
-            logger.log(Level.SEVERE, ex.getMessage());
+            loggerReaper.log(Level.SEVERE, ex.getMessage());
         }
     }
 
@@ -188,7 +207,7 @@ public class ReaperController implements Initializable {
 
             tabPane.getSelectionModel().select(projectsTab);
         } catch (DatabaseNotConnectedException ex) {
-            logger.log(Level.SEVERE, ex.getMessage());
+            loggerReaper.log(Level.SEVERE, ex.getMessage());
         }
     }
 
@@ -205,7 +224,7 @@ public class ReaperController implements Initializable {
             try {
                 this.sitemap.getEngine().executeScript("resetGraph();");
             } catch (JSException ex) {
-                logger.log(Level.WARNING, ex.toString());
+                loggerReaper.log(Level.WARNING, ex.toString());
             }
         }
     }
@@ -218,13 +237,17 @@ public class ReaperController implements Initializable {
             activeNode = crawl.getActiveProject().getRoot().toString();
             createResourcePane(reaper.getCrawler().resources().get(activeNode));
         } catch (DatabaseNotConnectedException ex) {
-            logger.log(Level.SEVERE, ex.getMessage());
+            loggerReaper.log(Level.SEVERE, ex.getMessage());
         }
     }
 
     @FXML
     private void overviewLoadAll(ActionEvent event) {
-        reaper.getCrawler().loadAll();
+        try {
+            reaper.getCrawler().loadAll();
+        } catch (DatabaseNotConnectedException ex) {
+            Logger.getLogger(ReaperController.class.getName()).log(Level.SEVERE, null, ex);
+        }
         activeNode = reaper.getCrawler().getActiveProject().getRoot().toString();
         createResourcePane(reaper.getCrawler().resources().get(activeNode));
     }
@@ -234,19 +257,43 @@ public class ReaperController implements Initializable {
         TextInputDialog dialog = new TextInputDialog("http://subdomain.example.com");
         dialog.setTitle("Add blacklisted domain");
         dialog.setHeaderText("Add blacklisted domain");
-        dialog.setContentText("Please enter domain you want to blacklist");
+        dialog.setContentText("Please enter domain you want add to blacklist");
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(domain -> {
             String url = domain;
             if (!url.matches("^.*:\\/\\/.*$")) {
                 url = "http://" + url;
-                logger.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
+                loggerReaper.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
             }
             try {
+                //TODO
                 this.reaper.getCrawler().blacklistProperty().add(new URL(url));
             } catch (MalformedURLException ex) {
-                logger.log(Level.SEVERE, null, ex);
+                loggerReaper.log(Level.SEVERE, null, ex);
+            }
+        });
+    }
+
+    @FXML
+    private void addWhitelistItem(ActionEvent event) {
+        TextInputDialog dialog = new TextInputDialog("http://anotherdomain.com");
+        dialog.setTitle("Add whitelisted domain");
+        dialog.setHeaderText("Add whitelisteddomain");
+        dialog.setContentText("Please enter domain you want add to whitelist");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(domain -> {
+            String url = domain;
+            if (!url.matches("^.*:\\/\\/.*$")) {
+                url = "http://" + url;
+                loggerReaper.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
+            }
+            try {
+                //TODO
+                this.reaper.getCrawler().blacklistProperty().add(new URL(url));
+            } catch (MalformedURLException ex) {
+                loggerReaper.log(Level.SEVERE, null, ex);
             }
         });
     }
@@ -257,10 +304,10 @@ public class ReaperController implements Initializable {
         project.showAndWait();
         if (project.getAccepted()) {
             try {
-                reaper.getCrawler().createProject(project.getName(), project.getDomain(), project.getDepth(), project.getBlacklist());
+                reaper.getCrawler().createProject(project.getName(), project.getDomain(), project.getDepth(), project.getBlacklist(), project.getWhitelist());
                 refreshProjects();
             } catch (DatabaseNotConnectedException ex) {
-                logger.log(Level.SEVERE, ex.getMessage());
+                loggerReaper.log(Level.SEVERE, ex.getMessage());
             }
         }
     }
@@ -270,7 +317,7 @@ public class ReaperController implements Initializable {
         try {
             reaper.getCrawler().refreshProjects();
         } catch (DatabaseNotConnectedException ex) {
-            logger.log(Level.SEVERE, ex.getMessage());
+            loggerReaper.log(Level.SEVERE, ex.getMessage());
         }
     }
 
@@ -279,7 +326,7 @@ public class ReaperController implements Initializable {
         try {
             reaper.getCrawler().setupDatabase();
         } catch (DatabaseNotConnectedException ex) {
-            logger.log(Level.SEVERE, "Database isn't connected");
+            loggerReaper.log(Level.SEVERE, "Database isn't connected");
         }
     }
 
@@ -288,40 +335,48 @@ public class ReaperController implements Initializable {
         try {
             reaper.getCrawler().removeDatabase();
         } catch (DatabaseNotConnectedException ex) {
-            logger.log(Level.SEVERE, "Database isn't connected");
+            loggerReaper.log(Level.SEVERE, "Database isn't connected");
         }
     }
 
     @FXML
     public void databaseConnect() {
-        reaper.getCrawler().databaseConnect();
-        refreshProjects();
+        try {
+            reaper.getCrawler().databaseConnect();
+            refreshProjects();
+        } catch (IOException | OStorageException ex) {
+            loggerReaper.log(Level.SEVERE, ex.getMessage());
+        }
     }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        logger.addHandler(new FlowHandler(this.console));
+        loggerReaper.addHandler(new FlowHandler(this.consoleReaper));
+        this.consoleReaper.getChildren().addListener((ListChangeListener.Change<? extends Node> c) -> {
+            consoleReaperScroll.setVvalue(consoleReaperScroll.getVmax());
+        });
+
+        loggerMiner.addHandler(new FlowHandler(this.consoleMiner));
+        this.consoleMiner.getChildren().addListener((ListChangeListener.Change<? extends Node> c) -> {
+            consoleMinerScroll.setVvalue(consoleMinerScroll.getVmax());
+        });
 
         WebEngine engine = sitemap.getEngine();
         engine.setOnError((WebErrorEvent event) -> {
-            logger.log(Level.WARNING, "WebError: " + event.getMessage());
+            loggerReaper.log(Level.WARNING, "WebError: " + event.getMessage());
         });
 
         String sitemapURL = Reaper.class.getResource("view/sitemap.html").toExternalForm();
         engine.load(sitemapURL);
-        this.console.getChildren().addListener((ListChangeListener.Change<? extends Node> c) -> {
-            consoleScroll.setVvalue(consoleScroll.getVmax());
-        });
         engine.setOnError((WebErrorEvent event) -> {
-            logger.log(Level.WARNING, event.toString());
+            loggerReaper.log(Level.WARNING, event.toString());
         });
 
         engine.setOnAlert((WebEvent<String> event) -> {
-            logger.log(Level.INFO, event.toString());
+            loggerReaper.log(Level.INFO, event.toString());
         });
 
         maxDepth.setTextFormatter(new TextFormatter<>(new NumberStringConverter(NumberFormat.getIntegerInstance())));
-        maxDownloads.setTextFormatter(new TextFormatter<>(new NumberStringConverter(NumberFormat.getIntegerInstance())));
     }
 
     public void setReaper(Reaper reaper) {
@@ -330,8 +385,8 @@ public class ReaperController implements Initializable {
         Crawler dom = this.reaper.getCrawler();
 
         this.hostname.textProperty().bindBidirectional(dom.hostnameProperty());
-        this.maxDownloads.textProperty().bindBidirectional(dom.maxDownloadsProperty(), new NumberStringConverter());
         this.maxDepth.textProperty().bindBidirectional(dom.maxDepthProperty(), new NumberStringConverter());
+        this.projectName.textProperty().bindBidirectional(dom.nameProperty());
 
         this.databaseHost.textProperty().bindBidirectional(dom.dbHost());
         this.databasePassword.textProperty().bindBidirectional(dom.dbPassword());
@@ -372,44 +427,74 @@ public class ReaperController implements Initializable {
 
         ContextMenu projectMenu = new ContextMenu();
         MenuItem projectViewItem = new MenuItem("View Project");
-        projectViewItem.setOnAction(new EventHandler<ActionEvent>() {
-
-            @Override
-            public void handle(ActionEvent event) {
-                Project proj = projectTable.getSelectionModel().getSelectedItem();
-                try {
-                    dom.loadProject(proj);
-                    tabPane.getSelectionModel().select(projectOptionsTab);
-                } catch (DatabaseNotConnectedException ex) {
-                    logger.log(Level.SEVERE, ex.getMessage());
-                }
+        projectViewItem.setOnAction((ActionEvent event) -> {
+            Project proj = projectTable.getSelectionModel().getSelectedItem();
+            try {
+                Map<String, Long> stats = dom.loadProject(proj);
+                overviewStatus.setTitle("Crawled nodes");
+                overviewStatus.setData(FXCollections.observableArrayList(
+                        new PieChart.Data("DOM nodes", stats.get("DOM")),
+                        new PieChart.Data("File nodes", stats.get("FILE")),
+                        new PieChart.Data("Not scanned nodes", stats.get("OUTSIDE"))
+                ));
+                tabPane.getSelectionModel().select(projectOptionsTab);
+            } catch (DatabaseNotConnectedException ex) {
+                loggerReaper.log(Level.SEVERE, ex.getMessage());
             }
         });
         MenuItem projectDeleteItem = new MenuItem("Delete Project");
-        projectDeleteItem.setOnAction(new EventHandler<ActionEvent>() {
+        projectDeleteItem.setOnAction((ActionEvent event) -> {
+            Project proj = projectTable.getSelectionModel().getSelectedItem();
+            try {
+                dom.deleteProject(proj);
+            } catch (DatabaseNotConnectedException ex) {
+                loggerReaper.log(Level.SEVERE, ex.getMessage());
+            }
+        });
+        MenuItem projectTruncateItem = new MenuItem("Delete Project data");
+        projectTruncateItem.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent event) {
-                Project proj = projectTable.getSelectionModel().getSelectedItem();
-                try {
-                    dom.deleteProject(proj);
-                } catch (DatabaseNotConnectedException ex) {
-                    logger.log(Level.SEVERE, ex.getMessage());
-                }
+
             }
         });
-        projectMenu.getItems().addAll(projectViewItem);
-        projectMenu.getItems().addAll(projectDeleteItem);
+        projectMenu.getItems().add(projectViewItem);
+        projectMenu.getItems().add(projectDeleteItem);
+        projectMenu.getItems().add(projectTruncateItem);
         projectTable.setContextMenu(projectMenu);
 
         //resourceTable
         resourceTable.setItems(dom.activeResources());
         resourceTable.setEditable(false);
-        resourceCodeColumn.setCellValueFactory(cellData -> cellData.getValue().codeProperty());
-        resourceMimeTypeColumn.setCellValueFactory(cellData -> cellData.getValue().mimeTypeProperty());
-        resourcePathColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getPath()));
+        //Value factories
+        resourceCodeColumn.setCellValueFactory(
+                cellData -> cellData.getValue().codeProperty()
+        );
+        resourceMimeTypeColumn.setCellValueFactory(
+                cellData -> cellData.getValue().mimeTypeProperty()
+        );
+        resourcePathColumn.setCellValueFactory(
+                cellData -> cellData.getValue().pathProperty()
+        );
         resourceURLColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getURL().toString()));
         resourceTypeColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getType().toString()));
+
+        //Cell factories
+        resourcePathColumn.setCellFactory(column -> {
+            return new TableCell<Resource, String>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(item);
+                    }
+                }
+            };
+        });
 
         ContextMenu menu = new ContextMenu();
         MenuItem item = new MenuItem("View Resource");
@@ -446,17 +531,24 @@ public class ReaperController implements Initializable {
         blacklistTable.setItems(dom.blacklistProperty());
         blacklistColumn.setCellValueFactory((CellDataFeatures<URL, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().toString()));
         ContextMenu blacklistMenu = new ContextMenu();
-        MenuItem removeBlacklistItem = new MenuItem("Remove");
-        removeBlacklistItem.setOnAction(new EventHandler<ActionEvent>() {
-
-            @Override
-            public void handle(ActionEvent event) {
-
-                //.remove(blacklistTable.getSelectionModel().getSelectedIndex());
-            }
+        MenuItem removeBlacklistItem = new MenuItem("Remove Item");
+        removeBlacklistItem.setOnAction((ActionEvent event) -> {
+            //TODO
         });
-        blacklistTable.setContextMenu(blacklistMenu);
         blacklistMenu.getItems().add(removeBlacklistItem);
+        blacklistTable.setContextMenu(blacklistMenu);
+
+        //whitelistTable
+        whitelistTable.setEditable(false);
+        whitelistTable.setItems(dom.whitelistProperty());
+        blacklistColumn.setCellValueFactory((CellDataFeatures<URL, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().toString()));
+        ContextMenu whitelistMenu = new ContextMenu();
+        MenuItem removeWhitelistItem = new MenuItem("Remove Item");
+        removeWhitelistItem.setOnAction((ActionEvent event) -> {
+            //TODO
+        });
+        whitelistMenu.getItems().add(removeWhitelistItem);
+        whitelistTable.setContextMenu(whitelistMenu);
 
         //overview
         overviewResourceLabel.textProperty().bindBidirectional(dom.resourcesCountProperty(), new NumberStringConverter());
@@ -475,29 +567,25 @@ public class ReaperController implements Initializable {
         });
 
         //Database connecter watchener
-        dom.connectionStatus().addListener(new ChangeListener<Boolean>() {
-
-            @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-                if (newValue) {
-                    databaseStatusLabel.setText("connected");
-                    databaseStatusLabel.setTextFill(Color.web("green"));
-                } else {
-                    databaseStatusLabel.setText("not connected");
-                    databaseStatusLabel.setTextFill(Color.web("red"));
-                }
+        dom.connectionStatus().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            if (newValue) {
+                databaseStatusLabel.setText("connected");
+                databaseStatusLabel.setTextFill(Color.web("green"));
+            } else {
+                databaseStatusLabel.setText("not connected");
+                databaseStatusLabel.setTextFill(Color.web("red"));
             }
         });
     }
 
     private void lockUnlockControls(boolean value) {
         hostname.setDisable(value);
-        maxDownloads.setDisable(value);
         maxDepth.setDisable(value);
         databaseHost.setDisable(value);
         databasePassword.setDisable(value);
         databaseUser.setDisable(value);
         addBlacklistItemButton.setDisable(value);
+        addWhitelistItemButton.setDisable(value);
         startMiningButton.setDisable(value);
         stopMiningButton.setDisable(value);
         clearDataButton.setDisable(value);
@@ -515,7 +603,7 @@ public class ReaperController implements Initializable {
             ResourceController controller = loader.<ResourceController>getController();
             controller.loadResource(res);
         } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Couldn't change Panel, probably wrong url of FXML file.");
+            loggerReaper.log(Level.SEVERE, "Couldn't change Panel, probably wrong url of FXML file.");
         }
 
     }
@@ -528,7 +616,7 @@ public class ReaperController implements Initializable {
             try {
                 this.sitemap.getEngine().executeScript(edge);
             } catch (JSException ex) {
-                logger.log(Level.WARNING, ex.toString());
+                loggerReaper.log(Level.WARNING, ex.toString());
             }
         }
     }
@@ -539,7 +627,7 @@ public class ReaperController implements Initializable {
             try {
                 this.sitemap.getEngine().executeScript(edge);
             } catch (JSException ex) {
-                logger.log(Level.WARNING, ex.toString());
+                loggerReaper.log(Level.WARNING, ex.toString());
             }
         }
     }
@@ -550,7 +638,7 @@ public class ReaperController implements Initializable {
         try {
             this.sitemap.getEngine().executeScript(script);
         } catch (JSException ex) {
-            logger.log(Level.WARNING, ex.toString());
+            loggerReaper.log(Level.WARNING, ex.toString());
         }
     }
 
@@ -559,16 +647,16 @@ public class ReaperController implements Initializable {
         try {
             this.sitemap.getEngine().executeScript(script);
         } catch (JSException ex) {
-            logger.log(Level.WARNING, ex.toString());
+            loggerReaper.log(Level.WARNING, ex.toString());
         }
     }
 
     private void enableFirebug() {
         try {
-            logger.log(Level.FINE, "Firebug started");
+            loggerReaper.log(Level.FINE, "Firebug started");
             this.sitemap.getEngine().executeScript("if (!document.getElementById('FirebugLite')){E = document['createElement' + 'NS'] && document.documentElement.namespaceURI;E = E ? document['createElement' + 'NS'](E, 'script') : document['createElement']('script');E['setAttribute']('id', 'FirebugLite');E['setAttribute']('src', 'https://getfirebug.com/' + 'firebug-lite.js' + '#startOpened');E['setAttribute']('FirebugLite', '4');(document['getElementsByTagName']('head')[0] || document['getElementsByTagName']('body')[0]).appendChild(E);E = new Image;E['setAttribute']('src', 'https://getfirebug.com/' + '#startOpened');}");
         } catch (JSException ex) {
-            logger.log(Level.WARNING, ex.toString());
+            loggerReaper.log(Level.WARNING, ex.toString());
         }
     }
 
@@ -591,16 +679,7 @@ public class ReaperController implements Initializable {
             activeNode = node;
             createResourcePane(reaper.getCrawler().resources().get(node));
         } catch (DatabaseNotConnectedException ex) {
-            logger.log(Level.SEVERE, ex.getMessage());
+            loggerReaper.log(Level.SEVERE, ex.getMessage());
         }
     }
-
-    private void lockSettings() {
-        addBlacklistItemButton.setDisable(true);
-    }
-
-    private void unlockSettings() {
-        addBlacklistItemButton.setDisable(false);
-    }
-
 }

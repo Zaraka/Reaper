@@ -140,6 +140,10 @@ public class Link {
     public void addCount() {
         this.setCount(this.getCount() + 1);
     }
+    
+    public IntegerProperty countProperty(){
+        return this.count;
+    }
 
     public LinkType getType() {
         return this.type;

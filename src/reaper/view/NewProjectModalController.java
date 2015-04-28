@@ -12,7 +12,6 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -37,6 +36,7 @@ public class NewProjectModalController implements Initializable {
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
 
     private ObservableList<URL> blacklist;
+    private ObservableList<URL> whitelist;
     private URL domain;
     private boolean modalAccepted;
 
@@ -49,7 +49,11 @@ public class NewProjectModalController implements Initializable {
     @FXML
     private TableView<URL> blacklistTable;
     @FXML
+    private TableView<URL> whitelistTable;
+    @FXML
     private TableColumn<URL, String> blacklistColumn;
+    @FXML
+    private TableColumn<URL, String> whitelistColumn;
 
     @FXML
     private void addBlacklistItem() {
@@ -134,21 +138,28 @@ public class NewProjectModalController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         blacklist = FXCollections.observableArrayList();
+        whitelist = FXCollections.observableArrayList();
         modalAccepted = false;
 
         blacklistTable.setItems(blacklist);
         blacklistColumn.setCellValueFactory((TableColumn.CellDataFeatures<URL, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().toString()));
         ContextMenu blacklistMenu = new ContextMenu();
         MenuItem removeBlacklistItem = new MenuItem("Remove");
-        removeBlacklistItem.setOnAction(new EventHandler<ActionEvent>() {
-
-            @Override
-            public void handle(ActionEvent event) {
-                blacklist.remove(blacklistTable.getSelectionModel().getSelectedIndex());
-            }
+        removeBlacklistItem.setOnAction((ActionEvent event) -> {
+            blacklist.remove(blacklistTable.getSelectionModel().getSelectedIndex());
         });
         blacklistMenu.getItems().add(removeBlacklistItem);
         blacklistTable.setContextMenu(blacklistMenu);
+        
+        whitelistTable.setItems(whitelist);
+        whitelistColumn.setCellValueFactory((TableColumn.CellDataFeatures<URL, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().toString()));
+        ContextMenu whitelistMenu = new ContextMenu();
+        MenuItem removeWhitelistItem = new MenuItem("Remove");
+        removeBlacklistItem.setOnAction((ActionEvent event) -> {
+            whitelist.remove(whitelistTable.getSelectionModel().getSelectedIndex());
+        });
+        whitelistMenu.getItems().add(removeWhitelistItem);
+        whitelistTable.setContextMenu(whitelistMenu);
         
         depth.setTextFormatter(new TextFormatter<>(new NumberStringConverter(NumberFormat.getIntegerInstance())));
     }   
@@ -165,6 +176,10 @@ public class NewProjectModalController implements Initializable {
         return new ArrayList<>(blacklist);
     }
     
+    public ArrayList<URL> getWhitelist() {
+        return new ArrayList<>(whitelist);
+    }
+    
     public boolean getAccepted(){
         return modalAccepted;
     }
@@ -172,6 +187,4 @@ public class NewProjectModalController implements Initializable {
     public int getDepth(){
         return Integer.valueOf(depth.getText());
     }
-    
-
 }

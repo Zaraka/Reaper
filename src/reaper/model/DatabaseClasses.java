@@ -26,7 +26,7 @@ public enum DatabaseClasses {
             return "Form";
         }
     },
-    BLACKLIST {
+    BLACWHITEKLIST {
         @Override
         public String getType() {
             return "V";
@@ -34,7 +34,7 @@ public enum DatabaseClasses {
 
         @Override
         public String getName() {
-            return "Blacklist";
+            return "BlackWhitelist";
         }
     },
     PROJECT {

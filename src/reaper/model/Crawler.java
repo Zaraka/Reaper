@@ -8,7 +8,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -35,13 +36,14 @@ import reaper.exceptions.DatabaseNotConnectedException;
  */
 public class Crawler {
 
-    private static final Logger logger = Logger.getLogger(Reaper.class.getName());
+    private static final Logger loggerReaper = Logger.getLogger(Reaper.class.getName());
 
     private final ObservableMap<String, Resource> resources;
-    private final ObservableList<Resource> activeResources; //Nasty hack
+    private final ObservableList<Resource> activeResources; //Nasty hack bacause Map
     private final ObservableList<Link> links;
     private final ObservableList<Project> projects;
     private final ObservableList<URL> blacklist;
+    private final ObservableList<URL> whitelist;
     private final StringProperty hostname;
     private final IntegerProperty maxDownloads;
     private final IntegerProperty maxDepth;
@@ -50,6 +52,7 @@ public class Crawler {
     private final StringProperty dbPassword;
     private final IntegerProperty resourcesCount;
     private final IntegerProperty linksCount;
+    private final StringProperty name;
     private final BooleanProperty minerBusy;
     private final ReaperDatabase database;
     private final Preferences prefs;
@@ -70,28 +73,30 @@ public class Crawler {
         this.resourcesCount = new SimpleIntegerProperty(0);
         this.linksCount = new SimpleIntegerProperty(0);
         this.blacklist = FXCollections.observableArrayList();
+        this.whitelist = FXCollections.observableArrayList();
         this.minerBusy = new SimpleBooleanProperty(false);
         this.minerService = new MinerService();
         this.database = new ReaperDatabase();
         this.projects = FXCollections.observableArrayList();
         this.activeResources = FXCollections.observableArrayList();
+        this.name = new SimpleStringProperty("");
         this.activeProject = null;
 
         this.init();
 
         dbHost.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             prefs.put(PreferenceKeys.DB_HOST.getKey(), newValue);
-            logger.log(Level.INFO, "dbHost changed");
+            loggerReaper.log(Level.INFO, "dbHost changed");
         });
 
         dbPassword.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             prefs.put(PreferenceKeys.DB_PASS.getKey(), newValue);
-            logger.log(Level.INFO, "dbPass changed");
+            loggerReaper.log(Level.INFO, "dbPass changed");
         });
 
         dbUser.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             prefs.put(PreferenceKeys.DB_USER.getKey(), newValue);
-            logger.log(Level.INFO, "dbUser changed");
+            loggerReaper.log(Level.INFO, "dbUser changed");
         });
     }
 
@@ -105,14 +110,11 @@ public class Crawler {
 
     /**
      * Connects to database
+     * @throws java.io.IOException
      */
-    public void databaseConnect() {
-        try {
+    public void databaseConnect() throws IOException, OStorageException {
             database.connect(getDbHost(), getDbUser(), getDbPassword());
             minerService.databaseConnect(getDbHost(), getDbUser(), getDbPassword());
-        } catch (IOException | OStorageException ex) {
-            logger.log(Level.SEVERE, ex.getMessage());
-        }
     }
 
     public void databaseDisconnect() {
@@ -134,14 +136,14 @@ public class Crawler {
             }  
         };
         setupTask.setOnSucceeded((WorkerStateEvent event) -> {
-            logger.log(Level.INFO, "Database created");
+            loggerReaper.log(Level.INFO, "Database created");
         });
         setupTask.setOnFailed((WorkerStateEvent event) -> {
             if (event.getSource().getException() != null) {
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
                 event.getSource().getException().printStackTrace(pw);
-                logger.log(Level.SEVERE, sw.toString());
+                loggerReaper.log(Level.SEVERE, sw.toString());
             }
         });
         new Thread(setupTask).start();
@@ -161,14 +163,14 @@ public class Crawler {
             }
         };
         teardownTask.setOnSucceeded((WorkerStateEvent event) -> {
-            logger.log(Level.INFO, "Database dropped");
+            loggerReaper.log(Level.INFO, "Database dropped");
         });
         teardownTask.setOnFailed((WorkerStateEvent event) -> {
             if (event.getSource().getException() != null) {
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
                 event.getSource().getException().printStackTrace(pw);
-                logger.log(Level.SEVERE, sw.toString());
+                loggerReaper.log(Level.SEVERE, sw.toString());
             }
         });
         new Thread(teardownTask).start();
@@ -176,7 +178,7 @@ public class Crawler {
 
     public void dataReset() {
         if (this.minerService.isRunning()) {
-            logger.log(Level.WARNING, "Cant clear data while miner is running");
+            loggerReaper.log(Level.WARNING, "Cant clear data while miner is running");
             return;
         }
 
@@ -189,12 +191,11 @@ public class Crawler {
         }
 
         if (activeProject == null) {
-            logger.log(Level.SEVERE, "Project not set");
+            loggerReaper.log(Level.SEVERE, "Project not set");
             return;
         }
 
         clearData();
-        blacklist.clear();
         database.removeProject(activeProject);
 
         refreshProjects();
@@ -219,14 +220,13 @@ public class Crawler {
         }
 
         if (activeProject == null) {
-            logger.log(Level.SEVERE, "Project not set");
+            loggerReaper.log(Level.SEVERE, "Project not set");
             return;
         }
 
         clearData();
-        blacklist.clear();
         database.truncateProject(activeProject);
-        logger.log(Level.INFO, "Project data deleted");
+        loggerReaper.log(Level.INFO, "Project data deleted");
     }
 
     public void updateDBPref() {
@@ -235,7 +235,11 @@ public class Crawler {
         prefs.put(PreferenceKeys.DB_PASS.getKey(), getDbPassword());
     }
 
-    public void loadAll() {
+    public void loadAll() throws DatabaseNotConnectedException{
+        if (!database.isConnected()) {
+            throw new DatabaseNotConnectedException("Database is not connected");
+        }
+        
         clearData();
         database.loadAll(resources, links, activeProject.getCluster());
     }
@@ -244,7 +248,7 @@ public class Crawler {
         if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
-
+        
         if (activeProject.getRoot() != null) {
             database.loadResource(
                     activeProject.getRoot(),
@@ -264,17 +268,16 @@ public class Crawler {
         activeResources.setAll(resources.values()); //LOL
     }
 
-    public void createProject(String name, URL domain, int depth, ArrayList<URL> blacklist) throws DatabaseNotConnectedException {
+    public void createProject(String name, URL domain, int depth, List<URL> blacklist, List<URL> whitelist) throws DatabaseNotConnectedException {
         if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
 
-        database.createProject(name, domain, depth, blacklist);
+        database.createProject(name, domain, depth, blacklist, whitelist);
     }
 
-    public void loadProject(Project proj) throws DatabaseNotConnectedException {
+    public Map<String, Long> loadProject(Project proj) throws DatabaseNotConnectedException {
         clearData();
-        blacklist.clear();
 
         activeProject = proj;
 
@@ -282,14 +285,17 @@ public class Crawler {
         try {
             activeProject.update(graph);
             if (activeProject.getRoot() == null) {
-                logger.log(Level.INFO, "Project not yet mined");
+                loggerReaper.log(Level.INFO, "Project not yet mined");
             } else {
                 loadResource(activeProject.getRoot());
             }
+            blacklist.addAll(activeProject.getBlacklist());
+            whitelist.addAll(activeProject.getWhitelist());
         } finally {
             graph.shutdown();
         }
         setHostname(activeProject.getDomain().toString());
+        setName(activeProject.getName());
         
         ODatabaseDocumentTx oDB = database.getDatabase().getDatabase();
         try {
@@ -298,42 +304,45 @@ public class Crawler {
         } finally {
             oDB.close();
         }
+        
+        return database.getStatistics(activeProject);
     }
 
     private void init() {
         try {
             minerService.init();
         } catch (OStorageException ex) {
-            logger.log(Level.SEVERE, ex.toString());
+            loggerReaper.log(Level.SEVERE, ex.toString());
         }
         minerService.setOnSucceeded((WorkerStateEvent event) -> {
             try {
                 loadProject(activeProject);
             } catch (DatabaseNotConnectedException ex) {
-                logger.log(Level.SEVERE, ex.getMessage());
+                loggerReaper.log(Level.SEVERE, ex.getMessage());
             }
             this.minerService.reset();
             this.setMinerBusy(false);
-            logger.log(Level.INFO, "Mining finished");
+            loggerReaper.log(Level.INFO, "Mining finished");
+            loggerReaper.log(Level.INFO, database.getStatistics(activeProject).toString());
         });
         minerService.setOnFailed((WorkerStateEvent event) -> {
             this.setMinerBusy(false);
-            logger.log(Level.SEVERE, "Mining failed");
+            loggerReaper.log(Level.SEVERE, "Mining failed");
             if (event.getSource().getException() != null) {
-                logger.log(Level.SEVERE, event.getSource().getMessage());
+                loggerReaper.log(Level.SEVERE, event.getSource().getMessage());
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
                 event.getSource().getException().printStackTrace(pw);
-                logger.log(Level.SEVERE, sw.toString());
+                loggerReaper.log(Level.SEVERE, sw.toString());
             }
         });
         minerService.setOnRunning((WorkerStateEvent event) -> {
             this.setMinerBusy(true);
-            logger.log(Level.INFO, "Mining service started");
+            loggerReaper.log(Level.INFO, "Mining service started");
         });
         minerService.setOnCancelled((WorkerStateEvent event) -> {
             this.setMinerBusy(false);
-            logger.log(Level.INFO, "Mining canceled");
+            loggerReaper.log(Level.INFO, "Mining canceled");
         });
 
         //minerService.set
@@ -341,11 +350,10 @@ public class Crawler {
 
     public void mineStart() throws MalformedURLException {
         if (!minerService.isRunning()) {
-            logger.log(Level.INFO, "Request mining on " + hostname.get());
+            loggerReaper.log(Level.INFO, "Request mining on " + hostname.get());
 
             //delete data
             clearData();
-            blacklist.clear();
 
             URL url = new URL(hostname.get());
             activeProject.setDomain(url);
@@ -380,9 +388,14 @@ public class Crawler {
     }
 
     private void clearData() {
-        this.activeResources.clear();
-        this.links.clear();
-        this.resources.clear();
+        activeResources.clear();
+        links.clear();
+        resources.clear();
+    }
+    
+    private void clearBlacklists() {
+        blacklist.clear();
+        whitelist.clear();
     }
 
     //GETs & SETs
@@ -405,6 +418,18 @@ public class Crawler {
 
     public StringProperty hostnameProperty() {
         return this.hostname;
+    }
+    
+    public final String getName() {
+        return this.name.get();
+    }
+    
+    public final void setName(String name) {
+        this.name.set(name);
+    }
+    
+    public final StringProperty nameProperty(){
+        return this.name;
     }
 
     public final int getMaxDownloads() {
@@ -493,6 +518,10 @@ public class Crawler {
 
     public ObservableList<URL> blacklistProperty() {
         return this.blacklist;
+    }
+    
+    public ObservableList<URL> whitelistProperty() {
+        return this.whitelist;
     }
 
     public boolean getMinerBusy() {

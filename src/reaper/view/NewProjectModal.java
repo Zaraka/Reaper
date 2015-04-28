@@ -57,6 +57,10 @@ public class NewProjectModal extends Stage{
         return controller.getBlacklist();
     }
     
+    public ArrayList<URL> getWhitelist(){
+        return controller.getWhitelist();
+    }
+    
     public boolean getAccepted(){
         return controller.getAccepted();
     }
