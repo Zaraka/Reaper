@@ -480,22 +480,6 @@ public class ReaperController implements Initializable {
         resourceURLColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getURL().toString()));
         resourceTypeColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getType().toString()));
 
-        //Cell factories
-        resourcePathColumn.setCellFactory(column -> {
-            return new TableCell<Resource, String>() {
-                @Override
-                protected void updateItem(String item, boolean empty) {
-                    super.updateItem(item, empty);
-
-                    if (empty || item == null) {
-                        setText(null);
-                    } else {
-                        setText(item);
-                    }
-                }
-            };
-        });
-
         ContextMenu menu = new ContextMenu();
         MenuItem item = new MenuItem("View Resource");
         item.setOnAction(new EventHandler() {
@@ -521,10 +505,10 @@ public class ReaperController implements Initializable {
             }
         };
 
-        GenericCellFactory resourceClickCellFactory = new GenericCellFactory(clickResourceTable, menu);
+        /*GenericCellFactory resourceClickCellFactory = new GenericCellFactory(clickResourceTable, menu);
         resourceMimeTypeColumn.setCellFactory(resourceClickCellFactory);
         resourcePathColumn.setCellFactory(resourceClickCellFactory);
-        resourceURLColumn.setCellFactory(resourceClickCellFactory);
+        resourceURLColumn.setCellFactory(resourceClickCellFactory);*/
 
         //blacklistTable
         blacklistTable.setEditable(false);
