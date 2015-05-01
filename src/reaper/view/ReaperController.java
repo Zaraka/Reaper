@@ -10,18 +10,20 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -30,17 +32,14 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -49,6 +48,7 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebErrorEvent;
 import javafx.scene.web.WebEvent;
 import javafx.scene.web.WebView;
+import javafx.stage.Stage;
 import javafx.util.converter.NumberStringConverter;
 import netscape.javascript.JSException;
 import netscape.javascript.JSObject;
@@ -119,7 +119,7 @@ public class ReaperController implements Initializable {
     @FXML
     private ScrollPane consolePostScannerScroll;
     @FXML
-    private Tab detailsTab;
+    private Tab statsTab;
     @FXML
     private Tab projectOptionsTab;
     @FXML
@@ -128,12 +128,6 @@ public class ReaperController implements Initializable {
     private TabPane tabPane;
     @FXML
     private CheckBox displayGraph;
-    @FXML
-    private TextField databaseHost;
-    @FXML
-    private TextField databaseUser;
-    @FXML
-    private PasswordField databasePassword;
     @FXML
     private StackPane detailsPanel;
     @FXML
@@ -151,12 +145,6 @@ public class ReaperController implements Initializable {
     @FXML
     private Button clearDataButton;
     @FXML
-    private Button changeDatabaseButton;
-    @FXML
-    private Button setupDatabaseButton;
-    @FXML
-    private Button deleteDatabaseButton;
-    @FXML
     private Label databaseStatusLabel;
     @FXML
     private Button databaseConnectButton;
@@ -165,7 +153,13 @@ public class ReaperController implements Initializable {
     @FXML
     private Text projectName;
     @FXML
-    private PieChart overviewStatus;
+    private PieChart chartOverviewStatus;
+    @FXML
+    private PieChart chartCodesStatus;
+    @FXML
+    private Button createNewProjectButton;
+    @FXML
+    private Button loadRootButton;
 
     @FXML
     private void startMining(ActionEvent event) {
@@ -322,24 +316,6 @@ public class ReaperController implements Initializable {
     }
 
     @FXML
-    public void setupDatabase() {
-        try {
-            reaper.getCrawler().setupDatabase();
-        } catch (DatabaseNotConnectedException ex) {
-            loggerReaper.log(Level.SEVERE, "Database isn't connected");
-        }
-    }
-
-    @FXML
-    public void teardownDatabase() {
-        try {
-            reaper.getCrawler().removeDatabase();
-        } catch (DatabaseNotConnectedException ex) {
-            loggerReaper.log(Level.SEVERE, "Database isn't connected");
-        }
-    }
-
-    @FXML
     public void databaseConnect() {
         try {
             reaper.getCrawler().databaseConnect();
@@ -347,6 +323,47 @@ public class ReaperController implements Initializable {
         } catch (IOException | OStorageException ex) {
             loggerReaper.log(Level.SEVERE, ex.getMessage());
         }
+    }
+    
+    @FXML
+    public void databaseDisconnect() {
+        reaper.getCrawler().databaseDisconnect();
+    }
+    
+    @FXML
+    public void showAbout(){
+        Parent root;
+        try {
+            root = FXMLLoader.load(getClass().getResource("About.fxml"));
+            Stage stage = new Stage();
+            stage.setTitle("About Reaper");
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (IOException e) {
+            loggerReaper.log(Level.SEVERE, e.getMessage());
+        }
+    }
+    
+    @FXML
+    public void showSettings(){
+        Parent root;
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("Settings.fxml"));
+            root = loader.load();
+            Stage stage = new Stage();
+            stage.setTitle("Settings");
+            stage.setScene(new Scene(root));
+            SettingsController controller = loader.getController();
+            controller.setReaper(reaper);
+            stage.show();
+        } catch (IOException e) {
+            loggerReaper.log(Level.SEVERE, e.getMessage());
+        }
+    }
+    
+    @FXML
+    public void exitReaper(){
+        Platform.exit();
     }
 
     @Override
@@ -388,10 +405,6 @@ public class ReaperController implements Initializable {
         this.maxDepth.textProperty().bindBidirectional(dom.maxDepthProperty(), new NumberStringConverter());
         this.projectName.textProperty().bindBidirectional(dom.nameProperty());
 
-        this.databaseHost.textProperty().bindBidirectional(dom.dbHost());
-        this.databasePassword.textProperty().bindBidirectional(dom.dbPassword());
-        this.databaseUser.textProperty().bindBidirectional(dom.dbUser());
-
         dom.resources().addListener((MapChangeListener.Change<? extends String, ? extends Resource> change) -> {
             if (displayGraph.isSelected()) {
                 if (change.wasRemoved()) {
@@ -431,8 +444,8 @@ public class ReaperController implements Initializable {
             Project proj = projectTable.getSelectionModel().getSelectedItem();
             try {
                 Map<String, Long> stats = dom.loadProject(proj);
-                overviewStatus.setTitle("Crawled nodes");
-                overviewStatus.setData(FXCollections.observableArrayList(
+                chartOverviewStatus.setTitle("Crawled nodes");
+                chartOverviewStatus.setData(FXCollections.observableArrayList(
                         new PieChart.Data("DOM nodes", stats.get("DOM")),
                         new PieChart.Data("File nodes", stats.get("FILE")),
                         new PieChart.Data("Not scanned nodes", stats.get("OUTSIDE"))
@@ -479,36 +492,6 @@ public class ReaperController implements Initializable {
         );
         resourceURLColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getURL().toString()));
         resourceTypeColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getType().toString()));
-
-        ContextMenu menu = new ContextMenu();
-        MenuItem item = new MenuItem("View Resource");
-        item.setOnAction(new EventHandler() {
-            @Override
-            public void handle(Event event) {
-                Resource res = resourceTable.getSelectionModel().getSelectedItem();
-                createResourcePane(res);
-                SingleSelectionModel<Tab> selectionModel = tabPane.getSelectionModel();
-                selectionModel.select(detailsTab);
-            }
-        });
-        menu.getItems().addAll(item);
-
-        EventHandler clickResourceTable = new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (event.getClickCount() == 2) {
-                    Resource res = (Resource) resourceTable.getItems().get(((TableCell) event.getSource()).getIndex());
-                    createResourcePane(res);
-                    SingleSelectionModel<Tab> selectionModel = tabPane.getSelectionModel();
-                    selectionModel.select(detailsTab);
-                }
-            }
-        };
-
-        /*GenericCellFactory resourceClickCellFactory = new GenericCellFactory(clickResourceTable, menu);
-        resourceMimeTypeColumn.setCellFactory(resourceClickCellFactory);
-        resourcePathColumn.setCellFactory(resourceClickCellFactory);
-        resourceURLColumn.setCellFactory(resourceClickCellFactory);*/
 
         //blacklistTable
         blacklistTable.setEditable(false);
@@ -565,18 +548,14 @@ public class ReaperController implements Initializable {
     private void lockUnlockControls(boolean value) {
         hostname.setDisable(value);
         maxDepth.setDisable(value);
-        databaseHost.setDisable(value);
-        databasePassword.setDisable(value);
-        databaseUser.setDisable(value);
         addBlacklistItemButton.setDisable(value);
         addWhitelistItemButton.setDisable(value);
         startMiningButton.setDisable(value);
         stopMiningButton.setDisable(value);
         clearDataButton.setDisable(value);
-        changeDatabaseButton.setDisable(value);
-        setupDatabaseButton.setDisable(value);
-        deleteDatabaseButton.setDisable(value);
         deleteProjectButton.setDisable(value);
+        createNewProjectButton.setDisable(value);
+        loadRootButton.setDisable(value);
     }
 
     private void createResourcePane(Resource res) {

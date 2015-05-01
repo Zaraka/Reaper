@@ -17,6 +17,36 @@
    <children>
       <VBox prefHeight="611.0" prefWidth="815.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
+            <MenuBar>
+               <menus>
+                  <Menu mnemonicParsing="false" text="File">
+                     <items>
+                        <MenuItem mnemonicParsing="false" onAction="#createNewProject" text="New Project" />
+                        <MenuItem mnemonicParsing="false" text="Close Project" />
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                        <MenuItem mnemonicParsing="false" onAction="#exitReaper" text="Close" />
+                     </items>
+                  </Menu>
+                  <Menu mnemonicParsing="false" text="View">
+                    <items>
+                        <CheckMenuItem mnemonicParsing="false" text="Create sitemap graph" />
+                    </items>
+                  </Menu>
+                  <Menu mnemonicParsing="false" text="Database">
+                    <items>
+                      <MenuItem mnemonicParsing="false" onAction="#databaseConnect" text="Connect/Reload" />
+                        <MenuItem mnemonicParsing="false" onAction="#databaseDisconnect" text="Disconnect" />
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                        <MenuItem mnemonicParsing="false" onAction="#openSettings" text="Settings" />
+                    </items>
+                  </Menu>
+                  <Menu mnemonicParsing="false" text="Help">
+                     <items>
+                        <MenuItem mnemonicParsing="false" onAction="#showAbout" text="About" />
+                     </items>
+                  </Menu>
+               </menus>
+            </MenuBar>
             <HBox>
                <children>
                   <Button fx:id="databaseConnectButton" mnemonicParsing="false" onAction="#databaseConnect">
@@ -43,7 +73,7 @@
                                        <children>
                                           <VBox prefHeight="527.0" prefWidth="947.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                              <children>
-                                                <TableView fx:id="projectTable" prefHeight="373.0" prefWidth="927.0">
+                                                <TableView fx:id="projectTable" prefHeight="448.0" prefWidth="927.0">
                                                   <columns>
                                                     <TableColumn fx:id="projectNameColumn" prefWidth="150.0" text="Name" />
                                                     <TableColumn fx:id="projectDomainColumn" minWidth="0.0" prefWidth="599.0" text="Domain" />
@@ -60,7 +90,7 @@
                                                             <FontAwesomeIcon glyphName="REFRESH" />
                                                          </graphic>
                                                       </Button>
-                                                      <Button mnemonicParsing="false" onAction="#createNewProject" text="Create New Project">
+                                                      <Button fx:id="createNewProjectButton" mnemonicParsing="false" onAction="#createNewProject" text="Create New Project">
                                                          <graphic>
                                                             <FontAwesomeIcon glyphName="FILE" />
                                                          </graphic></Button>
@@ -72,7 +102,7 @@
                                     </AnchorPane>
                                 </content>
                               </Tab>
-                              <Tab text="Reaper Options">
+                              <Tab text="Options">
                                 <content>
                                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                        <padding>
@@ -115,7 +145,7 @@
                                                          <graphic>
                                                             <FontAwesomeIcon fill="RED" glyphName="TIMES" />
                                                          </graphic></Button>
-                                                      <Button mnemonicParsing="false" onAction="#clearData" text="Truncate Tables" />
+                                                      <Button fx:id="truncateTablesButton" mnemonicParsing="false" onAction="#clearData" text="Truncate Tables" />
                                                    </children>
                                                 </HBox>
                                              </children>
@@ -231,7 +261,6 @@
                                                           </TitledPane>
                                                         </panes>
                                                       </Accordion>
-                                                      <PieChart fx:id="overviewStatus" />
                                                    </children>
                                                 </VBox>
                                              </content>
@@ -243,7 +272,7 @@
                                     </AnchorPane>
                                  </content>
                               </Tab>
-                              <Tab text="View">
+                              <Tab text="Results">
                                 <content>
                                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                        <children>
@@ -251,11 +280,10 @@
                                              <children>
                                                 <HBox>
                                                    <children>
-                                                      <Button mnemonicParsing="false" onAction="#overviewGetRoot" text="Load Root" />
-                                                      <Button mnemonicParsing="false" onAction="#overviewLoadAll" text="Load All" />
+                                                      <Button fx:id="loadRootButton" mnemonicParsing="false" onAction="#overviewGetRoot" text="Load Root" />
                                                    </children>
                                                 </HBox>
-                                                <SplitPane dividerPositions="0.5610810810810811" prefHeight="503.0" prefWidth="947.0">
+                                                <SplitPane dividerPositions="0.4594594594594595" prefHeight="503.0" prefWidth="947.0">
                                                   <items>
                                                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                                                          <children>
@@ -264,18 +292,43 @@
                                                       </AnchorPane>
                                                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                                                          <children>
-                                                            <TableView fx:id="resourceTable" prefHeight="491.0" prefWidth="402.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                                              <columns>
-                                                                  <TableColumn fx:id="resourceURLColumn" prefWidth="350.0" text="URL" />
-                                                                <TableColumn fx:id="resourceCodeColumn" prefWidth="70.0" text="Code" />
-                                                                  <TableColumn fx:id="resourceMimeTypeColumn" prefWidth="85.0" text="Mime-Type" />
-                                                                  <TableColumn fx:id="resourceTypeColumn" prefWidth="75.0" text="Resource" />
-                                                                <TableColumn fx:id="resourcePathColumn" prefWidth="200.0" text="Path" />
-                                                              </columns>
-                                                               <columnResizePolicy>
-                                                                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                                                               </columnResizePolicy>
-                                                            </TableView>
+                                                            <TabPane prefHeight="466.0" prefWidth="402.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                              <tabs>
+                                                                <Tab text="Nodes">
+                                                                  <content>
+                                                                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                                                           <children>
+                                                                              <TableView fx:id="resourceTable" prefHeight="433.0" prefWidth="402.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                                                <columns>
+                                                                                    <TableColumn fx:id="resourceURLColumn" prefWidth="350.0" text="URL" />
+                                                                                  <TableColumn fx:id="resourceCodeColumn" prefWidth="70.0" text="Code" />
+                                                                                    <TableColumn fx:id="resourceMimeTypeColumn" prefWidth="85.0" text="Mime-Type" />
+                                                                                    <TableColumn fx:id="resourceTypeColumn" prefWidth="75.0" text="Resource" />
+                                                                                  <TableColumn fx:id="resourcePathColumn" prefWidth="200.0" text="Path" />
+                                                                                </columns>
+                                                                                 <columnResizePolicy>
+                                                                                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                                                                 </columnResizePolicy>
+                                                                              </TableView>
+                                                                           </children>
+                                                                        </AnchorPane>
+                                                                  </content>
+                                                                </Tab>
+                                                                <Tab text="Selected">
+                                                                  <content>
+                                                                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                                                           <children>
+                                                                              <ScrollPane fitToWidth="true" hbarPolicy="NEVER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                                                 <content>
+                                                                                    <StackPane fx:id="detailsPanel" />
+                                                                                 </content>
+                                                                              </ScrollPane>
+                                                                           </children>
+                                                                        </AnchorPane>
+                                                                  </content>
+                                                                </Tab>
+                                                              </tabs>
+                                                            </TabPane>
                                                          </children>
                                                       </AnchorPane>
                                                   </items>
@@ -289,19 +342,24 @@
                                     </AnchorPane>
                                 </content>
                               </Tab>
-                            <Tab fx:id="detailsTab" text="Details">
+                            <Tab fx:id="statsTab" text="Statistics">
                               <content>
                                 <AnchorPane>
-                                       <children>
-                                          <ScrollPane fitToWidth="true" hbarPolicy="NEVER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                             <content>
-                                                <StackPane fx:id="detailsPanel" />
-                                             </content>
-                                          </ScrollPane>
-                                       </children>
                                        <padding>
                                           <Insets left="10.0" right="10.0" top="10.0" />
                                        </padding>
+                                       <children>
+                                          <VBox prefHeight="503.0" prefWidth="947.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                             <children>
+                                                <HBox prefHeight="100.0" prefWidth="200.0">
+                                                   <children>
+                                                      <PieChart fx:id="chartOverviewStatus" />
+                                                      <PieChart fx:id="chartCodesStatus" />
+                                                   </children>
+                                                </HBox>
+                                             </children>
+                                          </VBox>
+                                       </children>
                                     </AnchorPane>
                               </content>
                             </Tab>

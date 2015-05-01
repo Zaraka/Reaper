@@ -9,7 +9,9 @@ import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,7 +26,9 @@ import org.jsoup.UnsupportedMimeTypeException;
 public class MinerService extends Service<Void> {
 
     private static final Logger loggerMiner = Logger.getLogger(MinerService.class.getName());
-
+    
+    private final List<String> allowedProtocols = Arrays.asList("http", "https");
+    
     private ArrayList<Link> linksQueue;
     private Map<String, String> resources;
     private OrientGraphFactory graphFactory;
@@ -178,11 +182,12 @@ public class MinerService extends Service<Void> {
                         URL parentURL = new URL(link.getFromURL());
                         URL linkUrl = new URL(parentURL, link.getLink());
                         
-                        //TODO: better protocol check
-                        if(linkUrl.getProtocol().equals("mailto")){
+                        //protocol check
+                        if(!allowedProtocols.contains(linkUrl.getProtocol())){
+                            loggerMiner.log(Level.FINE, "Unsupported procool " + linkUrl.getProtocol());
                             continue;
                         }
-                        
+                                                
                         //First check if resource is in domain
                         if (blackWhiteCheck(linkUrl.getHost())) {
                             //If so try to create DOM or FILE
