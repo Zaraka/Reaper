@@ -56,6 +56,8 @@ public class Crawler {
     private final BooleanProperty minerBusy;
     private final ReaperDatabase database;
     private final Preferences prefs;
+    private final StringProperty phantomPath;
+    private final StringProperty galleryPath;
     private Project activeProject;
 
     private final MinerService minerService;
@@ -81,6 +83,8 @@ public class Crawler {
         this.activeResources = FXCollections.observableArrayList();
         this.name = new SimpleStringProperty("");
         this.activeProject = null;
+        this.phantomPath = new SimpleStringProperty(getPrefPhantomPath());
+        this.galleryPath = new SimpleStringProperty(getPrefGalleryPath());
 
         this.init();
 
@@ -99,7 +103,28 @@ public class Crawler {
             loggerReaper.log(Level.INFO, "dbUser changed");
         });
     }
+    
+    
+    private String getPrefDBHost() {
+        return prefs.get(PreferenceKeys.DB_HOST.getKey(), "remote:localhost/ReaperTest");
+    }
 
+    private String getPrefDBUser() {
+        return prefs.get(PreferenceKeys.DB_USER.getKey(), "root");
+    }
+
+    private String getPrefDBPassword() {
+        return prefs.get(PreferenceKeys.DB_PASS.getKey(), "admin");
+    }
+    
+    private String getPrefPhantomPath() {
+        return prefs.get(PreferenceKeys.PHANTOM_PATH.getKey(), "");
+    }
+    
+    private String getPrefGalleryPath() {
+        return prefs.get(PreferenceKeys.GALLERY_PATH.getKey(), System.getProperty("user.home") + "/Reaper/");
+    }
+    
     public void refreshProjects() throws DatabaseNotConnectedException {
         if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
@@ -536,18 +561,6 @@ public class Crawler {
         return this.minerBusy;
     }
 
-    private String getPrefDBHost() {
-        return prefs.get(PreferenceKeys.DB_HOST.getKey(), "remote:localhost/ReaperTest");
-    }
-
-    private String getPrefDBUser() {
-        return prefs.get(PreferenceKeys.DB_USER.getKey(), "root");
-    }
-
-    private String getPrefDBPassword() {
-        return prefs.get(PreferenceKeys.DB_PASS.getKey(), "admin");
-    }
-
     public ObservableList<Project> projects() {
         return this.projects;
     }
@@ -562,5 +575,29 @@ public class Crawler {
 
     public ObservableList<Resource> activeResources() {
         return activeResources;
+    }
+    
+    public String getGalleryPath(){
+        return galleryPath.get();
+    }
+    
+    public void setGalleryPath(String path){
+        galleryPath.set(path);
+    }
+    
+    public StringProperty galleryPathProperty(){
+        return galleryPath;
+    }
+    
+    public String getPhantomPath(){
+        return phantomPath.get();
+    }
+    
+    public void setPhantomPath(String path){
+        phantomPath.set(path);
+    }
+    
+    public StringProperty phantomPathProperty(){
+        return phantomPath;
     }
 }

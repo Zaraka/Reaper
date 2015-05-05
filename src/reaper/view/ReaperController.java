@@ -493,6 +493,13 @@ public class ReaperController implements Initializable {
         resourceURLColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getURL().toString()));
         resourceTypeColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getType().toString()));
 
+        ContextMenu resourcesMenu = new ContextMenu();
+        MenuItem viewResource = new MenuItem("View Resource");
+        viewResource.setOnAction((ActionEvent event) -> {
+            Resource selected = resourceTable.getSelectionModel().getSelectedItem();
+            setActiveNode((String) selected.getVertexID());
+        });
+        
         //blacklistTable
         blacklistTable.setEditable(false);
         blacklistTable.setItems(dom.blacklistProperty());

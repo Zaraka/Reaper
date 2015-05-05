@@ -3,35 +3,37 @@ package reaper.model;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author zaraka
  */
 public class Form extends VertexAbstract{
-    private Link action;
+    
+    private static final Logger loggerMiner = Logger.getLogger(reaper.model.MinerService.class.getName());
+    
+    private URL action;
     private RestMethod method;
+    private ResourceDom parent;
     
-    Form(){
-        this.action = new Link();
-        this.method = RestMethod.GET;
-    }
-    
-    Form(Vertex ver){
+    Form(Vertex ver, ResourceDom parent){
         this.method = RestMethod.valueOf(ver.getProperty("method"));
     }
     
-    Form(Link action, RestMethod method){
+    Form(URL action, RestMethod method, ResourceDom parent){
         this.action = action;
         this.method = method;
     }
     
-    
-    public Link getAction(){
+    public URL getAction(){
         return this.action;
     }
     
-    public void setAction(Link action){
+    public void setAction(URL action){
         this.action = action;
     }
     
@@ -42,10 +44,18 @@ public class Form extends VertexAbstract{
     public void setMethod(RestMethod method){
         this.method = method;
     }
+    
+    public void setParent(ResourceDom parent){
+        this.parent = parent;
+    }
+    
+    public ResourceDom getParent(){
+        return this.parent;
+    }
 
     @Override
     public void save(OrientGraph graph) {
-        graph.getVertex(id).setProperties("action", action.getLink(), "method", method.toString());
+        graph.getVertex(id).setProperties("action", action.toString(), "method", method.toString());
     }
 
     @Override
@@ -53,6 +63,12 @@ public class Form extends VertexAbstract{
         OrientVertex ver = graph.getVertex(id);
         
         //TODO action;
-        method = RestMethod.valueOf("method");
+        method = RestMethod.valueOf(ver.getProperty("method"));
+        
+        try {
+            action = new URL(ver.getProperty("action"));
+        } catch (MalformedURLException ex) {
+            loggerMiner.log(Level.WARNING, ex.getMessage());
+        }
     }
 }

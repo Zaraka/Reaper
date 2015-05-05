@@ -63,12 +63,15 @@ public class ResourceDom extends ResourceAbstract {
 
         //Load forms in resource
         for (Edge edge : vertex.getEdges(Direction.OUT, DatabaseClasses.INCLUDES.getName())) {
-            Form form = new Form(edge.getVertex(Direction.IN));
+            Form form = new Form(edge.getVertex(Direction.IN), this);
             forms.add(form);
         }
 
     }
 
+    /**
+     * Load all possible URL to object
+     */
     private void scratchURLs() {
         this.retrieveScripts();
         this.retrieveLinks();
@@ -76,6 +79,9 @@ public class ResourceDom extends ResourceAbstract {
         this.retrieveForms();
     }
 
+    /**
+     * Look for <b>script</b> tags and their <b>src</b> attribute
+     */
     private void retrieveScripts() {
         Elements docScripts = this.doc.getElementsByTag("script");
         for (Element script : docScripts) {
@@ -91,6 +97,10 @@ public class ResourceDom extends ResourceAbstract {
         }
     }
 
+    /**
+     * Search more links.
+     * Search all <b>rel</b> tags.
+     */
     private void retrieveLinks() {
         Elements docLinks = this.doc.getElementsByTag("link");
         for (Element link : docLinks) {
@@ -117,6 +127,10 @@ public class ResourceDom extends ResourceAbstract {
         }
     }
 
+    /**
+     * Search hyperlinks.
+     * Search all <b>a<b> tags and their <b>href</b> attributes.
+     */
     private void retrieveHyperlinks() {
         Elements docLinks = this.doc.getElementsByTag("a");
         for (Element hyperlink : docLinks) {
@@ -148,14 +162,16 @@ public class ResourceDom extends ResourceAbstract {
             if (form.hasAttr("action")) {
                 formAction = form.attr("action").trim();
             }
-            String key = "form#" + formAction;
-            Link link = new Link(formAction, this, LinkType.FORM);
-            /*if(this.links.containsKey(key)){
-             this.links.get(key).addCount();
-             } else {
-             this.links.put(key, link);
-             }*/
-            this.forms.add(new Form(link, method));
+            String key = "form#" + formAction; //unused for now
+            
+            URL formURL;
+            try {
+                formURL = new URL(url, formAction);
+                this.forms.add(new Form(formURL, method, this));
+            } catch (MalformedURLException ex) {
+                loggerMiner.log(Level.WARNING, "Cant create Form");
+                loggerMiner.log(Level.WARNING, ex.getMessage());
+            }            
         }
     }
 
@@ -212,7 +228,7 @@ public class ResourceDom extends ResourceAbstract {
                         DatabaseClasses.FORM.getName(),
                         DatabaseClasses.FORM.getName() + cluster);
                 formVertex.setProperties(
-                        "action", form.getAction().getLink(),
+                        "action", form.getAction().toString(),
                         "method", form.getMethod().toString());
                 vertex.addEdge("Includes", formVertex);
             }

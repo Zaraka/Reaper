@@ -3,7 +3,7 @@ package reaper.model;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 
 /**
- *
+ * Basic object for storing various database vertices.
  * @author zaraka
  */
 public interface DatabaseObject {
@@ -26,7 +26,16 @@ public interface DatabaseObject {
      */
     public void update(OrientGraph graph);
 
+    /**
+     * get ORID
+     * @return Object (ORID) id
+     */
     public Object getID();
 
+    /**
+     * set ORID
+     * <b>WARNING: Setting ID manually may broke Database</b>
+     * @param id Object
+     */
     public void setID(Object id);
 }

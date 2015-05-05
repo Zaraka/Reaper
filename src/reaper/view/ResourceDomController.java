@@ -9,7 +9,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import reaper.model.Form;
 import reaper.model.Link;
-import reaper.model.RestMethod;
 import reaper.model.Resource;
 import reaper.model.ResourceDom;
 
@@ -26,9 +25,9 @@ public class ResourceDomController implements ResourceController {
     @FXML
     private TableView<Form> formTable;
     @FXML
-    private TableColumn<Link, String> formActionColumn;
+    private TableColumn<Form, String> formActionColumn;
     @FXML
-    private TableColumn<RestMethod, String> formMethodColumn;
+    private TableColumn<Form, String> formMethodColumn;
     @FXML
     private TableView<Link> urlTable;
     @FXML
@@ -66,14 +65,13 @@ public class ResourceDomController implements ResourceController {
         urlCountColumn.setCellValueFactory((TableColumn.CellDataFeatures<Link, Integer> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getCount()));
         
         formTable.setItems(forms);
-        
+        formActionColumn.setCellValueFactory((TableColumn.CellDataFeatures<Form, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getAction().toString()));
+        formMethodColumn.setCellValueFactory((TableColumn.CellDataFeatures<Form, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getMethod().toString()));
         
         resourceURL.setText(resource.getPath());
         resourceMimeTypeProperty.setText(resource.mimeTypeProperty().get());
         resourceStatusCodeProperty.setText(Integer.toString(resource.codeProperty().get()));
         resourceDownloadTime.setText(String.valueOf(resource.getDownloadTime()));
-        resourceType.setText(resource.getType().toString());
-        
-        
+        resourceType.setText(resource.getType().toString());   
     }
 }

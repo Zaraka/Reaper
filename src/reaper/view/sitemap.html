@@ -74,6 +74,7 @@
                 var id = encodeURIComponent(name);
                 if (nodes.get(id) === null) {
                     nodes.add([{id: id, label: name, group: group, orid: orid}]);
+                    refreshView();
                 }
             }
 
@@ -83,6 +84,7 @@
                 }
                 var encName = encodeURIComponent(name);
                 nodes.remove(encName);
+                refreshView();
             }
 
             function removeEdge(id) {
@@ -111,6 +113,26 @@
                 nodes.clear();
                 edges.clear();
             }
+            
+            function flipNodes(nodeType){
+                flipNodes.switches[nodeType] = !flipNodes.switches[nodeType];
+                refreshView();
+            }
+            
+            flipNodes.switches = {
+                DOM: true,
+                FILE: true,
+                OUTSIDE: true,
+                UNDEFINED: true
+            };
+            
+            function refreshView(){
+                viewNodes = nodes.get({
+                    filter: function (item){
+                        return (flipNodes.switches[item.group]);
+                    }
+                });
+            }
 
         </script>
     </head>
@@ -129,13 +151,16 @@
             /* global vis */
             /* global controller */
             
+            //storing variables
             var edges = new vis.DataSet();
             var nodes = new vis.DataSet();
+            //view variables
+            var viewNodes = new vis.DataSet();
 
             // create a network
             var container = document.getElementById('container');
             var data = {
-                nodes: nodes,
+                nodes: viewNodes,
                 edges: edges
             };
             var options = {

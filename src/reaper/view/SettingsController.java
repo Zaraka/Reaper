@@ -24,6 +24,7 @@ public class SettingsController implements Initializable {
     
     Reaper reaper;
     
+    //-------------DATABASE TAB---------------
     @FXML
     private TextField databaseUser;
     @FXML
@@ -38,6 +39,12 @@ public class SettingsController implements Initializable {
     private Button deleteDatabaseButton;
     @FXML
     private Button truncateTablesButton;
+    //-------------SETTINGS TAB---------------
+    @FXML
+    private TextField galleryPathField;
+    @FXML
+    private TextField phantomPathField;
+    
     
     @FXML
     public void setupDatabase() {
@@ -72,6 +79,9 @@ public class SettingsController implements Initializable {
         this.databaseHost.textProperty().bindBidirectional(crawler.dbHost());
         this.databasePassword.textProperty().bindBidirectional(crawler.dbPassword());
         this.databaseUser.textProperty().bindBidirectional(crawler.dbUser());
+        
+        this.phantomPathField.textProperty().bindBidirectional(crawler.phantomPathProperty());
+        this.galleryPathField.textProperty().bindBidirectional(crawler.galleryPathProperty());
     }
     
     private void lockUnlockControls(boolean value) {
