@@ -1,7 +1,9 @@
 package reaper.model;
 
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
+import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
+import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -13,7 +15,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,7 +49,7 @@ public class Project extends VertexAbstract {
         this.date = date;
         this.cluster = cluster;
         this.depth = depth;
-        
+
         this.blacklist = new ArrayList<>();
         this.whitelist = new ArrayList<>();
     }
@@ -59,7 +63,7 @@ public class Project extends VertexAbstract {
         this.date = dt;
         this.cluster = "p";
         this.cluster += UUID.randomUUID().toString();
-        
+
         this.blacklist = blacklist;
         this.whitelist = whitelist;
     }
@@ -77,16 +81,16 @@ public class Project extends VertexAbstract {
         for (Vertex root : ver.getVertices(Direction.OUT, "Root")) {
             this.rootID = root.getId();
         }
-        
+
         this.blacklist = new ArrayList<>();
         this.whitelist = new ArrayList<>();
     }
 
-    private void loadBlacklist(OrientGraph graph) {        
+    private void loadBlacklist(OrientGraph graph) {
         for (Vertex ver : (Iterable<Vertex>) graph.command(
-                new OCommandSQL("SELECT * FROM cluster:" + 
-                        DatabaseClasses.BLACWHITEKLIST.getName() + 
-                        cluster + " WHERE type = 'BLACKLIST'")
+                new OCommandSQL("SELECT * FROM cluster:"
+                        + DatabaseClasses.BLACWHITEKLIST.getName()
+                        + cluster + " WHERE type = 'BLACKLIST'")
         ).execute()) {
             try {
                 blacklist.add(new URL(ver.getProperty("url")));
@@ -95,12 +99,12 @@ public class Project extends VertexAbstract {
             }
         }
     }
-    
-    private void loadWhitelist(OrientGraph graph) {        
+
+    private void loadWhitelist(OrientGraph graph) {
         for (Vertex ver : (Iterable<Vertex>) graph.command(
-                new OCommandSQL("SELECT * FROM cluster:" + 
-                        DatabaseClasses.BLACWHITEKLIST.getName() + 
-                        cluster + " WHERE type = 'WHITELIST'")
+                new OCommandSQL("SELECT * FROM cluster:"
+                        + DatabaseClasses.BLACWHITEKLIST.getName()
+                        + cluster + " WHERE type = 'WHITELIST'")
         ).execute()) {
             try {
                 whitelist.add(new URL(ver.getProperty("url")));
@@ -109,7 +113,7 @@ public class Project extends VertexAbstract {
             }
         }
     }
-    
+
     private void saveBlackWhiteList(OrientGraph graph, List<URL> blackWhiteList, String cluster, String type) {
         try {
             for (URL url : blackWhiteList) {
@@ -135,44 +139,44 @@ public class Project extends VertexAbstract {
                 "domain", domain.toString(), "cluster", cluster, "depth", depth);
         graph.commit();
         setID(ver.getId());
-        
+
         saveBlackWhiteList(graph, blacklist, cluster, "BLACKLIST");
         saveBlackWhiteList(graph, whitelist, cluster, "WHITELIST");
-        
+
         //Vertices clusters
-            graph.command(new OCommandSQL(
-                    "ALTER CLASS " + DatabaseClasses.RESOURCE.getName()
-                    + " ADDCLUSTER " + DatabaseClasses.RESOURCE.getName() + getCluster()
-            )).execute();
-            graph.command(new OCommandSQL(
-                    "ALTER CLASS " + DatabaseClasses.FORM.getName()
-                    + " ADDCLUSTER " + DatabaseClasses.FORM.getName() + getCluster()
-            )).execute();
-            graph.command(new OCommandSQL(
-                    "ALTER CLASS " + DatabaseClasses.FORM.getName()
-                    + " ADDCLUSTER " + DatabaseClasses.FORM.getName() + getCluster()
-            )).execute();
-            graph.command(new OCommandSQL(
-                    "ALTER CLASS " + DatabaseClasses.BLACWHITEKLIST.getName()
-                    + " ADDCLUSTER " + DatabaseClasses.BLACWHITEKLIST.getName() + getCluster()
-            )).execute();
+        graph.command(new OCommandSQL(
+                "ALTER CLASS " + DatabaseClasses.RESOURCE.getName()
+                + " ADDCLUSTER " + DatabaseClasses.RESOURCE.getName() + getCluster()
+        )).execute();
+        graph.command(new OCommandSQL(
+                "ALTER CLASS " + DatabaseClasses.FORM.getName()
+                + " ADDCLUSTER " + DatabaseClasses.FORM.getName() + getCluster()
+        )).execute();
+        graph.command(new OCommandSQL(
+                "ALTER CLASS " + DatabaseClasses.FORM.getName()
+                + " ADDCLUSTER " + DatabaseClasses.FORM.getName() + getCluster()
+        )).execute();
+        graph.command(new OCommandSQL(
+                "ALTER CLASS " + DatabaseClasses.BLACWHITEKLIST.getName()
+                + " ADDCLUSTER " + DatabaseClasses.BLACWHITEKLIST.getName() + getCluster()
+        )).execute();
 
-            //Edges clusters
-            graph.command(new OCommandSQL(
-                    "ALTER CLASS " + DatabaseClasses.LINKTO.getName()
-                    + " ADDCLUSTER " + DatabaseClasses.LINKTO.getName() + getCluster()
-            )).execute();
+        //Edges clusters
+        graph.command(new OCommandSQL(
+                "ALTER CLASS " + DatabaseClasses.LINKTO.getName()
+                + " ADDCLUSTER " + DatabaseClasses.LINKTO.getName() + getCluster()
+        )).execute();
 
-            graph.command(new OCommandSQL(
-                    "ALTER CLASS " + DatabaseClasses.INCLUDES.getName()
-                    + " ADDCLUSTER " + DatabaseClasses.INCLUDES.getName() + getCluster()
-            )).execute();
+        graph.command(new OCommandSQL(
+                "ALTER CLASS " + DatabaseClasses.INCLUDES.getName()
+                + " ADDCLUSTER " + DatabaseClasses.INCLUDES.getName() + getCluster()
+        )).execute();
 
-            //Que cluster
-            graph.command(new OCommandSQL(
-                    "ALTER CLASS " + DatabaseClasses.LINKQUE.getName()
-                    + " ADDCLUSTER " + DatabaseClasses.LINKQUE.getName() + getCluster()
-            )).execute();
+        //Que cluster
+        graph.command(new OCommandSQL(
+                "ALTER CLASS " + DatabaseClasses.LINKQUE.getName()
+                + " ADDCLUSTER " + DatabaseClasses.LINKQUE.getName() + getCluster()
+        )).execute();
     }
 
     public String getName() {
@@ -332,7 +336,7 @@ public class Project extends VertexAbstract {
         for (Vertex root : vertex.getVertices(Direction.OUT, "Root")) {
             rootID = root.getId();
         }
-        
+
         blacklist.clear();
         whitelist.clear();
         loadBlacklist(graph);
@@ -365,5 +369,50 @@ public class Project extends VertexAbstract {
 
     public void setWhitelist(List<URL> whitelist) {
         this.whitelist = whitelist;
+    }
+
+    public Map<String, Long> getStatsTypes(OrientGraph graph) {
+        HashMap<String, Long> result = new HashMap<>();
+        List<ODocument> dom = graph.getRawGraph().query(
+                new OSQLSynchQuery<>("select count(*) from cluster:"
+                        + DatabaseClasses.RESOURCE.getName()
+                        + getCluster()
+                        + " WHERE type = 'DOM'")
+        );
+        List<ODocument> outside = graph.getRawGraph().query(
+                new OSQLSynchQuery<>("select count(*) from cluster:"
+                        + DatabaseClasses.RESOURCE.getName()
+                        + getCluster()
+                        + " WHERE type = 'OUTSIDE'")
+        );
+        List<ODocument> file = graph.getRawGraph().query(
+                new OSQLSynchQuery<>("select count(*) from cluster:"
+                        + DatabaseClasses.RESOURCE.getName()
+                        + getCluster()
+                        + " WHERE type = 'FILE'")
+        );
+        result.put("DOM", (Long) dom.get(0).field("count"));
+        result.put("OUTSIDE", (Long) outside.get(0).field("count"));
+        result.put("FILE", (Long) file.get(0).field("count"));
+        
+        return result;
+    }
+    
+    public Map<String, Long> getStatsCodes(OrientGraph graph) {
+        HashMap<String, Long> result = new HashMap<>();
+        List<ODocument> codesList = graph.getRawGraph().query(
+                new OSQLSynchQuery<>("select code, count(*) from cluster:"
+                        + DatabaseClasses.RESOURCE.getName()
+                        + getCluster()
+                        + " group by code")
+        );
+        for(ODocument doc : codesList){
+            String name = doc.field("code").toString();
+            if(name.equals("0")){
+                name = "Not Scanned";
+            }
+            result.put(name, (Long)doc.field("count"));
+        }
+        return result;
     }
 }

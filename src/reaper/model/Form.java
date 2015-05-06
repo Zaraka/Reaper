@@ -22,6 +22,12 @@ public class Form extends VertexAbstract{
     
     Form(Vertex ver, ResourceDom parent){
         this.method = RestMethod.valueOf(ver.getProperty("method"));
+        try {
+            this.action = new URL(ver.getProperty("action"));
+        } catch (MalformedURLException ex) {
+            loggerMiner.log(Level.WARNING, ex.getMessage());
+        }
+        this.parent = parent;
     }
     
     Form(URL action, RestMethod method, ResourceDom parent){

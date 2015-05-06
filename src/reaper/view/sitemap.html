@@ -127,11 +127,14 @@
             };
             
             function refreshView(){
-                viewNodes = nodes.get({
+                console.log("refreshview");
+                viewNodes.clear();
+                viewNodes.add(nodes.get({
                     filter: function (item){
+                        //console.log(flipNodes.switches[item.group]);
                         return (flipNodes.switches[item.group]);
                     }
-                });
+                }));
             }
 
         </script>
@@ -141,9 +144,9 @@
         </div>
         <div id="legend">
             <ul>
-                <li><input type="checkbox"><div class="box blue-box">DOM element</div></li>
-                <li><input type="checkbox"><div class="box orange-box">File</div></li>
-                <li><input type="checkbox"><div class="box gray-box">Not Scanned</div></li>
+                <li><input type="checkbox" onclick="flipNodes('DOM')" checked="checked"><div class="box blue-box">DOM element</div></li>
+                <li><input type="checkbox" onclick="flipNodes('FILE')" checked="checked"><div class="box orange-box">File</div></li>
+                <li><input type="checkbox" onclick="flipNodes('OUTSIDE')" checked="checked"><div class="box gray-box">Not Scanned</div></li>
             </ul>
                 
             </div>
@@ -205,10 +208,6 @@
             window.onresize = function (event) {
                 network.redraw();
             };
-
-            network.on('select', function (properties) {
-
-            });
 
             network.on('doubleClick', function (properties) {
                 if (properties.nodes.length > 0) {

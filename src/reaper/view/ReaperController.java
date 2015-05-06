@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.NumberFormat;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -12,10 +13,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableArray;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -26,11 +30,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -41,7 +44,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebEngine;
@@ -57,6 +59,7 @@ import reaper.exceptions.DatabaseNotConnectedException;
 import reaper.model.Crawler;
 import reaper.model.Link;
 import reaper.model.MinerService;
+import reaper.model.PostScannerService;
 import reaper.model.Project;
 import reaper.model.Resource;
 
@@ -68,6 +71,7 @@ public class ReaperController implements Initializable {
 
     private static final Logger loggerReaper = Logger.getLogger(Reaper.class.getName());
     private static final Logger loggerMiner = Logger.getLogger(MinerService.class.getName());
+    private static final Logger loggerPostScanner = Logger.getLogger(PostScannerService.class.getName());
 
     private Reaper reaper;
     private String activeNode;
@@ -127,8 +131,6 @@ public class ReaperController implements Initializable {
     @FXML
     private TabPane tabPane;
     @FXML
-    private CheckBox displayGraph;
-    @FXML
     private StackPane detailsPanel;
     @FXML
     private Label overviewResourceLabel;
@@ -145,10 +147,6 @@ public class ReaperController implements Initializable {
     @FXML
     private Button clearDataButton;
     @FXML
-    private Label databaseStatusLabel;
-    @FXML
-    private Button databaseConnectButton;
-    @FXML
     private Button deleteProjectButton;
     @FXML
     private Text projectName;
@@ -160,30 +158,14 @@ public class ReaperController implements Initializable {
     private Button createNewProjectButton;
     @FXML
     private Button loadRootButton;
-
     @FXML
-    private void startMining(ActionEvent event) {
-        if ("".equals(hostname.getText())) {
-            loggerReaper.log(Level.SEVERE, "You need to specify hostname.");
-        }
-
-        try {
-            reaper.getCrawler().mineStart();
-        } catch (MalformedURLException ex) {
-            loggerReaper.log(Level.SEVERE, ex.getMessage());
-        }
-
-    }
-
+    private MenuItem databaseConnectMenuItem;
     @FXML
-    private void stopMining(ActionEvent event) {
-        reaper.getCrawler().mineStop();
-    }
-
+    private Button startPostScannerButton;
     @FXML
-    private void clearData(ActionEvent event) {
-        reaper.getCrawler().dataReset();
-    }
+    private Button stopPostScannerButton;
+    @FXML
+    private CheckMenuItem createSitemapMenuItem;
 
     @FXML
     private void clearProjectData(ActionEvent event) {
@@ -207,7 +189,7 @@ public class ReaperController implements Initializable {
 
     @FXML
     private void onChangeDisplayGraph(ActionEvent event) {
-        if (displayGraph.isSelected()) {
+        if (createSitemapMenuItem.isSelected()) {
             for (Resource res : reaper.getCrawler().resources().values()) {
                 addSitemapNode(res);
             }
@@ -365,6 +347,35 @@ public class ReaperController implements Initializable {
     public void exitReaper(){
         Platform.exit();
     }
+    
+    @FXML
+    private void startMining(ActionEvent event) {
+        if ("".equals(hostname.getText())) {
+            loggerReaper.log(Level.SEVERE, "You need to specify hostname.");
+        }
+
+        try {
+            reaper.getCrawler().minerStart();
+        } catch (MalformedURLException ex) {
+            loggerReaper.log(Level.SEVERE, ex.getMessage());
+        }
+
+    }
+
+    @FXML
+    private void stopMining(ActionEvent event) {
+        reaper.getCrawler().minerStop();
+    }
+    
+    @FXML
+    public void startPostScanner(){
+        reaper.getCrawler().postScannerStart();
+    }
+    
+    @FXML
+    public void stopPostScanner(){
+        reaper.getCrawler().postScannerStop();
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -376,6 +387,11 @@ public class ReaperController implements Initializable {
         loggerMiner.addHandler(new FlowHandler(this.consoleMiner));
         this.consoleMiner.getChildren().addListener((ListChangeListener.Change<? extends Node> c) -> {
             consoleMinerScroll.setVvalue(consoleMinerScroll.getVmax());
+        });
+        
+        loggerPostScanner.addHandler(new FlowHandler(this.consolePostScanner));
+        this.consolePostScanner.getChildren().addListener((ListChangeListener.Change<? extends Node> c) -> {
+            consolePostScannerScroll.setVvalue(consolePostScannerScroll.getVmax());
         });
 
         WebEngine engine = sitemap.getEngine();
@@ -399,14 +415,20 @@ public class ReaperController implements Initializable {
     public void setReaper(Reaper reaper) {
         //bind data
         this.reaper = reaper;
-        Crawler dom = this.reaper.getCrawler();
+        Crawler crawler = this.reaper.getCrawler();
+        
+        createSitemapMenuItem.selectedProperty().bindBidirectional(crawler.createSitemapProperty());
+        
+        createSitemapMenuItem.selectedProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            crawler.updateDBPref();
+        });
 
-        this.hostname.textProperty().bindBidirectional(dom.hostnameProperty());
-        this.maxDepth.textProperty().bindBidirectional(dom.maxDepthProperty(), new NumberStringConverter());
-        this.projectName.textProperty().bindBidirectional(dom.nameProperty());
+        this.hostname.textProperty().bindBidirectional(crawler.hostnameProperty());
+        this.maxDepth.textProperty().bindBidirectional(crawler.maxDepthProperty(), new NumberStringConverter());
+        this.projectName.textProperty().bindBidirectional(crawler.nameProperty());
 
-        dom.resources().addListener((MapChangeListener.Change<? extends String, ? extends Resource> change) -> {
-            if (displayGraph.isSelected()) {
+        crawler.resources().addListener((MapChangeListener.Change<? extends String, ? extends Resource> change) -> {
+            if (createSitemapMenuItem.isSelected()) {
                 if (change.wasRemoved()) {
                     removeSitemapNode(change.getValueRemoved());
 
@@ -417,7 +439,7 @@ public class ReaperController implements Initializable {
             }
         });
 
-        dom.links().addListener((ListChangeListener.Change<? extends Link> change) -> {
+        crawler.links().addListener((ListChangeListener.Change<? extends Link> change) -> {
             while (change.next()) {
                 if (change.wasAdded()) {
                     for (Link link : change.getAddedSubList()) {
@@ -432,7 +454,7 @@ public class ReaperController implements Initializable {
         });
 
         //projectTable
-        projectTable.setItems(dom.projects());
+        projectTable.setItems(crawler.projects());
         projectTable.setEditable(false);
         projectNameColumn.setCellValueFactory((CellDataFeatures<Project, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().getName()));
         projectDomainColumn.setCellValueFactory((CellDataFeatures<Project, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().getDomain().toString()));
@@ -443,13 +465,20 @@ public class ReaperController implements Initializable {
         projectViewItem.setOnAction((ActionEvent event) -> {
             Project proj = projectTable.getSelectionModel().getSelectedItem();
             try {
-                Map<String, Long> stats = dom.loadProject(proj);
+                crawler.loadProject(proj);
+                List<Map<String, Long>> stats = crawler.loadProjectStats(proj);
                 chartOverviewStatus.setTitle("Crawled nodes");
                 chartOverviewStatus.setData(FXCollections.observableArrayList(
-                        new PieChart.Data("DOM nodes", stats.get("DOM")),
-                        new PieChart.Data("File nodes", stats.get("FILE")),
-                        new PieChart.Data("Not scanned nodes", stats.get("OUTSIDE"))
+                        new PieChart.Data("DOM nodes", stats.get(0).get("DOM")),
+                        new PieChart.Data("File nodes", stats.get(0).get("FILE")),
+                        new PieChart.Data("Not scanned nodes", stats.get(0).get("OUTSIDE"))
                 ));
+                chartCodesStatus.setTitle("Nodes return codes");
+                ObservableList<PieChart.Data> codeDataList = FXCollections.observableArrayList();
+                for(Map.Entry<String, Long> entry : stats.get(1).entrySet()){
+                    codeDataList.add(new PieChart.Data(entry.getKey(), entry.getValue()));
+                }
+                chartCodesStatus.setData(codeDataList);
                 tabPane.getSelectionModel().select(projectOptionsTab);
             } catch (DatabaseNotConnectedException ex) {
                 loggerReaper.log(Level.SEVERE, ex.getMessage());
@@ -459,7 +488,7 @@ public class ReaperController implements Initializable {
         projectDeleteItem.setOnAction((ActionEvent event) -> {
             Project proj = projectTable.getSelectionModel().getSelectedItem();
             try {
-                dom.deleteProject(proj);
+                crawler.deleteProject(proj);
             } catch (DatabaseNotConnectedException ex) {
                 loggerReaper.log(Level.SEVERE, ex.getMessage());
             }
@@ -478,7 +507,7 @@ public class ReaperController implements Initializable {
         projectTable.setContextMenu(projectMenu);
 
         //resourceTable
-        resourceTable.setItems(dom.activeResources());
+        resourceTable.setItems(crawler.activeResources());
         resourceTable.setEditable(false);
         //Value factories
         resourceCodeColumn.setCellValueFactory(
@@ -502,7 +531,7 @@ public class ReaperController implements Initializable {
         
         //blacklistTable
         blacklistTable.setEditable(false);
-        blacklistTable.setItems(dom.blacklistProperty());
+        blacklistTable.setItems(crawler.blacklistProperty());
         blacklistColumn.setCellValueFactory((CellDataFeatures<URL, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().toString()));
         ContextMenu blacklistMenu = new ContextMenu();
         MenuItem removeBlacklistItem = new MenuItem("Remove Item");
@@ -514,7 +543,7 @@ public class ReaperController implements Initializable {
 
         //whitelistTable
         whitelistTable.setEditable(false);
-        whitelistTable.setItems(dom.whitelistProperty());
+        whitelistTable.setItems(crawler.whitelistProperty());
         blacklistColumn.setCellValueFactory((CellDataFeatures<URL, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().toString()));
         ContextMenu whitelistMenu = new ContextMenu();
         MenuItem removeWhitelistItem = new MenuItem("Remove Item");
@@ -525,8 +554,8 @@ public class ReaperController implements Initializable {
         whitelistTable.setContextMenu(whitelistMenu);
 
         //overview
-        overviewResourceLabel.textProperty().bindBidirectional(dom.resourcesCountProperty(), new NumberStringConverter());
-        overviewLinksLabel.textProperty().bindBidirectional(dom.linksCountProperty(), new NumberStringConverter());
+        overviewResourceLabel.textProperty().bindBidirectional(crawler.resourcesCountProperty(), new NumberStringConverter());
+        overviewLinksLabel.textProperty().bindBidirectional(crawler.linksCountProperty(), new NumberStringConverter());
 
         //WebView controller
         sitemap.setContextMenuEnabled(false);
@@ -536,18 +565,16 @@ public class ReaperController implements Initializable {
         jsobs.setMember("controller", sitemapController);
 
         //Options locker while mining is running
-        dom.minerBusy().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+        crawler.minerBusy().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
             lockUnlockControls(newValue);
         });
 
         //Database connecter watchener
-        dom.connectionStatus().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+        crawler.connectionStatus().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
             if (newValue) {
-                databaseStatusLabel.setText("connected");
-                databaseStatusLabel.setTextFill(Color.web("green"));
+                databaseConnectMenuItem.setText("Reload");
             } else {
-                databaseStatusLabel.setText("not connected");
-                databaseStatusLabel.setTextFill(Color.web("red"));
+                databaseConnectMenuItem.setText("Connect");
             }
         });
     }
@@ -563,6 +590,7 @@ public class ReaperController implements Initializable {
         deleteProjectButton.setDisable(value);
         createNewProjectButton.setDisable(value);
         loadRootButton.setDisable(value);
+        databaseConnectMenuItem.setDisable(value);
     }
 
     private void createResourcePane(Resource res) {
@@ -571,7 +599,7 @@ public class ReaperController implements Initializable {
             FXMLLoader loader = new FXMLLoader(resourceToFXML(res));
             detailsPanel.getChildren().add(loader.load());
             ResourceController controller = loader.<ResourceController>getController();
-            controller.loadResource(res);
+            controller.loadResource(res, reaper.getCrawler());
         } catch (IOException ex) {
             loggerReaper.log(Level.SEVERE, "Couldn't change Panel, probably wrong url of FXML file.");
         }

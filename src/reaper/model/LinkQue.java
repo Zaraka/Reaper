@@ -8,32 +8,37 @@ import java.util.List;
 
 /**
  * Queue of Links to process stored in DB
+ *
  * @author nikita.vanku
  */
 public class LinkQue {
+
     private OrientGraphFactory graphFactory;
 
     LinkQue(OrientGraphFactory factory) {
         this.graphFactory = factory;
     }
-    
-    public void setGraphFactory(OrientGraphFactory factory){
+
+    public void setGraphFactory(OrientGraphFactory factory) {
         graphFactory = factory;
     }
 
-    public void linkEnter(String cluster, String path, String from, int depth) {
+    public void linkEnter(String cluster, Link link) {
         ODatabaseDocumentTx oDB = graphFactory.getDatabase();
         try {
             oDB.command(
                     new OCommandSQL("INSERT INTO "
                             + DatabaseClasses.LINKQUE.getName() + " cluster "
-                            + DatabaseClasses.LINKQUE.getName() + cluster + 
-                            " SET path = ?, from = ?, depth = ?, position = 0")).execute(path, from, depth);
+                            + DatabaseClasses.LINKQUE.getName() + cluster
+                            + " SET path = ?, from = ?, depth = ?, count = ?, type = ?, position = 0"
+                    )
+            ).execute(link.getLink(), link.getFromURL(), link.getFromResource().getDepth(),
+                    link.getCount(), link.getType().toString());
             oDB.command(
-                    new OCommandSQL("UPDATE cluster:"+
-                            DatabaseClasses.LINKQUE.getName()+
-                            cluster+
-                            " INCREMENT position = 1")).execute();
+                    new OCommandSQL("UPDATE cluster:"
+                            + DatabaseClasses.LINKQUE.getName()
+                            + cluster
+                            + " INCREMENT position = 1")).execute();
         } catch (Exception e) {
             e.printStackTrace(System.out);
         } finally {
@@ -45,10 +50,10 @@ public class LinkQue {
         ODatabaseDocumentTx oDB = graphFactory.getDatabase();
         ODocument resultDocument;
         try {
-            List<ODocument> result = oDB.command(new OCommandSQL("SELECT * FROM cluster:"+
-                    DatabaseClasses.LINKQUE.getName()+
-                    cluster+
-                    " order by LinkQue.position DESC LIMIT 1"
+            List<ODocument> result = oDB.command(new OCommandSQL("SELECT * FROM cluster:"
+                    + DatabaseClasses.LINKQUE.getName()
+                    + cluster
+                    + " order by LinkQue.position DESC LIMIT 1"
             )).execute();
             if (result.isEmpty()) {
                 return null;
@@ -56,10 +61,10 @@ public class LinkQue {
             resultDocument = result.get(0);
             Integer position = resultDocument.field("position");
             oDB.command(
-                    new OCommandSQL("DELETE From cluster:"+
-                            DatabaseClasses.LINKQUE.getName()+
-                            cluster
-                            +" where position = ?"))
+                    new OCommandSQL("DELETE From cluster:"
+                            + DatabaseClasses.LINKQUE.getName()
+                            + cluster
+                            + " where position = ?"))
                     .execute(position);
         } finally {
             oDB.close();

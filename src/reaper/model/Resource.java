@@ -27,4 +27,5 @@ public interface Resource {
     public Object getVertexID();
     public void setVertexID(Object id);
     public void vertexTransaction(OrientGraph grapth, String cluster);
+    public String getNormalizedID();
 }

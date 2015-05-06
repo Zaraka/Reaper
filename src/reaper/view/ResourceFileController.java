@@ -2,6 +2,7 @@ package reaper.view;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import reaper.model.Crawler;
 import reaper.model.Resource;
 
 /**
@@ -10,8 +11,8 @@ import reaper.model.Resource;
  * @author zaraka
  */
 public class ResourceFileController implements ResourceController {
-    
-       @FXML
+
+    @FXML
     private Label resourceURL;
     @FXML
     private Label resourceStatusCodeProperty;
@@ -23,16 +24,15 @@ public class ResourceFileController implements ResourceController {
     private Label resourceType;
 
     @Override
-    public void loadResource(Resource resource) {
-         if (resource == null) {
+    public void loadResource(Resource resource, Crawler crawler) {
+        if (resource == null) {
             return;
         }
-        resourceURL.setText(resource.getPath());
+        resourceURL.setText(resource.getURL().toString());
         resourceMimeTypeProperty.setText(resource.mimeTypeProperty().get());
         resourceStatusCodeProperty.setText(Integer.toString(resource.codeProperty().get()));
         resourceDownloadTime.setText(String.valueOf(resource.getDownloadTime()));
         resourceType.setText(resource.getType().toString());
     }
 
-    
 }

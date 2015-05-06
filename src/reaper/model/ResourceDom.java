@@ -66,6 +66,15 @@ public class ResourceDom extends ResourceAbstract {
             Form form = new Form(edge.getVertex(Direction.IN), this);
             forms.add(form);
         }
+        
+        //This is baaaaad
+        //Load links not resources
+        for( Edge edge : vertex.getEdges(Direction.OUT, DatabaseClasses.LINKTO.getName())){
+            String key = "link#" + edge.getProperty("path");
+            Link link = new Link(edge.getProperty("path"), this, LinkType.valueOf(edge.getProperty("type")));
+            link.setCount(edge.getProperty("count"));
+            links.put(key, link);
+        }
 
     }
 
@@ -105,6 +114,7 @@ public class ResourceDom extends ResourceAbstract {
         Elements docLinks = this.doc.getElementsByTag("link");
         for (Element link : docLinks) {
             String href = link.attr("href").trim();
+            href = href.replaceAll("#.*", ""); //Get rid of anchors
             Link newLink = new Link(href, this, LinkType.LINK_UNDEFINED);
             String rel = link.attr("rel").trim().toLowerCase();
             switch (rel) {
@@ -135,6 +145,7 @@ public class ResourceDom extends ResourceAbstract {
         Elements docLinks = this.doc.getElementsByTag("a");
         for (Element hyperlink : docLinks) {
             String href = hyperlink.attr("href").trim();
+            href = href.replaceAll("#.*", ""); //Get rid of anchors
             String key = "a#" + href;
             if (this.links.containsKey(key)) {
                 this.links.get(key).addCount();
@@ -162,6 +173,7 @@ public class ResourceDom extends ResourceAbstract {
             if (form.hasAttr("action")) {
                 formAction = form.attr("action").trim();
             }
+            //TODO: Finish form actions
             String key = "form#" + formAction; //unused for now
             
             URL formURL;

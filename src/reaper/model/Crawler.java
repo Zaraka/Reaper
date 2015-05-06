@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -54,6 +55,7 @@ public class Crawler {
     private final IntegerProperty linksCount;
     private final StringProperty name;
     private final BooleanProperty minerBusy;
+    private final BooleanProperty createSitemap;
     private final ReaperDatabase database;
     private final Preferences prefs;
     private final StringProperty phantomPath;
@@ -61,6 +63,7 @@ public class Crawler {
     private Project activeProject;
 
     private final MinerService minerService;
+    private final PostScannerService postScannerService;
 
     public Crawler() {
         this.resources = FXCollections.observableHashMap();
@@ -85,6 +88,8 @@ public class Crawler {
         this.activeProject = null;
         this.phantomPath = new SimpleStringProperty(getPrefPhantomPath());
         this.galleryPath = new SimpleStringProperty(getPrefGalleryPath());
+        this.postScannerService = new PostScannerService();
+        this.createSitemap = new SimpleBooleanProperty(getPrefCreateSitemap());
 
         this.init();
 
@@ -125,6 +130,10 @@ public class Crawler {
         return prefs.get(PreferenceKeys.GALLERY_PATH.getKey(), System.getProperty("user.home") + "/Reaper/");
     }
     
+    private boolean getPrefCreateSitemap(){
+        return prefs.getBoolean(PreferenceKeys.CREATE_SITEMAP.getKey(), true);
+    }
+    
     public void refreshProjects() throws DatabaseNotConnectedException {
         if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
@@ -140,11 +149,13 @@ public class Crawler {
     public void databaseConnect() throws IOException, OStorageException {
             database.connect(getDbHost(), getDbUser(), getDbPassword());
             minerService.databaseConnect(getDbHost(), getDbUser(), getDbPassword());
+            postScannerService.databaseConnect(getDbHost(), getDbUser(), getDbPassword());
     }
 
     public void databaseDisconnect() {
         database.disconnect();
         minerService.databaseDisconnect();
+        postScannerService.databaseDisconnect();
     }
 
     public void setupDatabase() throws DatabaseNotConnectedException {
@@ -258,6 +269,9 @@ public class Crawler {
         prefs.put(PreferenceKeys.DB_HOST.getKey(), getDbHost());
         prefs.put(PreferenceKeys.DB_USER.getKey(), getDbUser());
         prefs.put(PreferenceKeys.DB_PASS.getKey(), getDbPassword());
+        prefs.put(PreferenceKeys.GALLERY_PATH.getKey(), getGalleryPath());
+        prefs.put(PreferenceKeys.PHANTOM_PATH.getKey(), getPhantomPath());
+        prefs.putBoolean(PreferenceKeys.CREATE_SITEMAP.getKey(), getCreateSitemap());
     }
 
     public void loadAll() throws DatabaseNotConnectedException{
@@ -299,9 +313,17 @@ public class Crawler {
         }
 
         database.createProject(name, domain, depth, blacklist, whitelist);
+        
+        //Database schema reload - fix OrientDB bug
+        databaseDisconnect();
+        try {
+            databaseConnect();
+        } catch (IOException | OStorageException ex) {
+            loggerReaper.log(Level.SEVERE, ex.getMessage());
+        }
     }
 
-    public Map<String, Long> loadProject(Project proj) throws DatabaseNotConnectedException {
+    public void loadProject(Project proj) throws DatabaseNotConnectedException {
         clearData();
 
         activeProject = proj;
@@ -329,16 +351,29 @@ public class Crawler {
         } finally {
             oDB.close();
         }
+    }
+    
+    /**
+     * Load and return list of statistics used for GUI
+     * @param proj Project to load
+     * @return List of Map statistics 0 - Types, 1 - Codes
+     */
+    public List<Map<String, Long>> loadProjectStats(Project proj){
+        List<Map<String, Long>> result = new ArrayList<>();
+        //Converting graph to Document like this is really dumb
+        OrientGraph graph = database.getDatabase().getTx();
+        try {
+            result.add(proj.getStatsTypes(graph));
+            result.add(proj.getStatsCodes(graph));
+        } finally {
+            graph.shutdown();
+        }
         
-        return database.getStatistics(activeProject);
+        return result;
     }
 
     private void init() {
-        try {
-            minerService.init();
-        } catch (OStorageException ex) {
-            loggerReaper.log(Level.SEVERE, ex.toString());
-        }
+        minerService.init();
         minerService.setOnSucceeded((WorkerStateEvent event) -> {
             try {
                 loadProject(activeProject);
@@ -348,7 +383,6 @@ public class Crawler {
             this.minerService.reset();
             this.setMinerBusy(false);
             loggerReaper.log(Level.INFO, "Mining finished");
-            loggerReaper.log(Level.INFO, database.getStatistics(activeProject).toString());
         });
         minerService.setOnFailed((WorkerStateEvent event) -> {
             this.setMinerBusy(false);
@@ -370,11 +404,36 @@ public class Crawler {
             loggerReaper.log(Level.INFO, "Mining canceled");
         });
 
-        //minerService.set
+        postScannerService.init();
+        postScannerService.setOnSucceeded((WorkerStateEvent event) -> {
+            this.setMinerBusy(true);
+        });
+        postScannerService.setOnFailed((WorkerStateEvent event) -> {
+            this.setMinerBusy(false);
+            loggerReaper.log(Level.SEVERE, "Post scanning process failed");
+            if (event.getSource().getException() != null) {
+                loggerReaper.log(Level.SEVERE, event.getSource().getMessage());
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                event.getSource().getException().printStackTrace(pw);
+                loggerReaper.log(Level.SEVERE, sw.toString());
+            }
+        });
+        postScannerService.setOnRunning((WorkerStateEvent event) -> {
+            this.setMinerBusy(true);
+            loggerReaper.log(Level.INFO, "Post scanning process started");
+        });
+        postScannerService.setOnCancelled((WorkerStateEvent event) -> {
+            this.setMinerBusy(false);
+            loggerReaper.log(Level.INFO, "Post scanning process canceled");
+        });
+        
     }
 
-    public void mineStart() throws MalformedURLException {
-        if (!minerService.isRunning()) {
+    public void minerStart() throws MalformedURLException {
+        if (minerService.isRunning()) {
+            return;
+        }
             loggerReaper.log(Level.INFO, "Request mining on " + hostname.get());
 
             //delete data
@@ -395,6 +454,26 @@ public class Crawler {
             //Set miner and start
             minerService.prepare(activeProject);
             minerService.start();
+    }
+    
+    public void postScannerStart() {
+        if(postScannerService.isRunning()){
+            return;
+        }
+        
+        postScannerService.prepare(activeProject, getPhantomPath(), getGalleryPath());
+        postScannerService.start();
+    }
+    
+    public void minerStop() {
+        if (minerService.isRunning()) {
+            minerService.cancel();
+        }
+    }
+    
+    public void postScannerStop() {
+        if(postScannerService.isRunning()){
+            postScannerService.cancel();
         }
     }
 
@@ -404,12 +483,6 @@ public class Crawler {
 
     public Project getActiveProject() {
         return this.activeProject;
-    }
-
-    public void mineStop() {
-        if (this.minerService.isRunning()) {
-            minerService.cancel();
-        }
     }
 
     private void clearData() {
@@ -599,5 +672,17 @@ public class Crawler {
     
     public StringProperty phantomPathProperty(){
         return phantomPath;
+    }
+    
+    public boolean getCreateSitemap(){
+        return createSitemap.get();
+    }
+    
+    public void setCreateSitemap(boolean value){
+        createSitemap.set(value);
+    }
+    
+    public BooleanProperty createSitemapProperty(){
+        return createSitemap;
     }
 }

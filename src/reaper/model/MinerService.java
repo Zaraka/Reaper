@@ -161,7 +161,7 @@ public class MinerService extends Service<Void> {
                     ResourceDom root = new ResourceDom(uURL, 0, project.getDepth());
                     linksQueue.addAll(root.links());
                     for (Link queLink : root.links()) {
-                        linkScrambler.linkEnter(project.getCluster(), queLink.getLink(), queLink.getFromURL(), queLink.getFromResource().getDepth());
+                        linkScrambler.linkEnter(project.getCluster(), queLink);
                     }
                     createSingleVertex(root);
                     OrientGraph graph = graphFactory.getTx();
@@ -176,11 +176,19 @@ public class MinerService extends Service<Void> {
                 while (linkScrambler.queLength(project.getCluster()) > 0) {
                     ODocument docLink = linkScrambler.linkLeave(project.getCluster());
                     int docDepth = docLink.field("depth");
-                    Link link = new Link(docLink.field("from").toString(), docLink.field("path").toString());
+                    Link link = new Link((String) docLink.field("from"), 
+                            (String) docLink.field("path"), 
+                            LinkType.valueOf(docLink.field("type")));
                     if (resources.get(link.getToURL()) == null) {
                         Resource toRes;
-                        URL parentURL = new URL(link.getFromURL());
-                        URL linkUrl = new URL(parentURL, link.getLink());
+                        URL parentURL, linkUrl;
+                        try {
+                            parentURL = new URL(link.getFromURL());
+                            linkUrl = new URL(parentURL, link.getLink());
+                        } catch(MalformedURLException ex){
+                            loggerMiner.log(Level.WARNING, ex.getMessage());
+                            continue;
+                        }
                         
                         //protocol check
                         if(!allowedProtocols.contains(linkUrl.getProtocol())){
@@ -195,7 +203,7 @@ public class MinerService extends Service<Void> {
                                 toRes = new ResourceDom(linkUrl, docDepth + 1, project.getDepth());
                                 if (toRes.getDepth() < project.getDepth()) {
                                     for (Link queLink : toRes.links()) {
-                                        linkScrambler.linkEnter(project.getCluster(), queLink.getLink(), queLink.getFromURL(), queLink.getFromResource().getDepth());
+                                        linkScrambler.linkEnter(project.getCluster(), queLink);
                                     }
                                 }
                             } catch (UnsupportedMimeTypeException ex) {

@@ -70,6 +70,9 @@ public class ReaperDatabase {
         this.connectionStatus.set(false);
     }
 
+    /**
+     * Create database on server
+     */
     public void setupSchema() {
         try {
             OServerAdmin serverAdmin = new OServerAdmin(dbConf.getHostname())
@@ -138,6 +141,8 @@ public class ReaperDatabase {
             linkQue.createProperty("depth", OType.INTEGER);
             linkQue.createProperty("from", OType.STRING);
             linkQue.createProperty("path", OType.STRING);
+            linkQue.createProperty("type", OType.STRING);
+            linkQue.createProperty("count", OType.INTEGER);
             linkQue.createProperty("position", OType.INTEGER);
             //TODO: investigate issue
             //linkQue.createIndex("LinkQue.position", OClass.INDEX_TYPE.UNIQUE, "position");
@@ -147,32 +152,10 @@ public class ReaperDatabase {
 
     }
 
+    /**
+     * Drop whole database
+     */
     public void tearDown() {
-        /*
-         OrientGraphNoTx graph = factory.getNoTx();
-         try {
-         //Edges
-         graph.dropEdgeType("Includes");
-         graph.dropEdgeType("LinkTo");
-         graph.dropEdgeType("Root");
-
-         //Vertices
-         graph.dropVertexType("Resource");
-         graph.dropVertexType("Form");
-         graph.dropVertexType("Project");
-         graph.dropVertexType("Blacklist");
-         } finally {
-         graph.shutdown();
-         }
-
-         ODatabaseDocumentTx oDB = factory.getDatabase();
-         try {
-         oDB.getMetadata().getSchema().dropClass("LinkQue");
-         } finally {
-         oDB.close();
-         }
-         */
-
         try {
             OServerAdmin serverAdmin = new OServerAdmin(dbConf.getHostname())
                     .connect(dbConf.getUsername(), dbConf.getPassword());
@@ -183,6 +166,9 @@ public class ReaperDatabase {
 
     }
 
+    /**
+     * @deprecated only for testing reasons
+     */
     public void truncateData() {
         OrientGraphNoTx graph = factory.getNoTx();
         try {
@@ -204,6 +190,11 @@ public class ReaperDatabase {
         }
     }
 
+    /**
+     * Return connection status.
+     * see if needed
+     * @return bool
+     */
     public boolean isConnected() {
         return this.connectionStatus.get();
     }
@@ -212,6 +203,11 @@ public class ReaperDatabase {
         return this.connectionStatus;
     }
 
+    /**
+     * Return Graph factory for you nasty queries.
+     * Don't forget to graph.shutdown() or db.close!!!
+     * @return OrientGraphFactory
+     */
     public OrientGraphFactory getDatabase() {
         return this.factory;
     }
@@ -337,36 +333,5 @@ public class ReaperDatabase {
         } finally {
             graph.shutdown();
         }
-    }
-
-    public Map<String, Long> getStatistics(Project proj) {
-        HashMap<String, Long> result = new HashMap<>();
-        OrientGraph graph = factory.getTx();
-        try {
-            List<ODocument> dom = graph.getRawGraph().query(
-                    new OSQLSynchQuery<>("select count(*) from cluster:"
-                            + DatabaseClasses.RESOURCE.getName()
-                            + proj.getCluster()
-                            + " WHERE type = 'DOM'")
-            );
-            List<ODocument> outside = graph.getRawGraph().query(
-                    new OSQLSynchQuery<>("select count(*) from cluster:"
-                            + DatabaseClasses.RESOURCE.getName()
-                            + proj.getCluster()
-                            + " WHERE type = 'OUTSIDE'")
-            );
-            List<ODocument> file = graph.getRawGraph().query(
-                    new OSQLSynchQuery<>("select count(*) from cluster:"
-                            + DatabaseClasses.RESOURCE.getName()
-                            + proj.getCluster()
-                            + " WHERE type = 'FILE'")
-            );
-            result.put("DOM", (Long) dom.get(0).field("count"));
-            result.put("OUTSIDE", (Long) outside.get(0).field("count"));
-            result.put("FILE", (Long) file.get(0).field("count"));
-        } finally {
-            graph.shutdown();
-        }
-        return result;
     }
 }

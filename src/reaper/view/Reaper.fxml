@@ -24,20 +24,20 @@
                         <MenuItem mnemonicParsing="false" onAction="#createNewProject" text="New Project" />
                         <MenuItem mnemonicParsing="false" text="Close Project" />
                         <SeparatorMenuItem mnemonicParsing="false" />
+                        <MenuItem mnemonicParsing="false" onAction="#showSettings" text="Settings" />
+                        <SeparatorMenuItem mnemonicParsing="false" />
                         <MenuItem mnemonicParsing="false" onAction="#exitReaper" text="Close" />
                      </items>
                   </Menu>
                   <Menu mnemonicParsing="false" text="View">
                     <items>
-                        <CheckMenuItem mnemonicParsing="false" text="Create sitemap graph" />
+                        <CheckMenuItem fx:id="createSitemapMenuItem" mnemonicParsing="false" text="Create sitemap graph" />
                     </items>
                   </Menu>
                   <Menu mnemonicParsing="false" text="Database">
                     <items>
-                      <MenuItem mnemonicParsing="false" onAction="#databaseConnect" text="Connect/Reload" />
+                      <MenuItem fx:id="databaseConnectMenuItem" mnemonicParsing="false" onAction="#databaseConnect" text="Connect" />
                         <MenuItem mnemonicParsing="false" onAction="#databaseDisconnect" text="Disconnect" />
-                        <SeparatorMenuItem mnemonicParsing="false" />
-                        <MenuItem mnemonicParsing="false" onAction="#openSettings" text="Settings" />
                     </items>
                   </Menu>
                   <Menu mnemonicParsing="false" text="Help">
@@ -47,17 +47,6 @@
                   </Menu>
                </menus>
             </MenuBar>
-            <HBox>
-               <children>
-                  <Button fx:id="databaseConnectButton" mnemonicParsing="false" onAction="#databaseConnect">
-                    <graphic>
-                        <FontAwesomeIcon fill="#262aab" glyphName="REFRESH" /> 
-                    </graphic>
-                  </Button>
-                  <Label text="Database:" />
-                  <Label fx:id="databaseStatusLabel" text="not connected" textFill="RED" />
-               </children>
-            </HBox>
             <SplitPane dividerPositions="0.766721044045677" orientation="VERTICAL" VBox.vgrow="ALWAYS">
               <items>
                 <AnchorPane>
@@ -102,58 +91,6 @@
                                     </AnchorPane>
                                 </content>
                               </Tab>
-                              <Tab text="Options">
-                                <content>
-                                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
-                                       <padding>
-                                          <Insets left="10.0" right="10.0" top="10.0" />
-                                       </padding>
-                                       <children>
-                                          <VBox prefHeight="527.0" prefWidth="947.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                             <children>
-                                                <GridPane>
-                                                  <columnConstraints>
-                                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                                  </columnConstraints>
-                                                  <rowConstraints>
-                                                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                                  </rowConstraints>
-                                                   <children>
-                                                      <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Database" wrappingWidth="226.64990234375" GridPane.rowIndex="1" />
-                                                      <Label text="Host" GridPane.rowIndex="2" />
-                                                      <Label text="Username" GridPane.rowIndex="3" />
-                                                      <Label text="Password" GridPane.rowIndex="4" />
-                                                      <TextField fx:id="databaseHost" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                                                      <TextField fx:id="databaseUser" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                                                      <Label text="Create sitemap graph" />
-                                                      <CheckBox fx:id="displayGraph" mnemonicParsing="false" onAction="#onChangeDisplayGraph" selected="true" GridPane.columnIndex="1" />
-                                                      <PasswordField fx:id="databasePassword" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                                                   </children>
-                                                </GridPane>
-                                                <HBox>
-                                                   <children>
-                                                      <Button fx:id="changeDatabaseButton" mnemonicParsing="false" onAction="#databaseConnect" text="Connect to Database" />
-                                                      <Button fx:id="setupDatabaseButton" mnemonicParsing="false" onAction="#setupDatabase" text="Setup Tables" />
-                                                      <Button fx:id="deleteDatabaseButton" mnemonicParsing="false" onAction="#teardownDatabase" text="Drop Tables">
-                                                         <graphic>
-                                                            <FontAwesomeIcon fill="RED" glyphName="TIMES" />
-                                                         </graphic></Button>
-                                                      <Button fx:id="truncateTablesButton" mnemonicParsing="false" onAction="#clearData" text="Truncate Tables" />
-                                                   </children>
-                                                </HBox>
-                                             </children>
-                                          </VBox>
-                                       </children>
-                                    </AnchorPane>
-                                </content>
-                              </Tab>
                               <Tab fx:id="projectOptionsTab" text="Project Options">
                                  <content>
                                     <AnchorPane>
@@ -179,7 +116,7 @@
                                                             <TextField fx:id="maxDepth" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                                                             <TextField fx:id="hostname" onAction="#startMining" prefHeight="25.0" prefWidth="195.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                                             <Label text="Domain" GridPane.rowIndex="1" />
-                                                            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Name" />
+                                                            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Project name" />
                                                             <Text fx:id="projectName" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="229.13671875" GridPane.columnIndex="1" />
                                                             <Label text="Num of Resources scanned" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                                                             <Label text="Num of links scanned" GridPane.columnIndex="2" GridPane.rowIndex="2" />
@@ -190,22 +127,44 @@
                                                             <Insets />
                                                          </VBox.margin>
                                                       </GridPane>
-                                                      <HBox>
+                                                      <VBox>
                                                          <children>
-                                                            <Button fx:id="startMiningButton" mnemonicParsing="false" onAction="#startMining" text="Start Minning">
-                                                               <graphic>
-                                                                  <FontAwesomeIcon fill="#06dd2a" glyphName="PLAY" />
-                                                               </graphic>
-                                                            </Button>
-                                                          <Button fx:id="stopMiningButton" mnemonicParsing="false" onAction="#stopMining" text="Stop Minning">
-                                                               <graphic>
-                                                                  <FontAwesomeIcon fill="RED" glyphName="STOP" />
-                                                               </graphic>
-                                                            </Button>
-                                                            <Button fx:id="clearDataButton" mnemonicParsing="false" onAction="#clearProjectData" text="Delete data but keep project" />
-                                                            <Button fx:id="deleteProjectButton" mnemonicParsing="false" onAction="#deleteActiveProject" text="Delete project" />
+                                                            <HBox>
+                                                               <children>
+                                                                  <Button fx:id="clearDataButton" mnemonicParsing="false" onAction="#clearProjectData" text="Delete data but keep project" />
+                                                                  <Button fx:id="deleteProjectButton" mnemonicParsing="false" onAction="#deleteActiveProject" text="Delete project" />
+                                                               </children>
+                                                            </HBox>
+                                                            <HBox>
+                                                               <children>
+                                                                  <Button fx:id="startMiningButton" mnemonicParsing="false" onAction="#startMining" text="Start Minning">
+                                                                     <graphic>
+                                                                        <FontAwesomeIcon fill="#06dd2a" glyphName="PLAY" />
+                                                                     </graphic>
+                                                                  </Button>
+                                                                <Button fx:id="stopMiningButton" mnemonicParsing="false" onAction="#stopMining" text="Stop Minning">
+                                                                     <graphic>
+                                                                        <FontAwesomeIcon fill="RED" glyphName="STOP" />
+                                                                     </graphic>
+                                                                  </Button>
+                                                               </children>
+                                                            </HBox>
+                                                            <HBox>
+                                                               <children>
+                                                                  <Button fx:id="startPostScannerButton" mnemonicParsing="false" onAction="#startPostScanner" text="Start PostScanner">
+                                                                     <graphic>
+                                                                        <FontAwesomeIcon fill="#06dd2a" glyphName="PLAY" />
+                                                                     </graphic>
+                                                                  </Button>
+                                                                  <Button fx:id="stopPostScannerButton" mnemonicParsing="false" onAction="#stopPostScanner" text="Stop PostScanner">
+                                                                     <graphic>
+                                                                        <FontAwesomeIcon fill="RED" glyphName="STOP" />
+                                                                     </graphic>
+                                                                  </Button>
+                                                               </children>
+                                                            </HBox>
                                                          </children>
-                                                      </HBox>
+                                                      </VBox>
                                                       <Accordion>
                                                         <panes>
                                                           <TitledPane animated="false" text="Blacklist">
@@ -322,6 +281,9 @@
                                                                                  <content>
                                                                                     <StackPane fx:id="detailsPanel" />
                                                                                  </content>
+                                                                                 <padding>
+                                                                                    <Insets left="10.0" right="10.0" top="10.0" />
+                                                                                 </padding>
                                                                               </ScrollPane>
                                                                            </children>
                                                                         </AnchorPane>
@@ -349,9 +311,9 @@
                                           <Insets left="10.0" right="10.0" top="10.0" />
                                        </padding>
                                        <children>
-                                          <VBox prefHeight="503.0" prefWidth="947.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                          <VBox alignment="TOP_CENTER">
                                              <children>
-                                                <HBox prefHeight="100.0" prefWidth="200.0">
+                                                <HBox alignment="TOP_CENTER">
                                                    <children>
                                                       <PieChart fx:id="chartOverviewStatus" />
                                                       <PieChart fx:id="chartCodesStatus" />

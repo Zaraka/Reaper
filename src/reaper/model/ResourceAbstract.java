@@ -220,4 +220,9 @@ public abstract class ResourceAbstract extends VertexAbstract implements Resourc
         downloadTime = (long) vertex.getProperty("downloadTime");
         mimeType.set(vertex.getProperty("mimeType").toString());
     }
+    
+    @Override
+    public String getNormalizedID(){
+        return id.toString().replaceAll(":", "_");
+    }
 }

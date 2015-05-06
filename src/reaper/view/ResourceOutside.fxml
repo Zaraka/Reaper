@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.text.*?>
 <?import java.lang.*?>
 <?import java.util.*?>
 <?import javafx.scene.*?>
@@ -10,6 +11,7 @@
    <children>
       <VBox>
          <children>
+            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="This document is not scanned. This is because it's present outside of scanning area or max scanning depth." />
             <GridPane VBox.vgrow="NEVER">
                <children>
                   <Label fx:id="resourceURL" prefHeight="17.0" prefWidth="256.0" GridPane.columnIndex="1" />
@@ -18,8 +20,8 @@
                   <Label text="Type" GridPane.rowIndex="1" />
                </children>
                <columnConstraints>
-                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="338.0" minWidth="0.0" percentWidth="25.0" prefWidth="200.0" />
-                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="603.0" minWidth="9.0" percentWidth="25.0" prefWidth="14.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" percentWidth="50.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" percentWidth="50.0" />
                </columnConstraints>
                <rowConstraints>
                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />

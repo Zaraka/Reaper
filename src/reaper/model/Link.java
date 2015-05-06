@@ -32,12 +32,12 @@ public class Link {
         this.type = LinkType.UNDEFINED;
     }
 
-    Link(String fromPath, String link){
+    Link(String fromPath, String link, LinkType type){
         this.link = new SimpleStringProperty(link);
         this.count = new SimpleIntegerProperty(1);
         this.fromResource = null;
         this.toResource = null;
-        this.type = LinkType.UNDEFINED;
+        this.type = type;
         this.fromURL = fromPath;
         try {
             URL rfromURL = new URL(fromPath);
