@@ -9,6 +9,8 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
@@ -21,6 +23,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
+import org.apache.commons.io.FileUtils;
 import reaper.Reaper;
 
 /**
@@ -54,7 +58,7 @@ public class Project extends VertexAbstract {
         this.whitelist = new ArrayList<>();
     }
 
-    Project(String name, URL domain, int depth, List<URL> blacklist, List<URL> whitelist) {
+    Project(String name, URL domain, int depth) {
         this.name = name;
         this.domain = domain;
         this.depth = depth;
@@ -64,6 +68,8 @@ public class Project extends VertexAbstract {
         this.cluster = "p";
         this.cluster += UUID.randomUUID().toString();
 
+        
+        //TODO: fix!!!
         this.blacklist = blacklist;
         this.whitelist = whitelist;
     }
@@ -114,17 +120,13 @@ public class Project extends VertexAbstract {
         }
     }
 
-    private void saveBlackWhiteList(OrientGraph graph, List<URL> blackWhiteList, String cluster, String type) {
-        try {
-            for (URL url : blackWhiteList) {
-                Vertex item = graph.addVertex(
-                        DatabaseClasses.BLACWHITEKLIST.getName(),
-                        DatabaseClasses.BLACWHITEKLIST.getName() + cluster);
-                item.setProperty("url", url.toString());
-                item.setProperty("type", type);
-            }
-        } finally {
-            graph.shutdown();
+    public void saveBlackWhiteList(OrientGraph graph, List<URL> blackWhiteList, String cluster, String type) {
+        for (URL url : blackWhiteList) {
+            Vertex item = graph.addVertex(
+                    DatabaseClasses.BLACWHITEKLIST.getName(),
+                    DatabaseClasses.BLACWHITEKLIST.getName() + cluster);
+            item.setProperty("url", url.toString());
+            item.setProperty("type", type);
         }
     }
 
@@ -139,9 +141,6 @@ public class Project extends VertexAbstract {
                 "domain", domain.toString(), "cluster", cluster, "depth", depth);
         graph.commit();
         setID(ver.getId());
-
-        saveBlackWhiteList(graph, blacklist, cluster, "BLACKLIST");
-        saveBlackWhiteList(graph, whitelist, cluster, "WHITELIST");
 
         //Vertices clusters
         graph.command(new OCommandSQL(
@@ -176,6 +175,10 @@ public class Project extends VertexAbstract {
         graph.command(new OCommandSQL(
                 "ALTER CLASS " + DatabaseClasses.LINKQUE.getName()
                 + " ADDCLUSTER " + DatabaseClasses.LINKQUE.getName() + getCluster()
+        )).execute();
+        graph.command(new OCommandSQL(
+                "ALTER CLASS " + DatabaseClasses.LINKSET.getName()
+                + " ADDCLUSTER " + DatabaseClasses.LINKSET.getName() + getCluster()
         )).execute();
     }
 
@@ -237,6 +240,11 @@ public class Project extends VertexAbstract {
 
     @Override
     public void remove(OrientGraph graph) {
+        
+        OrientVertex ver = getVertex(graph);
+        for(Edge edge : ver.getEdges(Direction.OUT, DatabaseClasses.ROOT.getName())){
+            edge.remove();
+        }
 
         graph.command(
                 new OCommandSQL(
@@ -273,6 +281,15 @@ public class Project extends VertexAbstract {
         graph.command(
                 new OCommandSQL("DROP CLUSTER " + DatabaseClasses.LINKQUE.getName() + getCluster())
         ).execute();
+        
+        graph.command(
+                new OCommandSQL(
+                        "ALTER CLASS " + DatabaseClasses.LINKSET.getName() + " REMOVECLUSTER "
+                        + DatabaseClasses.LINKSET.getName() + getCluster())
+        ).execute();
+        graph.command(
+                new OCommandSQL("DROP CLUSTER " + DatabaseClasses.LINKSET.getName() + getCluster())
+        ).execute();
 
         graph.command(
                 new OCommandSQL(
@@ -291,6 +308,13 @@ public class Project extends VertexAbstract {
         graph.command(
                 new OCommandSQL("DROP CLUSTER " + DatabaseClasses.BLACWHITEKLIST.getName() + getCluster())
         ).execute();
+        
+        try {
+            FileUtils.deleteDirectory(new File(projectPath()));
+        } catch (IOException ex) {
+            //dont care
+        }
+        
         super.remove(graph);
     }
 
@@ -318,6 +342,15 @@ public class Project extends VertexAbstract {
         graph.command(
                 new OCommandSQL("TRUNCATE CLUSTER " + DatabaseClasses.INCLUDES.getName() + getCluster())
         ).execute();
+        graph.command(
+                new OCommandSQL("TRUNCATE CLUSTER " + DatabaseClasses.LINKSET.getName() + getCluster())
+        ).execute();
+        
+        try {
+            FileUtils.deleteDirectory(new File(projectPath()));
+        } catch (IOException ex) {
+            //dont care
+        }
     }
 
     @Override
@@ -327,6 +360,7 @@ public class Project extends VertexAbstract {
         cluster = vertex.getProperty("cluster");
         date = vertex.getProperty("date");
         name = vertex.getProperty("name");
+        depth = vertex.getProperty("depth");
         try {
             domain = new URL(vertex.getProperty("domain"));
         } catch (MalformedURLException ex) {
@@ -394,10 +428,10 @@ public class Project extends VertexAbstract {
         result.put("DOM", (Long) dom.get(0).field("count"));
         result.put("OUTSIDE", (Long) outside.get(0).field("count"));
         result.put("FILE", (Long) file.get(0).field("count"));
-        
+
         return result;
     }
-    
+
     public Map<String, Long> getStatsCodes(OrientGraph graph) {
         HashMap<String, Long> result = new HashMap<>();
         List<ODocument> codesList = graph.getRawGraph().query(
@@ -406,13 +440,23 @@ public class Project extends VertexAbstract {
                         + getCluster()
                         + " group by code")
         );
-        for(ODocument doc : codesList){
+        for (ODocument doc : codesList) {
             String name = doc.field("code").toString();
-            if(name.equals("0")){
+            if (name.equals("0")) {
                 name = "Not Scanned";
             }
-            result.put(name, (Long)doc.field("count"));
+            result.put(name, (Long) doc.field("count"));
         }
         return result;
+    }
+    
+    public String projectPath(){
+        Preferences prefs = Preferences.userNodeForPackage(Reaper.class);
+        String path = prefs.get(PreferenceKeys.GALLERY_PATH.getKey(), (String) PreferenceKeys.GALLERY_PATH.getKey());
+        if (!path.endsWith("/")) {
+            path += "/";
+        }
+        path += name + "/";
+        return path;
     }
 }

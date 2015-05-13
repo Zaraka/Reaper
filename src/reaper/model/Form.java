@@ -9,7 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * Class for storing Form elements of Web Documents.
  * @author zaraka
  */
 public class Form extends VertexAbstract{

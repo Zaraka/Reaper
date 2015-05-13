@@ -13,14 +13,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableArray;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -43,6 +42,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -125,6 +125,8 @@ public class ReaperController implements Initializable {
     @FXML
     private Tab statsTab;
     @FXML
+    private Tab resultsTab;
+    @FXML
     private Tab projectOptionsTab;
     @FXML
     private Tab projectsTab;
@@ -166,6 +168,30 @@ public class ReaperController implements Initializable {
     private Button stopPostScannerButton;
     @FXML
     private CheckMenuItem createSitemapMenuItem;
+    @FXML
+    private MenuItem closeProjectMenuItem;
+    @FXML
+    private TableView<PieChart.Data> statsTypeTable;
+    @FXML
+    private TableColumn<PieChart.Data, String> statsTypeTypeColumn;
+    @FXML
+    private TableColumn<PieChart.Data, Long> statsTypeCountColumn;
+    @FXML
+    private TableView<PieChart.Data> statsCodeTable;
+    @FXML
+    private TableColumn<PieChart.Data, String> statsCodeCodeColumn;
+    @FXML
+    private TableColumn<PieChart.Data, Long> statsCodeCountColumn;
+    @FXML
+    private TabPane consoleTabPane;
+    @FXML
+    private Tab consoleTabReaper;
+    @FXML
+    private Tab consoleTabMiner;
+    @FXML
+    private Tab consoleTabPostScanner;
+    @FXML
+    private Button eraseCurrentLogButton;
 
     @FXML
     private void clearProjectData(ActionEvent event) {
@@ -306,14 +332,14 @@ public class ReaperController implements Initializable {
             loggerReaper.log(Level.SEVERE, ex.getMessage());
         }
     }
-    
+
     @FXML
     public void databaseDisconnect() {
         reaper.getCrawler().databaseDisconnect();
     }
-    
+
     @FXML
-    public void showAbout(){
+    public void showAbout() {
         Parent root;
         try {
             root = FXMLLoader.load(getClass().getResource("About.fxml"));
@@ -325,9 +351,9 @@ public class ReaperController implements Initializable {
             loggerReaper.log(Level.SEVERE, e.getMessage());
         }
     }
-    
+
     @FXML
-    public void showSettings(){
+    public void showSettings() {
         Parent root;
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("Settings.fxml"));
@@ -342,12 +368,12 @@ public class ReaperController implements Initializable {
             loggerReaper.log(Level.SEVERE, e.getMessage());
         }
     }
-    
+
     @FXML
-    public void exitReaper(){
+    public void exitReaper() {
         Platform.exit();
     }
-    
+
     @FXML
     private void startMining(ActionEvent event) {
         if ("".equals(hostname.getText())) {
@@ -366,32 +392,62 @@ public class ReaperController implements Initializable {
     private void stopMining(ActionEvent event) {
         reaper.getCrawler().minerStop();
     }
-    
+
     @FXML
-    public void startPostScanner(){
+    public void startPostScanner() {
         reaper.getCrawler().postScannerStart();
+    }
+
+    @FXML
+    public void stopPostScanner() {
+        reaper.getCrawler().postScannerStop();
+    }
+
+    @FXML
+    public void closeProject() {
+        reaper.getCrawler().closeProject();
     }
     
     @FXML
-    public void stopPostScanner(){
-        reaper.getCrawler().postScannerStop();
+    public void eraseCurrentLog(){
+        switch(consoleTabPane.getSelectionModel().getSelectedIndex()){
+            case 0 :
+                consoleReaper.getChildren().clear();
+                break;
+            case 1 :
+                consoleMiner.getChildren().clear();
+                break;
+            case 2:
+                consolePostScanner.getChildren().clear();
+                break;
+            default:  
+        }
     }
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        loggerReaper.addHandler(new FlowHandler(this.consoleReaper));
+        loggerReaper.addHandler(new FlowHandler(consoleReaper, consoleTabReaper));
         this.consoleReaper.getChildren().addListener((ListChangeListener.Change<? extends Node> c) -> {
             consoleReaperScroll.setVvalue(consoleReaperScroll.getVmax());
         });
+        consoleTabReaper.setOnSelectionChanged((Event event) -> {
+            consoleTabReaper.getStyleClass().remove("tab-unread");
+        });
 
-        loggerMiner.addHandler(new FlowHandler(this.consoleMiner));
+        loggerMiner.addHandler(new FlowHandler(consoleMiner, consoleTabMiner));
         this.consoleMiner.getChildren().addListener((ListChangeListener.Change<? extends Node> c) -> {
             consoleMinerScroll.setVvalue(consoleMinerScroll.getVmax());
         });
-        
-        loggerPostScanner.addHandler(new FlowHandler(this.consolePostScanner));
+        consoleTabMiner.setOnSelectionChanged((Event event) -> {
+            consoleTabMiner.getStyleClass().remove("tab-unread");
+        });
+
+        loggerPostScanner.addHandler(new FlowHandler(consolePostScanner, consoleTabPostScanner));
         this.consolePostScanner.getChildren().addListener((ListChangeListener.Change<? extends Node> c) -> {
             consolePostScannerScroll.setVvalue(consolePostScannerScroll.getVmax());
+        });
+        consoleTabPostScanner.setOnSelectionChanged((Event event) -> {
+            consoleTabPostScanner.getStyleClass().remove("tab-unread");
         });
 
         WebEngine engine = sitemap.getEngine();
@@ -410,22 +466,39 @@ public class ReaperController implements Initializable {
         });
 
         maxDepth.setTextFormatter(new TextFormatter<>(new NumberStringConverter(NumberFormat.getIntegerInstance())));
+
+        //Hide our content tabs
+        statsTab.getContent().setVisible(false);
+        resultsTab.getContent().setVisible(false);
+        projectOptionsTab.getContent().setVisible(false);
+
+        //Stats tables
+        statsCodeCodeColumn.setCellValueFactory((CellDataFeatures<PieChart.Data, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().getName()));
+        statsCodeCountColumn.setCellValueFactory((CellDataFeatures<PieChart.Data, Long> cellData) -> new ReadOnlyObjectWrapper<>((long) cellData.getValue().getPieValue()));
+
+        statsTypeTypeColumn.setCellValueFactory((CellDataFeatures<PieChart.Data, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().getName()));
+        statsTypeCountColumn.setCellValueFactory((CellDataFeatures<PieChart.Data, Long> cellData) -> new ReadOnlyObjectWrapper<>((long) cellData.getValue().getPieValue()));
+        
+        //Tooltips
+        eraseCurrentLogButton.setTooltip(new Tooltip("Erase selected log output"));
     }
 
     public void setReaper(Reaper reaper) {
         //bind data
         this.reaper = reaper;
         Crawler crawler = this.reaper.getCrawler();
-        
+
         createSitemapMenuItem.selectedProperty().bindBidirectional(crawler.createSitemapProperty());
-        
+
         createSitemapMenuItem.selectedProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
             crawler.updateDBPref();
         });
 
-        this.hostname.textProperty().bindBidirectional(crawler.hostnameProperty());
-        this.maxDepth.textProperty().bindBidirectional(crawler.maxDepthProperty(), new NumberStringConverter());
-        this.projectName.textProperty().bindBidirectional(crawler.nameProperty());
+        crawler.activeProjectProperty().addListener((ObservableValue<? extends Project> observable, Project oldValue, Project newValue) -> {
+            this.hostname.setText(newValue.getDomain().toString());
+            this.maxDepth.setText(String.valueOf(newValue.getDepth()));
+            this.projectName.setText(newValue.getName());
+        });
 
         crawler.resources().addListener((MapChangeListener.Change<? extends String, ? extends Resource> change) -> {
             if (createSitemapMenuItem.isSelected()) {
@@ -453,6 +526,14 @@ public class ReaperController implements Initializable {
             }
         });
 
+        crawler.openProjectProperty().addListener((ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) -> {
+            statsTab.getContent().setVisible(newValue);
+            resultsTab.getContent().setVisible(newValue);
+            projectOptionsTab.getContent().setVisible(newValue);
+            closeProjectMenuItem.setDisable(!newValue);
+
+        });
+
         //projectTable
         projectTable.setItems(crawler.projects());
         projectTable.setEditable(false);
@@ -460,7 +541,6 @@ public class ReaperController implements Initializable {
         projectDomainColumn.setCellValueFactory((CellDataFeatures<Project, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().getDomain().toString()));
         projectDateColumn.setCellValueFactory((CellDataFeatures<Project, String> cellData) -> new ReadOnlyObjectWrapper<>(Project.niceDate.format(cellData.getValue().getDate())));
 
-        ContextMenu projectMenu = new ContextMenu();
         MenuItem projectViewItem = new MenuItem("View Project");
         projectViewItem.setOnAction((ActionEvent event) -> {
             Project proj = projectTable.getSelectionModel().getSelectedItem();
@@ -468,17 +548,20 @@ public class ReaperController implements Initializable {
                 crawler.loadProject(proj);
                 List<Map<String, Long>> stats = crawler.loadProjectStats(proj);
                 chartOverviewStatus.setTitle("Crawled nodes");
-                chartOverviewStatus.setData(FXCollections.observableArrayList(
+                ObservableList<PieChart.Data> typeDataList = FXCollections.observableArrayList(
                         new PieChart.Data("DOM nodes", stats.get(0).get("DOM")),
                         new PieChart.Data("File nodes", stats.get(0).get("FILE")),
                         new PieChart.Data("Not scanned nodes", stats.get(0).get("OUTSIDE"))
-                ));
+                );
+                chartOverviewStatus.setData(typeDataList);
+                statsTypeTable.setItems(typeDataList);
                 chartCodesStatus.setTitle("Nodes return codes");
                 ObservableList<PieChart.Data> codeDataList = FXCollections.observableArrayList();
-                for(Map.Entry<String, Long> entry : stats.get(1).entrySet()){
+                for (Map.Entry<String, Long> entry : stats.get(1).entrySet()) {
                     codeDataList.add(new PieChart.Data(entry.getKey(), entry.getValue()));
                 }
                 chartCodesStatus.setData(codeDataList);
+                statsCodeTable.setItems(codeDataList);
                 tabPane.getSelectionModel().select(projectOptionsTab);
             } catch (DatabaseNotConnectedException ex) {
                 loggerReaper.log(Level.SEVERE, ex.getMessage());
@@ -501,10 +584,11 @@ public class ReaperController implements Initializable {
 
             }
         });
-        projectMenu.getItems().add(projectViewItem);
-        projectMenu.getItems().add(projectDeleteItem);
-        projectMenu.getItems().add(projectTruncateItem);
-        projectTable.setContextMenu(projectMenu);
+        projectTable.setContextMenu(new ContextMenu(
+                projectViewItem,
+                projectDeleteItem,
+                projectTruncateItem
+        ));
 
         //resourceTable
         resourceTable.setItems(crawler.activeResources());
@@ -521,37 +605,38 @@ public class ReaperController implements Initializable {
         );
         resourceURLColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getURL().toString()));
         resourceTypeColumn.setCellValueFactory((CellDataFeatures<Resource, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().getType().toString()));
-
-        ContextMenu resourcesMenu = new ContextMenu();
         MenuItem viewResource = new MenuItem("View Resource");
         viewResource.setOnAction((ActionEvent event) -> {
             Resource selected = resourceTable.getSelectionModel().getSelectedItem();
-            setActiveNode((String) selected.getVertexID());
+            setActiveNode(selected.getVertexID().toString());
         });
-        
+        resourceTable.setContextMenu(new ContextMenu(
+                viewResource
+        ));
+
         //blacklistTable
         blacklistTable.setEditable(false);
         blacklistTable.setItems(crawler.blacklistProperty());
         blacklistColumn.setCellValueFactory((CellDataFeatures<URL, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().toString()));
-        ContextMenu blacklistMenu = new ContextMenu();
         MenuItem removeBlacklistItem = new MenuItem("Remove Item");
         removeBlacklistItem.setOnAction((ActionEvent event) -> {
             //TODO
         });
-        blacklistMenu.getItems().add(removeBlacklistItem);
-        blacklistTable.setContextMenu(blacklistMenu);
+        blacklistTable.setContextMenu(new ContextMenu(
+                removeBlacklistItem
+        ));
 
         //whitelistTable
         whitelistTable.setEditable(false);
         whitelistTable.setItems(crawler.whitelistProperty());
         blacklistColumn.setCellValueFactory((CellDataFeatures<URL, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().toString()));
-        ContextMenu whitelistMenu = new ContextMenu();
         MenuItem removeWhitelistItem = new MenuItem("Remove Item");
         removeWhitelistItem.setOnAction((ActionEvent event) -> {
             //TODO
         });
-        whitelistMenu.getItems().add(removeWhitelistItem);
-        whitelistTable.setContextMenu(whitelistMenu);
+        whitelistTable.setContextMenu(new ContextMenu(
+                removeWhitelistItem
+        ));
 
         //overview
         overviewResourceLabel.textProperty().bindBidirectional(crawler.resourcesCountProperty(), new NumberStringConverter());
@@ -577,6 +662,11 @@ public class ReaperController implements Initializable {
                 databaseConnectMenuItem.setText("Connect");
             }
         });
+
+        //--------------------------ON STARTUP----------------------------
+        if (crawler.getAutoConnect()) {
+            databaseConnect();
+        }
     }
 
     private void lockUnlockControls(boolean value) {
@@ -585,7 +675,7 @@ public class ReaperController implements Initializable {
         addBlacklistItemButton.setDisable(value);
         addWhitelistItemButton.setDisable(value);
         startMiningButton.setDisable(value);
-        stopMiningButton.setDisable(value);
+        startPostScannerButton.setDisable(value);
         clearDataButton.setDisable(value);
         deleteProjectButton.setDisable(value);
         createNewProjectButton.setDisable(value);

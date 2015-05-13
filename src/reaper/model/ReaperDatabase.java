@@ -6,9 +6,7 @@ import com.orientechnologies.orient.core.exception.OSchemaException;
 import com.orientechnologies.orient.core.exception.OStorageException;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OType;
-import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
-import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -23,9 +21,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.BooleanProperty;
@@ -146,6 +142,11 @@ public class ReaperDatabase {
             linkQue.createProperty("position", OType.INTEGER);
             //TODO: investigate issue
             //linkQue.createIndex("LinkQue.position", OClass.INDEX_TYPE.UNIQUE, "position");
+            
+            //Link Set
+            OClass linkSet = oDB.getMetadata().getSchema().createClass("LinkSet");
+            linkSet.createProperty("key", OType.STRING);
+            linkSet.createProperty("value", OType.STRING);
         } finally {
             oDB.close();
         }
@@ -305,14 +306,26 @@ public class ReaperDatabase {
         }
     }
 
-    public void createProject(String name, URL domain, int depth, List<URL> blacklist, List<URL> whitelist) {
-        Project project = new Project(name, domain, depth, blacklist, whitelist);
+    public Project createProject(String name, URL domain, int depth) {
+        Project project = new Project(name, domain, depth);
 
         //save project into database and create clusters
         OrientGraph graph = factory.getTx();
         try {
             project.vertexTransaction(graph);
         } finally {
+            graph.shutdown();
+        }
+        
+        return project;
+    }
+    
+    public void insertBlackWhiteList(Project proj, List<URL> blacklist, List<URL> whitelist){
+        OrientGraph graph = factory.getTx();
+        try {
+                proj.saveBlackWhiteList(graph, blacklist, proj.getCluster(), "BLACKLIST");
+                proj.saveBlackWhiteList(graph, whitelist, proj.getCluster(), "WHITELIST");
+            } finally {
             graph.shutdown();
         }
     }

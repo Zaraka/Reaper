@@ -1,6 +1,8 @@
 package reaper.model;
 
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
+import com.orientechnologies.orient.core.exception.OConfigurationException;
+import com.orientechnologies.orient.core.exception.OSecurityAccessException;
 import com.orientechnologies.orient.core.exception.OStorageException;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import java.io.IOException;
@@ -16,11 +18,12 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -31,8 +34,8 @@ import reaper.Reaper;
 import reaper.exceptions.DatabaseNotConnectedException;
 
 /**
- * Main Crawler class
- * Also spawns a number of worker when executing DB tasks
+ * Main Crawler class Also spawns a number of worker when executing DB tasks
+ *
  * @author zaraka
  */
 public class Crawler {
@@ -46,7 +49,6 @@ public class Crawler {
     private final ObservableList<URL> blacklist;
     private final ObservableList<URL> whitelist;
     private final StringProperty hostname;
-    private final IntegerProperty maxDownloads;
     private final IntegerProperty maxDepth;
     private final StringProperty dbHost;
     private final StringProperty dbUser;
@@ -60,7 +62,9 @@ public class Crawler {
     private final Preferences prefs;
     private final StringProperty phantomPath;
     private final StringProperty galleryPath;
-    private Project activeProject;
+    private final BooleanProperty openProject;
+    private final BooleanProperty autoConnect;
+    private final ObjectProperty<Project> activeProject;
 
     private final MinerService minerService;
     private final PostScannerService postScannerService;
@@ -71,7 +75,6 @@ public class Crawler {
         this.prefs = Preferences.userNodeForPackage(Reaper.class);
         this.hostname = new SimpleStringProperty("");
         this.maxDepth = new SimpleIntegerProperty(1);
-        this.maxDownloads = new SimpleIntegerProperty(5);
         this.dbHost = new SimpleStringProperty(getPrefDBHost());
         this.dbPassword = new SimpleStringProperty(getPrefDBPassword());
         this.dbUser = new SimpleStringProperty(getPrefDBUser());
@@ -85,71 +88,68 @@ public class Crawler {
         this.projects = FXCollections.observableArrayList();
         this.activeResources = FXCollections.observableArrayList();
         this.name = new SimpleStringProperty("");
-        this.activeProject = null;
         this.phantomPath = new SimpleStringProperty(getPrefPhantomPath());
         this.galleryPath = new SimpleStringProperty(getPrefGalleryPath());
         this.postScannerService = new PostScannerService();
         this.createSitemap = new SimpleBooleanProperty(getPrefCreateSitemap());
+        this.openProject = new SimpleBooleanProperty(false);
+        this.autoConnect = new SimpleBooleanProperty(getPrefAutoConnect());
+        this.activeProject = new SimpleObjectProperty<>(null);
 
         this.init();
-
-        dbHost.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            prefs.put(PreferenceKeys.DB_HOST.getKey(), newValue);
-            loggerReaper.log(Level.INFO, "dbHost changed");
-        });
-
-        dbPassword.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            prefs.put(PreferenceKeys.DB_PASS.getKey(), newValue);
-            loggerReaper.log(Level.INFO, "dbPass changed");
-        });
-
-        dbUser.addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            prefs.put(PreferenceKeys.DB_USER.getKey(), newValue);
-            loggerReaper.log(Level.INFO, "dbUser changed");
-        });
     }
-    
-    
+
     private String getPrefDBHost() {
-        return prefs.get(PreferenceKeys.DB_HOST.getKey(), "remote:localhost/ReaperTest");
+        return prefs.get(PreferenceKeys.DB_HOST.getKey(), (String) PreferenceKeys.DB_HOST.getValue());
     }
 
     private String getPrefDBUser() {
-        return prefs.get(PreferenceKeys.DB_USER.getKey(), "root");
+        return prefs.get(PreferenceKeys.DB_USER.getKey(), (String) PreferenceKeys.DB_USER.getKey());
     }
 
     private String getPrefDBPassword() {
-        return prefs.get(PreferenceKeys.DB_PASS.getKey(), "admin");
+        return prefs.get(PreferenceKeys.DB_PASS.getKey(), (String) PreferenceKeys.DB_PASS.getKey());
     }
-    
+
     private String getPrefPhantomPath() {
-        return prefs.get(PreferenceKeys.PHANTOM_PATH.getKey(), "");
+        return prefs.get(PreferenceKeys.PHANTOM_PATH.getKey(), (String) PreferenceKeys.PHANTOM_PATH.getKey());
     }
-    
+
     private String getPrefGalleryPath() {
-        return prefs.get(PreferenceKeys.GALLERY_PATH.getKey(), System.getProperty("user.home") + "/Reaper/");
+        return prefs.get(PreferenceKeys.GALLERY_PATH.getKey(), (String) PreferenceKeys.GALLERY_PATH.getKey());
     }
-    
-    private boolean getPrefCreateSitemap(){
-        return prefs.getBoolean(PreferenceKeys.CREATE_SITEMAP.getKey(), true);
+
+    private boolean getPrefCreateSitemap() {
+        return prefs.getBoolean(PreferenceKeys.CREATE_SITEMAP.getKey(), (Boolean) PreferenceKeys.CREATE_SITEMAP.getValue());
     }
-    
+
+    private boolean getPrefAutoConnect() {
+        return prefs.getBoolean(PreferenceKeys.AUTO_CONNECT.getKey(), (Boolean) PreferenceKeys.AUTO_CONNECT.getValue());
+    }
+
     public void refreshProjects() throws DatabaseNotConnectedException {
         if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
         projects.clear();
-        database.getProjects(projects);
+        try {
+            database.getProjects(projects);
+        } catch (OConfigurationException ex ) {
+            loggerReaper.log(Level.SEVERE, "Cannot connect to Database, database probably doesnt exist");
+        } catch (OSecurityAccessException ex) {
+            loggerReaper.log(Level.SEVERE, "User or password not valid for database");
+        }
     }
 
     /**
      * Connects to database
+     *
      * @throws java.io.IOException
      */
     public void databaseConnect() throws IOException, OStorageException {
-            database.connect(getDbHost(), getDbUser(), getDbPassword());
-            minerService.databaseConnect(getDbHost(), getDbUser(), getDbPassword());
-            postScannerService.databaseConnect(getDbHost(), getDbUser(), getDbPassword());
+        database.connect(getDbHost(), getDbUser(), getDbPassword());
+        minerService.databaseConnect(getDbHost(), getDbUser(), getDbPassword());
+        postScannerService.databaseConnect(getDbHost(), getDbUser(), getDbPassword());
     }
 
     public void databaseDisconnect() {
@@ -158,18 +158,23 @@ public class Crawler {
         postScannerService.databaseDisconnect();
     }
 
+    /**
+     * Start external thread where create Database schema
+     *
+     * @throws DatabaseNotConnectedException
+     */
     public void setupDatabase() throws DatabaseNotConnectedException {
         if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
-        
+
         Task<Void> setupTask = new Task<Void>() {
 
             @Override
             protected Void call() throws Exception {
                 database.setupSchema();
                 return null;
-            }  
+            }
         };
         setupTask.setOnSucceeded((WorkerStateEvent event) -> {
             loggerReaper.log(Level.INFO, "Database created");
@@ -185,13 +190,17 @@ public class Crawler {
         new Thread(setupTask).start();
     }
 
+    /**
+     * Start external thread where drop database
+     *
+     * @throws DatabaseNotConnectedException
+     */
     public void removeDatabase() throws DatabaseNotConnectedException {
         if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
-        
-        
-        Task <Void>teardownTask = new Task<Void>() {
+
+        Task<Void> teardownTask = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
                 database.tearDown();
@@ -232,17 +241,17 @@ public class Crawler {
         }
 
         clearData();
-        database.removeProject(activeProject);
+        database.removeProject(activeProject.get());
 
         refreshProjects();
     }
-    
+
     public void deleteProject(Project proj) throws DatabaseNotConnectedException {
         if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
-        
-        if(proj == activeProject){
+
+        if (proj == activeProject.get()) {
             deleteActiveProject();
         } else {
             database.removeProject(proj);
@@ -261,10 +270,13 @@ public class Crawler {
         }
 
         clearData();
-        database.truncateProject(activeProject);
+        database.truncateProject(activeProject.get());
         loggerReaper.log(Level.INFO, "Project data deleted");
     }
 
+    /**
+     * Update all preference keys
+     */
     public void updateDBPref() {
         prefs.put(PreferenceKeys.DB_HOST.getKey(), getDbHost());
         prefs.put(PreferenceKeys.DB_USER.getKey(), getDbUser());
@@ -272,28 +284,39 @@ public class Crawler {
         prefs.put(PreferenceKeys.GALLERY_PATH.getKey(), getGalleryPath());
         prefs.put(PreferenceKeys.PHANTOM_PATH.getKey(), getPhantomPath());
         prefs.putBoolean(PreferenceKeys.CREATE_SITEMAP.getKey(), getCreateSitemap());
+        prefs.putBoolean(PreferenceKeys.AUTO_CONNECT.getKey(), getAutoConnect());
     }
 
-    public void loadAll() throws DatabaseNotConnectedException{
+    /**
+     *
+     * @throws DatabaseNotConnectedException
+     * @deprecated
+     */
+    public void loadAll() throws DatabaseNotConnectedException {
         if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
-        
+
         clearData();
-        database.loadAll(resources, links, activeProject.getCluster());
+        database.loadAll(resources, links, activeProject.get().getCluster());
     }
 
+    /**
+     * Load Root Web Document
+     *
+     * @throws DatabaseNotConnectedException
+     */
     public void loadRoot() throws DatabaseNotConnectedException {
         if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
-        
-        if (activeProject.getRoot() != null) {
+
+        if (activeProject.get().getRoot() != null) {
             database.loadResource(
-                    activeProject.getRoot(),
+                    activeProject.get().getRoot(),
                     resources,
                     links,
-                    activeProject.getCluster());
+                    activeProject.get().getCluster());
         }
     }
 
@@ -303,7 +326,7 @@ public class Crawler {
         }
 
         clearData();
-        database.loadResource(id, resources, links, activeProject.getCluster());
+        database.loadResource(id, resources, links, activeProject.get().getCluster());
         activeResources.setAll(resources.values()); //LOL
     }
 
@@ -312,8 +335,8 @@ public class Crawler {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
 
-        database.createProject(name, domain, depth, blacklist, whitelist);
-        
+        Project proj = database.createProject(name, domain, depth);
+
         //Database schema reload - fix OrientDB bug
         databaseDisconnect();
         try {
@@ -321,44 +344,55 @@ public class Crawler {
         } catch (IOException | OStorageException ex) {
             loggerReaper.log(Level.SEVERE, ex.getMessage());
         }
+
+        database.insertBlackWhiteList(proj, blacklist, whitelist);
     }
 
     public void loadProject(Project proj) throws DatabaseNotConnectedException {
         clearData();
 
-        activeProject = proj;
+        activeProject.set(proj);
 
         OrientGraph graph = database.getDatabase().getTx();
         try {
-            activeProject.update(graph);
-            if (activeProject.getRoot() == null) {
+            activeProject.get().update(graph);
+            if (activeProject.get().getRoot() == null) {
                 loggerReaper.log(Level.INFO, "Project not yet mined");
             } else {
-                loadResource(activeProject.getRoot());
+                loadResource(activeProject.get().getRoot());
             }
-            blacklist.addAll(activeProject.getBlacklist());
-            whitelist.addAll(activeProject.getWhitelist());
+            blacklist.addAll(activeProject.get().getBlacklist());
+            whitelist.addAll(activeProject.get().getWhitelist());
         } finally {
             graph.shutdown();
         }
-        setHostname(activeProject.getDomain().toString());
+        setHostname(activeProject.get().getDomain().toString());
         setName(activeProject.getName());
-        
+        setMaxDepth(activeProject.get().getDepth());
+
         ODatabaseDocumentTx oDB = database.getDatabase().getDatabase();
         try {
-            resourcesCount.set((int) activeProject.getResourceCount(oDB));
-            linksCount.set((int) activeProject.getLinksCount(oDB));
+            resourcesCount.set((int) activeProject.get().getResourceCount(oDB));
+            linksCount.set((int) activeProject.get().getLinksCount(oDB));
         } finally {
             oDB.close();
         }
+        this.openProject.set(true);
     }
-    
+
+    public void closeProject() {
+        clearData();
+        activeProject.set(null);
+        this.openProject.set(false);
+    }
+
     /**
      * Load and return list of statistics used for GUI
+     *
      * @param proj Project to load
      * @return List of Map statistics 0 - Types, 1 - Codes
      */
-    public List<Map<String, Long>> loadProjectStats(Project proj){
+    public List<Map<String, Long>> loadProjectStats(Project proj) {
         List<Map<String, Long>> result = new ArrayList<>();
         //Converting graph to Document like this is really dumb
         OrientGraph graph = database.getDatabase().getTx();
@@ -368,7 +402,7 @@ public class Crawler {
         } finally {
             graph.shutdown();
         }
-        
+
         return result;
     }
 
@@ -376,7 +410,7 @@ public class Crawler {
         minerService.init();
         minerService.setOnSucceeded((WorkerStateEvent event) -> {
             try {
-                loadProject(activeProject);
+                loadProject(activeProject.get());
             } catch (DatabaseNotConnectedException ex) {
                 loggerReaper.log(Level.SEVERE, ex.getMessage());
             }
@@ -404,6 +438,10 @@ public class Crawler {
             loggerReaper.log(Level.INFO, "Mining canceled");
         });
 
+        minerService.setOnReady((WorkerStateEvent event) -> {
+            this.setMinerBusy(false);
+        });
+
         postScannerService.init();
         postScannerService.setOnSucceeded((WorkerStateEvent event) -> {
             this.setMinerBusy(true);
@@ -427,62 +465,69 @@ public class Crawler {
             this.setMinerBusy(false);
             loggerReaper.log(Level.INFO, "Post scanning process canceled");
         });
-        
+
+        postScannerService.setOnReady((WorkerStateEvent event) -> {
+            this.setMinerBusy(false);
+        });
     }
 
     public void minerStart() throws MalformedURLException {
         if (minerService.isRunning()) {
             return;
         }
-            loggerReaper.log(Level.INFO, "Request mining on " + hostname.get());
+        loggerReaper.log(Level.INFO, "Request mining on " + hostname.get());
 
-            //delete data
-            clearData();
+        //delete data
+        clearData();
 
-            URL url = new URL(hostname.get());
-            activeProject.setDomain(url);
-            activeProject.setDepth(getMaxDepth());
+        URL url = new URL(hostname.get());
+        activeProject.get().setDomain(url);
+        activeProject.get().setDepth(getMaxDepth());
 
-            //Save project before minning
-            OrientGraph graph = database.getDatabase().getTx();
-            try {
-                activeProject.save(graph);
-            } finally {
-                graph.shutdown();
-            }
+        //Save project before mining
+        OrientGraph graph = database.getDatabase().getTx();
+        try {
+            activeProject.get().save(graph);
+        } finally {
+            graph.shutdown();
+        }
 
-            //Set miner and start
-            minerService.prepare(activeProject);
-            minerService.start();
+        //Set miner and start
+        minerService.prepare(activeProject.get());
+        minerService.start();
     }
-    
+
     public void postScannerStart() {
-        if(postScannerService.isRunning()){
+        if (postScannerService.isRunning()) {
             return;
         }
-        
-        postScannerService.prepare(activeProject, getPhantomPath(), getGalleryPath());
+
+        postScannerService.prepare(activeProject.get(), getPhantomPath(), getGalleryPath());
         postScannerService.start();
     }
-    
+
     public void minerStop() {
         if (minerService.isRunning()) {
             minerService.cancel();
         }
     }
-    
+
     public void postScannerStop() {
-        if(postScannerService.isRunning()){
+        if (postScannerService.isRunning()) {
             postScannerService.cancel();
         }
     }
 
     public void setActiveProject(Project proj) {
-        this.activeProject = proj;
+        activeProject.set(proj);
     }
 
     public Project getActiveProject() {
-        return this.activeProject;
+        return activeProject.get();
+    }
+
+    public ObjectProperty<Project> activeProjectProperty() {
+        return activeProject;
     }
 
     private void clearData() {
@@ -490,7 +535,7 @@ public class Crawler {
         links.clear();
         resources.clear();
     }
-    
+
     private void clearBlacklists() {
         blacklist.clear();
         whitelist.clear();
@@ -517,29 +562,17 @@ public class Crawler {
     public StringProperty hostnameProperty() {
         return this.hostname;
     }
-    
+
     public final String getName() {
         return this.name.get();
     }
-    
+
     public final void setName(String name) {
         this.name.set(name);
     }
-    
-    public final StringProperty nameProperty(){
+
+    public final StringProperty nameProperty() {
         return this.name;
-    }
-
-    public final int getMaxDownloads() {
-        return this.maxDownloads.get();
-    }
-
-    public final void setMaxDownloads(int maxDownloads) {
-        this.maxDownloads.set(maxDownloads);
-    }
-
-    public IntegerProperty maxDownloadsProperty() {
-        return this.maxDownloads;
     }
 
     public IntegerProperty maxDepthProperty() {
@@ -617,7 +650,7 @@ public class Crawler {
     public ObservableList<URL> blacklistProperty() {
         return this.blacklist;
     }
-    
+
     public ObservableList<URL> whitelistProperty() {
         return this.whitelist;
     }
@@ -649,40 +682,64 @@ public class Crawler {
     public ObservableList<Resource> activeResources() {
         return activeResources;
     }
-    
-    public String getGalleryPath(){
+
+    public String getGalleryPath() {
         return galleryPath.get();
     }
-    
-    public void setGalleryPath(String path){
+
+    public void setGalleryPath(String path) {
         galleryPath.set(path);
     }
-    
-    public StringProperty galleryPathProperty(){
+
+    public StringProperty galleryPathProperty() {
         return galleryPath;
     }
-    
-    public String getPhantomPath(){
+
+    public String getPhantomPath() {
         return phantomPath.get();
     }
-    
-    public void setPhantomPath(String path){
+
+    public void setPhantomPath(String path) {
         phantomPath.set(path);
     }
-    
-    public StringProperty phantomPathProperty(){
+
+    public StringProperty phantomPathProperty() {
         return phantomPath;
     }
-    
-    public boolean getCreateSitemap(){
+
+    public boolean getCreateSitemap() {
         return createSitemap.get();
     }
-    
-    public void setCreateSitemap(boolean value){
+
+    public void setCreateSitemap(boolean value) {
         createSitemap.set(value);
     }
-    
-    public BooleanProperty createSitemapProperty(){
+
+    public BooleanProperty createSitemapProperty() {
         return createSitemap;
+    }
+
+    public boolean getAutoConnect() {
+        return autoConnect.get();
+    }
+
+    public void setAutoConnect(boolean value) {
+        autoConnect.set(value);
+    }
+
+    public BooleanProperty autoConnectProperty() {
+        return autoConnect;
+    }
+
+    public boolean isOpenProject() {
+        return openProject.get();
+    }
+
+    public void setOpenProject(boolean value) {
+        openProject.set(value);
+    }
+
+    public BooleanProperty openProjectProperty() {
+        return openProject;
     }
 }

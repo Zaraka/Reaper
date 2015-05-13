@@ -13,10 +13,10 @@ $(CO).ps: $(CO).dvi
 	dvips $(CO)
 
 $(CO).pdf: clean
-	pdflatex $(CO)
+	pdflatex --shell-escape $(CO)
 	bibtex $(CO)
-	pdflatex $(CO)
-	pdflatex $(CO)
+	pdflatex --shell-escape $(CO)
+	pdflatex --shell-escape $(CO)
 
 $(CO).dvi: $(CO).tex $(CO).bib
 	latex $(CO)

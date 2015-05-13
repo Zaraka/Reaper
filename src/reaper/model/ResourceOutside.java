@@ -11,7 +11,7 @@ import java.net.URL;
 public class ResourceOutside extends ResourceAbstract{
 
     ResourceOutside(URL url, int depth, int maxDepth) throws MalformedURLException {
-        super(url, depth, maxDepth);
+        super(url, depth);
         this.type = ResourceType.OUTSIDE;
     }
     

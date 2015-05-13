@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="12cm" height="12cm" viewBox="512 556 233 233" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g>
+    <ellipse style="fill: #52e352" cx="628.438" cy="672.812" rx="115.062" ry="115.062"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="628.438" cy="672.812" rx="115.062" ry="115.062"/>
+    <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="628.438" cy="672.812" rx="115.062" ry="115.062"/>
+  </g>
+  <g>
+    <g>
+      <ellipse style="fill: #90ee90" cx="575.75" cy="650.5" rx="37.75" ry="37.75"/>
+      <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="575.75" cy="650.5" rx="37.75" ry="37.75"/>
+      <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="575.75" cy="650.5" rx="37.75" ry="37.75"/>
+    </g>
+    <text font-size="12.8" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="548.976" y="654.95">
+      <tspan x="548.976" y="654.95">Cluster1</tspan>
+    </text>
+  </g>
+  <g>
+    <g>
+      <ellipse style="fill: #90ee90" cx="683.85" cy="645" rx="37.75" ry="37.75"/>
+      <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="683.85" cy="645" rx="37.75" ry="37.75"/>
+      <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="683.85" cy="645" rx="37.75" ry="37.75"/>
+    </g>
+    <text font-size="12.8" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="657.076" y="649.45">
+      <tspan x="657.076" y="649.45">Cluster2</tspan>
+    </text>
+  </g>
+  <g>
+    <g>
+      <ellipse style="fill: #90ee90" cx="620.95" cy="735.5" rx="37.75" ry="37.75"/>
+      <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="620.95" cy="735.5" rx="37.75" ry="37.75"/>
+      <ellipse style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" cx="620.95" cy="735.5" rx="37.75" ry="37.75"/>
+    </g>
+    <text font-size="12.8" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:normal" x="594.176" y="739.95">
+      <tspan x="594.176" y="739.95">Cluster3</tspan>
+    </text>
+  </g>
+  <text font-size="14.1111" style="fill: #000000;text-anchor:start;font-family:sans-serif;font-style:normal;font-weight:700" x="607.688" y="592.5">
+    <tspan x="607.688" y="592.5">Class</tspan>
+  </text>
+</svg>

@@ -34,7 +34,7 @@ public enum DatabaseClasses {
 
         @Override
         public String getName() {
-            return "BlackWhitelist";
+            return "BlackWhiteList";
         }
     },
     PROJECT {
@@ -90,6 +90,18 @@ public enum DatabaseClasses {
         @Override
         public String getName() {
             return "LinkQue";
+        }
+        
+    },
+    LINKSET {
+        @Override
+        public String getType() {
+            return "D";
+        }
+
+        @Override
+        public String getName() {
+            return "LinkSet";
         }
         
     };

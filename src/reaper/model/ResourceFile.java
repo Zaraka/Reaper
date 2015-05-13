@@ -14,7 +14,7 @@ public class ResourceFile extends ResourceAbstract {
     private static final Logger loggerMiner = Logger.getLogger(reaper.model.MinerService.class.getName());
     
     ResourceFile(URL url, int depth, int maxDepth) throws MalformedURLException {
-        super(url, depth, maxDepth);
+        super(url, depth);
         this.type = ResourceType.FILE;
     }
     

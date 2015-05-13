@@ -5,11 +5,8 @@ import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,8 +16,8 @@ import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
 /**
- * Post scanner service for picture grabbing etc. After minning is finished.
- * Post scanner load all DOM vertices from DB and try to capture a screenshot by
+ * Post scanner service for picture grabbing etc. After mining is finished. Post
+ * scanner load all DOM vertices from DB and try to capture a screen shot by
  * PhantomJS. This task is considered long.
  *
  * @author zaraka
@@ -57,6 +54,13 @@ public class PostScannerService extends Service<Void> {
         this.resources = new ArrayList<>();
     }
 
+    /**
+     * Before starting service, setup scanner by this
+     *
+     * @param proj
+     * @param phantomPath
+     * @param galleryPath
+     */
     public void prepare(Project proj, String phantomPath, String galleryPath) {
         this.project = proj;
         this.phantomPath = phantomPath;
@@ -81,7 +85,6 @@ public class PostScannerService extends Service<Void> {
                             + " where type = 'DOM'")
             ).execute()) {
                 try {
-                    loggerPostScanner.log(Level.INFO, (String) ver.getProperty("url"));
                     ResourceDom res = new ResourceDom(ver);
                     resources.add(res);
                 } catch (MalformedURLException ex) {
@@ -97,32 +100,28 @@ public class PostScannerService extends Service<Void> {
      * Create Directory tree from resource list
      */
     private void createDirectoryTree() {
+        String projectGalleryPath = galleryPath + project.getName() + "/";
         for (ResourceDom res : resources) {
-            File resFile = new File(galleryPath + res.getNormalizedID());
+            File resFile = new File(projectGalleryPath + res.getNormalizedID());
             resFile.mkdirs();
         }
     }
 
+    /**
+     * Run PhantomJS for all web documents
+     */
     private void phantomCapture() {
+        String projectGalleryPath = galleryPath + project.getName() + "/";
+        
         for (ResourceDom res : resources) {
+            String resourceDir = projectGalleryPath + res.getNormalizedID() + "/";
             try {
-                loggerPostScanner.log(Level.INFO, "Executing " + phantomPath + " " + "capture.js"
-                + " " + res.getURL().toString() + " " + galleryPath + res.getNormalizedID() + "/capture.png");
-                Process process = new ProcessBuilder(
-                        phantomPath,
-                        "capture.js",
-                        res.getURL().toString(),
-                        galleryPath + res.getNormalizedID() + "/capture.png").start();
-                InputStream is = process.getInputStream();
-                InputStreamReader isr = new InputStreamReader(is);
-                BufferedReader br = new BufferedReader(isr);
-                String line;
+                ProcessBuilder pb = new ProcessBuilder(phantomPath, "capture.js", 
+                        res.getURL().toString(), resourceDir + "capture.png");
+                pb.redirectOutput(new File(resourceDir + "javascript.txt"));
+                pb.start().waitFor();
 
-                while ((line = br.readLine()) != null) {
-                    loggerPostScanner.log(Level.INFO, line);
-                }
-
-            } catch (IOException ex) {
+            } catch (IOException | InterruptedException ex) {
                 loggerPostScanner.log(Level.SEVERE, ex.getMessage());
             }
         }

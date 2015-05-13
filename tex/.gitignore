@@ -1,0 +1,10 @@
+*.pdf_tex
+*.dia~
+*.backup
+*.aux
+*.toc
+*.log
+*.blg
+*.out
+*.bbl
+

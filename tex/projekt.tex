@@ -28,6 +28,13 @@
 \DeclareUrlCommand\url{\def\UrlLeft{<}\def\UrlRight{>} \urlstyle{tt}}
 
 %zde muzeme vlozit vlastni balicky
+\usepackage{amsmath}
+\usepackage{dirtree}
+\usepackage{float}
+\usepackage{svg}
+\setsvg{svgpath = ./fig/}
+\graphicspath{ {./fig/} }
+\DeclareGraphicsExtensions{.pdf,.png,.jpg}
 
 
 % =======================================================================
@@ -72,15 +79,17 @@
   %bud pomoci nasledujicich parametru nebo pomoci vyhrazenych maker (viz dale)
   %===========================================================================
   %Klicova slova
-  keywords.cs={Klíèová slova v èeském jazyce.}, %klicova slova v ceskem jazyce
-  keywords.en={Klíèová slova v anglickém jazyce.}, %klicova slova v anglickem jazyce
+  keywords.cs={Webový pavouk, HTML, analýza webových stránek, Jsoup}, %klicova slova v ceskem jazyce
+  keywords.en={Web crawling, HTML, web page analysis, Jsoup}, %klicova slova v anglickem jazyce
   %Abstract
-  abstract.cs={Výtah (abstrakt) práce v èeském jazyce.}, % abstrakt v ceskem jazyce
+  abstract.cs={Cílem této práce je vytvoøení aplikace na analýzu WWW stránek. 
+  K implementaci aplikace byl zvolen jazyk Java, konkrétnì framework JavaFX s pou¾itím grafové databáze OrientDB. 
+  Vytvoøená aplikace doká¾e analyzovat WWW stránky men¹ího rozsahu. Aplikace je u¾iteèná jako nástroj k sestavení struktury WWW stránek. }, % abstrakt v ceskem jazyce
   abstract.en={Výtah (abstrakt) práce v anglickém jazyce.}, % abstrakt v anglickem jazyce
   %Prohlaseni
   declaration={Prohla¹uji, ¾e jsem tuto bakaláøskou práci vypracoval samostatnì pod vedením pana ...},
   %Podekovani (nepovinne)
-  acknowledgment={Zde je mo¾né uvést podìkování vedoucímu práce a tìm, kteøí poskytli odbornou pomoc.} % nepovinne
+  acknowledgment={Velice dìkuji mému vedoucímu práce Ing. Radku Burgetovi, Ph.D  za motivaci, vedení a mou podporu. Dìkuji také Mgr. Franti¹u Trosteru za nápad na tento nástroj.} % nepovinne
 }
 
 %Abstrakt (cesky, anglicky)
@@ -125,6 +134,7 @@
 %  \bibliographystyle{alpha}
 \fi
   \begin{flushleft}
+  \nocite{*}
   \bibliography{literatura} % viz. literatura.bib
   \end{flushleft}
   \appendix

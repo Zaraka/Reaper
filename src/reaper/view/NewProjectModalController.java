@@ -96,6 +96,15 @@ public class NewProjectModalController implements Initializable {
             alert.show();
             return;
         }
+        
+        if(!name.getText().matches("^[a-zA-Z0-9]*$")){
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Error!");
+            alert.setHeaderText("Name can contain only alfanumerical characters");
+            alert.setContentText(null);
+            alert.show();
+            return;
+        }
 
         try {
             this.domain = new URL(hostname.getText());

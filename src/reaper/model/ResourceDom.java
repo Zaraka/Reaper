@@ -41,12 +41,12 @@ public class ResourceDom extends ResourceAbstract {
         this.type = ResourceType.DOM;
     }
 
-    ResourceDom(URL url, int depth, int maxDepth) throws UnsupportedMimeTypeException, MalformedURLException, OutsidePageException {
-        super(url, depth, maxDepth);
+    ResourceDom(URL url, int depth) throws UnsupportedMimeTypeException, MalformedURLException, OutsidePageException {
+        super(url, depth);
 
         this.forms = new ArrayList<>();
         this.type = ResourceType.DOM;
-         
+
         //then check if resource has DOM element
         try {
             this.load();
@@ -66,10 +66,10 @@ public class ResourceDom extends ResourceAbstract {
             Form form = new Form(edge.getVertex(Direction.IN), this);
             forms.add(form);
         }
-        
+
         //This is baaaaad
         //Load links not resources
-        for( Edge edge : vertex.getEdges(Direction.OUT, DatabaseClasses.LINKTO.getName())){
+        for (Edge edge : vertex.getEdges(Direction.OUT, DatabaseClasses.LINKTO.getName())) {
             String key = "link#" + edge.getProperty("path");
             Link link = new Link(edge.getProperty("path"), this, LinkType.valueOf(edge.getProperty("type")));
             link.setCount(edge.getProperty("count"));
@@ -107,8 +107,7 @@ public class ResourceDom extends ResourceAbstract {
     }
 
     /**
-     * Search more links.
-     * Search all <b>rel</b> tags.
+     * Search more links. Search all <b>rel</b> tags.
      */
     private void retrieveLinks() {
         Elements docLinks = this.doc.getElementsByTag("link");
@@ -138,8 +137,8 @@ public class ResourceDom extends ResourceAbstract {
     }
 
     /**
-     * Search hyperlinks.
-     * Search all <b>a<b> tags and their <b>href</b> attributes.
+     * Search hyperlinks. Search all <b>a<b> tags and their <b>href</b>
+     * attributes.
      */
     private void retrieveHyperlinks() {
         Elements docLinks = this.doc.getElementsByTag("a");
@@ -175,7 +174,7 @@ public class ResourceDom extends ResourceAbstract {
             }
             //TODO: Finish form actions
             String key = "form#" + formAction; //unused for now
-            
+
             URL formURL;
             try {
                 formURL = new URL(url, formAction);
@@ -183,13 +182,14 @@ public class ResourceDom extends ResourceAbstract {
             } catch (MalformedURLException ex) {
                 loggerMiner.log(Level.WARNING, "Cant create Form");
                 loggerMiner.log(Level.WARNING, ex.getMessage());
-            }            
+            }
         }
     }
 
     private void load() throws UnsupportedMimeTypeException {
         this.state = ResourceState.PROCESSING;
-        loggerMiner.log(Level.INFO, "Resource " + url.toString() + " loading START");
+        loggerMiner.log(Level.INFO, "Loading resource " + url.toString()
+                + " level " + String.valueOf(depthProperty().get()));
         try {
             long startTime = System.currentTimeMillis();
             Connection.Response response = Jsoup.connect(this.url.toString()).userAgent(JsoupUserAgent).execute();
@@ -262,9 +262,9 @@ public class ResourceDom extends ResourceAbstract {
             //TODO save all forms;
         }
     }
-    
-    public List<Form> forms(){
+
+    public List<Form> forms() {
         return forms;
     }
-    
+
 }

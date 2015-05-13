@@ -13,16 +13,16 @@
 <?import java.net.*?>
 <?import de.jensd.fx.glyphs.fontawesome.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="731.0" prefWidth="949.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="reaper.view.ReaperController">
+<AnchorPane id="AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="reaper.view.ReaperController">
    <children>
-      <VBox prefHeight="611.0" prefWidth="815.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <MenuBar>
                <menus>
                   <Menu mnemonicParsing="false" text="File">
                      <items>
                         <MenuItem mnemonicParsing="false" onAction="#createNewProject" text="New Project" />
-                        <MenuItem mnemonicParsing="false" text="Close Project" />
+                        <MenuItem fx:id="closeProjectMenuItem" mnemonicParsing="false" onAction="#closeProject" text="Close Project" />
                         <SeparatorMenuItem mnemonicParsing="false" />
                         <MenuItem mnemonicParsing="false" onAction="#showSettings" text="Settings" />
                         <SeparatorMenuItem mnemonicParsing="false" />
@@ -51,18 +51,18 @@
               <items>
                 <AnchorPane>
                      <children>
-                        <TabPane fx:id="tabPane" prefHeight="303.0" prefWidth="828.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <tabs>
                               <Tab fx:id="projectsTab" text="Projects">
                                 <content>
-                                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                  <AnchorPane>
                                        <padding>
                                           <Insets left="10.0" right="10.0" top="10.0" />
                                        </padding>
                                        <children>
                                           <VBox prefHeight="527.0" prefWidth="947.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                              <children>
-                                                <TableView fx:id="projectTable" prefHeight="448.0" prefWidth="927.0">
+                                                <TableView fx:id="projectTable" VBox.vgrow="ALWAYS">
                                                   <columns>
                                                     <TableColumn fx:id="projectNameColumn" prefWidth="150.0" text="Name" />
                                                     <TableColumn fx:id="projectDomainColumn" minWidth="0.0" prefWidth="599.0" text="Domain" />
@@ -137,12 +137,12 @@
                                                             </HBox>
                                                             <HBox>
                                                                <children>
-                                                                  <Button fx:id="startMiningButton" mnemonicParsing="false" onAction="#startMining" text="Start Minning">
+                                                                  <Button fx:id="startMiningButton" mnemonicParsing="false" onAction="#startMining" text="Start Mining">
                                                                      <graphic>
                                                                         <FontAwesomeIcon fill="#06dd2a" glyphName="PLAY" />
                                                                      </graphic>
                                                                   </Button>
-                                                                <Button fx:id="stopMiningButton" mnemonicParsing="false" onAction="#stopMining" text="Stop Minning">
+                                                                <Button fx:id="stopMiningButton" mnemonicParsing="false" onAction="#stopMining" text="Stop Mining">
                                                                      <graphic>
                                                                         <FontAwesomeIcon fill="RED" glyphName="STOP" />
                                                                      </graphic>
@@ -231,20 +231,20 @@
                                     </AnchorPane>
                                  </content>
                               </Tab>
-                              <Tab text="Results">
+                              <Tab fx:id="resultsTab" text="Results">
                                 <content>
-                                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                  <AnchorPane>
                                        <children>
-                                          <VBox prefHeight="503.0" prefWidth="947.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                          <VBox prefHeight="610.0" prefWidth="1020.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                              <children>
                                                 <HBox>
                                                    <children>
                                                       <Button fx:id="loadRootButton" mnemonicParsing="false" onAction="#overviewGetRoot" text="Load Root" />
                                                    </children>
                                                 </HBox>
-                                                <SplitPane dividerPositions="0.4594594594594595" prefHeight="503.0" prefWidth="947.0">
+                                                <SplitPane dividerPositions="0.4594594594594595" VBox.vgrow="ALWAYS">
                                                   <items>
-                                                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                                                    <AnchorPane>
                                                          <children>
                                                             <WebView fx:id="sitemap" prefHeight="491.0" prefWidth="515.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                                                          </children>
@@ -313,10 +313,36 @@
                                        <children>
                                           <VBox alignment="TOP_CENTER">
                                              <children>
-                                                <HBox alignment="TOP_CENTER">
+                                                <HBox alignment="TOP_CENTER" VBox.vgrow="ALWAYS">
                                                    <children>
-                                                      <PieChart fx:id="chartOverviewStatus" />
-                                                      <PieChart fx:id="chartCodesStatus" />
+                                                      <VBox HBox.hgrow="ALWAYS">
+                                                         <children>
+                                                            <PieChart fx:id="chartOverviewStatus" />
+                                                            <TableView fx:id="statsTypeTable" prefHeight="200.0" prefWidth="200.0">
+                                                              <columns>
+                                                                <TableColumn fx:id="statsTypeTypeColumn" prefWidth="75.0" text="Type" />
+                                                                <TableColumn fx:id="statsTypeCountColumn" prefWidth="75.0" text="Count" />
+                                                              </columns>
+                                                               <columnResizePolicy>
+                                                                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                                               </columnResizePolicy>
+                                                            </TableView>
+                                                         </children>
+                                                      </VBox>
+                                                      <VBox HBox.hgrow="ALWAYS">
+                                                         <children>
+                                                            <PieChart fx:id="chartCodesStatus" />
+                                                            <TableView fx:id="statsCodeTable" prefHeight="200.0" prefWidth="200.0">
+                                                              <columns>
+                                                                <TableColumn fx:id="statsCodeCodeColumn" prefWidth="75.0" text="Code" />
+                                                                <TableColumn fx:id="statsCodeCountColumn" prefWidth="75.0" text="Count" />
+                                                              </columns>
+                                                               <columnResizePolicy>
+                                                                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                                               </columnResizePolicy>
+                                                            </TableView>
+                                                         </children>
+                                                      </VBox>
                                                    </children>
                                                 </HBox>
                                              </children>
@@ -331,61 +357,74 @@
                   </AnchorPane>
                 <AnchorPane>
                      <children>
-                        <TabPane prefHeight="200.0" prefWidth="947.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                          <tabs>
-                            <Tab text="Reaper">
-                              <content>
-                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
-                                       <children>
-                                          <ScrollPane fx:id="consoleReaperScroll" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="127.0" prefWidth="947.0" vvalue="1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                            <content>
-                                              <AnchorPane>
-                                                   <children>
-                                                      <TextFlow fx:id="consoleReaper" prefHeight="165.0" prefWidth="811.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                                   </children>
-                                                </AnchorPane>
-                                            </content>
-                                          </ScrollPane>
-                                       </children>
-                                    </AnchorPane>
-                              </content>
-                            </Tab>
-                            <Tab text="Miner">
-                              <content>
-                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
-                                       <children>
-                                          <ScrollPane fx:id="consoleMinerScroll" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="127.0" prefWidth="947.0" vvalue="1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                             <content>
-                                                <AnchorPane>
-                                                   <children>
-                                                      <TextFlow fx:id="consoleMiner" prefHeight="165.0" prefWidth="811.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                                   </children>
-                                                </AnchorPane>
-                                             </content>
-                                          </ScrollPane>
-                                       </children>
-                                    </AnchorPane>
-                              </content>
-                            </Tab>
-                              <Tab text="Post Scanner">
-                                <content>
-                                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
-                                       <children>
-                                          <ScrollPane fx:id="consolePostScannerScroll" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="127.0" prefWidth="947.0" vvalue="1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                             <content>
-                                                <AnchorPane>
-                                                   <children>
-                                                      <TextFlow fx:id="consolePostScanner" prefHeight="165.0" prefWidth="811.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                                   </children>
-                                                </AnchorPane>
-                                             </content>
-                                          </ScrollPane>
-                                       </children>
-                                    </AnchorPane>
-                                </content>
-                              </Tab>
-                          </tabs>
-                        </TabPane>
+                        <HBox prefHeight="213.0" prefWidth="1040.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <VBox>
+                                 <children>
+                                    <Button fx:id="eraseCurrentLogButton" mnemonicParsing="false" onAction="#eraseCurrentLog">
+                                       <graphic>
+                                          <FontAwesomeIcon glyphName="ERASER" />
+                                       </graphic>
+                                    </Button>
+                                 </children>
+                              </VBox>
+                              <TabPane fx:id="consoleTabPane" tabClosingPolicy="UNAVAILABLE" HBox.hgrow="ALWAYS">
+                                <tabs>
+                                  <Tab fx:id="consoleTabReaper" text="Reaper">
+                                    <content>
+                                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                             <children>
+                                                <ScrollPane fx:id="consoleReaperScroll" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="127.0" prefWidth="947.0" vvalue="1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                  <content>
+                                                    <AnchorPane>
+                                                         <children>
+                                                            <TextFlow fx:id="consoleReaper" prefHeight="165.0" prefWidth="811.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                         </children>
+                                                      </AnchorPane>
+                                                  </content>
+                                                </ScrollPane>
+                                             </children>
+                                          </AnchorPane>
+                                    </content>
+                                  </Tab>
+                                  <Tab fx:id="consoleTabMiner" text="Miner">
+                                    <content>
+                                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                             <children>
+                                                <ScrollPane fx:id="consoleMinerScroll" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="127.0" prefWidth="947.0" vvalue="1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                   <content>
+                                                      <AnchorPane>
+                                                         <children>
+                                                            <TextFlow fx:id="consoleMiner" prefHeight="165.0" prefWidth="811.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                         </children>
+                                                      </AnchorPane>
+                                                   </content>
+                                                </ScrollPane>
+                                             </children>
+                                          </AnchorPane>
+                                    </content>
+                                  </Tab>
+                                    <Tab fx:id="consoleTabPostScanner" text="Post Scanner">
+                                      <content>
+                                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                             <children>
+                                                <ScrollPane fx:id="consolePostScannerScroll" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="127.0" prefWidth="947.0" vvalue="1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                   <content>
+                                                      <AnchorPane>
+                                                         <children>
+                                                            <TextFlow fx:id="consolePostScanner" prefHeight="165.0" prefWidth="811.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                         </children>
+                                                      </AnchorPane>
+                                                   </content>
+                                                </ScrollPane>
+                                             </children>
+                                          </AnchorPane>
+                                      </content>
+                                    </Tab>
+                                </tabs>
+                              </TabPane>
+                           </children>
+                        </HBox>
                      </children>
                   </AnchorPane>
               </items>

@@ -4,6 +4,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import javafx.application.Platform;
+import javafx.scene.control.Tab;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -11,16 +12,19 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
 /**
- *
+ * Reaper Flow Console Logger Handler.
+ * This handler will append logger message to TextFlow node and color tab background
  * @author nikita.vanku
  */
 public class FlowHandler extends Handler {
     TextFlow console;
+    Tab tab;
     
-    public FlowHandler(TextFlow output){
+    public FlowHandler(TextFlow output, Tab tab){
         super();
         
         this.console = output;
+        this.tab = tab;
         
         this.setFormatter(new FlowFormatter());
     }
@@ -43,17 +47,21 @@ public class FlowHandler extends Handler {
         }
         
         Platform.runLater(() -> {
+            //Should check how slow this is
             console.getChildren().add(msg);
+            if(!tab.isSelected()){
+                tab.getStyleClass().add("tab-unread");
+            }
         });
     }
 
     @Override
     public void flush() {
-        
+        //Nothing to do here
     }
 
     @Override
     public void close() throws SecurityException {
-        
+        //Nothing to do here
     }
 }

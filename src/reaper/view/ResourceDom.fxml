@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.text.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.image.*?>
 <?import java.lang.*?>
@@ -19,7 +20,7 @@
                   <Label text="Status Code" GridPane.rowIndex="2" />
                   <Label fx:id="resourceMimeTypeProperty" prefHeight="286.0" prefWidth="258.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                   <Label fx:id="resourceStatusCodeProperty" prefHeight="15.0" prefWidth="261.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                  <Label text="View" GridPane.rowIndex="3" />
+                  <Label text="Download time" GridPane.rowIndex="3" />
                   <Label text="Type" GridPane.rowIndex="4" />
                   <Label fx:id="resourceDownloadTime" prefHeight="15.0" prefWidth="229.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                   <Label fx:id="resourceType" prefHeight="15.0" prefWidth="227.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
@@ -37,6 +38,11 @@
                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                </rowConstraints>
             </GridPane>
+            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="*Results of PostScanner">
+               <font>
+                  <Font name="System Italic" size="13.0" />
+               </font>
+            </Text>
             <Accordion VBox.vgrow="ALWAYS">
               <panes>
                 <TitledPane animated="false" text="Links">
@@ -74,15 +80,40 @@
                         </AnchorPane>
                   </content>
                 </TitledPane>
-                <TitledPane animated="false" text="View">
+                <TitledPane animated="false" text="View*">
                   <content>
                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                            <children>
-                              <ImageView fx:id="resourceImage" pickOnBounds="true" preserveRatio="true" />
+                              <ScrollPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                <content>
+                                  <AnchorPane>
+                                       <children>
+                                          <ImageView fx:id="resourceImage" pickOnBounds="true" preserveRatio="true" />
+                                       </children>
+                                    </AnchorPane>
+                                </content>
+                              </ScrollPane>
                            </children>
                         </AnchorPane>
                   </content>
                 </TitledPane>
+                  <TitledPane animated="false" text="Javascript Output*">
+                    <content>
+                      <AnchorPane>
+                           <children>
+                              <ScrollPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                <content>
+                                  <AnchorPane>
+                                       <children>
+                                          <TextArea fx:id="javascriptOutputTextArea" editable="false" prefHeight="156.0" prefWidth="509.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                       </children>
+                                    </AnchorPane>
+                                </content>
+                              </ScrollPane>
+                           </children>
+                        </AnchorPane>
+                    </content>
+                  </TitledPane>
               </panes>
             </Accordion>
             </children>

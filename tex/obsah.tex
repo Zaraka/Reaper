@@ -1,38 +1,45 @@
 %=========================================================================
 
 \chapter{Úvod}
-World Wide Web (dále jen WWW) dokumenty jsou stále více vyu¾ívanìj¹ími sdìlovacími prostøedky. Jejich poèet neustále roste [zdroj]. Vyu¾ití WWW dokumentù se nachází. WWW dokumenty se vuy¾ívají na ¹irokou ¹kálu úèelù. Mùl¾eme narazit na dokumenty se spí¹e statickým obsahem jako jsou blogy, firemní reprezentace atd. Mù¾eme ale také narazit na velice dynamické dokumenty jako jsou internetové vyhledavaèe. informaèní systémy, webové aplikace aj. 
+World Wide Web (dále jen WWW) dokumenty jsou stále více vyu¾ívanìj¹ími sdìlovacími prostøedky. Jejich poèet neustále roste [zdroj]. Vyu¾ití WWW dokumentù se nachází. WWW dokumenty se vyu¾ívají pro ¹irokou ¹kálu úèelù. Mù¾eme narazit na dokumenty se spí¹e statickým obsahem jako jsou blogy, firemní reprezentace atd. Mù¾eme ale také narazit na dokumenty s~kompletnì dynamicky generovaným obsahem jako jsou napø. internetové vyhledávaèe. informaèní systémy, webové aplikace aj.
 
-Mno¾ství webových stránek na doménì je témìø neomezený a na internetu lze najít domény o nìkolika stránek, ale i domény jejich¾ obsah roste po více jak deset let. Takové domény pak cyklicky procházejí refactoringem kodu a nìkdy i celého systému. Mù¾e se pak stát, ¾e se øada stránek zapomene èi vytratí. Èi naopak, ¾e systém roste a nalepují se na nìj dal¹í a dal¹í èasti mnohdy zbyteènì. Stejnì tak se staré neodstraní, tøeba i z dùvodu, ¾e v programátorském týmu "nikdo nemá tu¹ení co to dìlá a co se stane, pokud se to dá pryè". 
+Mno¾ství webových stránek na doménì je témìø neomezený. Na internetu lze najít domény o~nìkolika stránek, ale i domény jejich¾ obsah roste po více jak deset let a obsahují stovky a¾ tisíce. Takové domény pak cyklicky procházejí refactoringem kódu èi celého systému. Mù¾e se pak stát, ¾e se øada stránek zapomene èi vytratí. Èi naopak, ¾e systém roste a nalepují se na nìj dal¹í a dal¹í èásti, mnohdy zbyteènì. Stejnì tak se staré neodstraní, tøeba i z~dùvodu, ¾e v~programátorském týmu "nikdo nemá tu¹ení co to dìlá a co se stane, pokud se to dá pryè". 
 
-Z tohoto a dal¹ích dùvodù vyu¾ívaji týmy mnoho nástrojù, které analyzují zpracování po¾adavku serveru. Jedná se o mìøení rychlosti zpracování backendu a frontendu. Velikost stahovaných klientských zdrojù jako jsou napøíklad soubory kaskádových stylù, obrázky èi Javascriptové knihovny. Jednim z tìchto nástrojù jsou Webové crawlery, neboli pavouci. 
+Z~tohoto a dal¹ích dùvodù vyu¾ívají týmy mnoho nástrojù, které analyzují zpracování po¾adavku serveru. Jedná se o~mìøení rychlosti zpracování backendu a frontendu. Velikost stahovaných klientských zdrojù jako jsou napøíklad soubory kaskádových stylù, obrázky èi Javascriptové knihovny. Jednim z~tìchto nástrojù jsou Webové crawlery, neboli pavouci. 
 
-Pavouci na¹li nejvìt¹í vyu¾ití hlavnì u internetových vyhledavaèù. Jsou navr¾eni tak taby v krátkém èase dokázali zpracovávat najednou velké mno¾ství stránek z rùzných domén. Pøi zpracovávání hledá odkazy na dal¹í stránky a ty také analyzuje. Vzhledem k velikosti a neústalého rùsta pavouci mnohdy svou práci nikdy nekonèí, nebo jsou spou¹tìni pravidelnì. Úloha pavoukù mù¾e být rùzná. 
+Pavouci na¹li nejvìt¹í vyu¾ití hlavnì u~internetových vyhledavaèù. Jsou navr¾eni tak taby v~krátkém èase dokázali zpracovávat najednou velké mno¾ství stránek z~rùzných domén. Pøi zpracovávání hledá odkazy na dal¹í stránky a ty také analyzuje. Vzhledem k~velikosti a neústalého rùsta pavouci mnohdy svou práci nikdy nekonèí, nebo jsou spou¹tìni pravidelnì. Úloha pavoukù mù¾e být rùzná. 
 
-Mým cílem je vytvoøit pavouka, který bude analyzovat pouze jednu doménu. Pøedpokládá se, tedy ¾e bude zpracovávat pouhé stovky a¾ tisíce stránek. Výstupem analýzy mají být programátorùm u¾iteèná data jako grafické zobrazení provázanosti stránek. Mìøení rychlosti a analýza stahování stránek. Rendering stránek. Souèástí analýzy je mo¾no také sledování chyb Javascriptu èi validace DOM objektu.
+Mým cílem je vytvoøit pavouka, který bude analyzovat pouze jednu doménu. Pøedpokládá se, tedy ¾e bude zpracovávat pouhé stovky a¾ tisíce stránek. Výstupem analýzy mají být programátorùm u¾iteèná data jako grafické zobrazení provázanosti stránek. Mìøení rychlosti a analýza stahování stránek. Rendering stránek. Souèástí analýzy je mo¾no také sledování chyb Javascriptu èi validace DOM objektu. 
 
-V této práci se budu vìnovat nìkolika hlavních èástí této problematiky. První èást bude vìnována analýze problematiky pavoukù. V druhé èásti zpracuji návrh vlastního pavouka. Ve tøetí èásti budu øe¹it implementaci vyhotoveného návrhu a poslední èást je vìnována experimentùm s pavoukem a výsledky jeho analýz.
+V~této práci se budu vìnovat nìkolika hlavních èástí této problematiky. První èást bude vìnována analýze problematiky pavoukù. V~druhé èásti zpracuji návrh vlastního pavouka. Ve tøetí èásti budu øe¹it implementaci vyhotoveného návrhu a poslední èást je vìnována experimentùm s~pavoukem a výsledky jeho analýz.
 
 \newpage
 \chapter{Teorie}
-[Doplnit a nezpanikaøit]
+Tato kapitola je vìnována teoritickém zpracováním problematiky analýzy webových stránek. Web lze reprezentovat jako graf, ve kterém uzly jsou dokumenty identifikované URL a hrany hypertextové odkazy. Cílem pavouka je projít podgraf tohoto grafu vymezený poèátaèním uzlem a dal¹ími omezeníny jako specifikace povolených domén. Robot pøi procházení mù¾e provést jednoduchou analýzu dokumentu jako zaznamenání návratového kodu serveru, extrakce hypertextových odkazù, vyhledání formuláøù apod.
 
-\chapter{Souèasní pavouci}
-?\label{subsec:today_crawlers}
-Dnes se pavouci vyu¾ívají pøevá¾nì k indexování internetu pro internetové vyhledavaèe. Mezi ty nejvíce známe mù¾eme zaøadit Google èi Bing. Detaily implementace tìchto pavoukù jsou pochopitelnì utajeny. Kromì pavoukù analyzující celý internet bez omezení existuje i celá øada úzce specializovaných pavoukù pro urèitou èinnost. Napøíklad \texttt{skipfish} je OpenSource pavouk testující zabezpeèení jedne domény a odhaluje slabá místa, které by mohli vyu¾ít útoèníci. \texttt{HTTrack} je pavouk, který po zadání domény prochází ve¹kerý její obsah a stahuje ho do ulo¾i¹tì. Stránky lze potom prohlí¾et Offline.
+\section{Souèasní pavouci}
+\label{sec:today_crawlers}
+Dnes se pavouci vyu¾ívají pøevá¾nì k~indexování internetu pro internetové vyhledávaèe. Mezi ty nejvíce známe mù¾eme zaøadit Google èi Bing. Detaily implementace tìchto pavoukù jsou pochopitelnì utajeny. Kromì pavoukù analyzující celý internet bez omezení existuje i celá øada úzce specializovaných pavoukù pro urèitou èinnost. Napøíklad \texttt{skipfish\footnote{https://code.google.com/p/skipfish/}} je Open Source pavouk testující zabezpeèení domény a odhaluje slabá místa, které by mohli vyu¾ít útoèníci. \texttt{HTTrack\footnote{https://www.httrack.com/}} je pavouk, který po zadání adresy prochází ve¹kerý její obsah a stahuje ho do ulo¾i¹tì. Stránky lze potom prohlí¾et Offline.
 
-\subsection{Analýza URL}
-\label{subsec:analysis}
-Uniform Resource Locator (dále jen URL, neboli té¾ adresa) jsou definovány v (zdroj:RFC 3986). Je potøeba rozli¹it relativní a absolutní adresu. V pøípadì relativní adresy se zohledòuje aktualní adresa dokumentu. Souèástí URL mù¾e být té¾ kotva, kotva je definována atributem \texttt{id} v elementu \texttt{<a>}, kotvy nemají pro pavouka ¾ádný význam a jsou tedy ignorovány. V pøípadì nalezení vìt¹ího mno¾ství odkazù se stejnou adresou v dokumentu, pavouk se zachová jako by pracoval s adresou jedinou.
+Pavouci ve své povaze pøistupují k~webovým serverùm v~ohromnì vìt¹ím mìøítkùm ne¾ obyèejný u¾ivatel. Toto mù¾e znamenat, ¾e server klasifikuje pavouk jako nebezpeèného robota èi snad pokus o~DDos útok a zaká¾e pavoukùv pøístup k~datùm serveru. Tento pøípad mù¾e nastat i v~na¹í aplikaci. Bohu¾el ka¾dý webový server mù¾e nastavit tento limit na jiné úrovni a ka¾dý se také v~pøípadì pøekroèení limitu mù¾e zachovat jinak. Nìkteré servery se mohou bránit sní¾ením priority odpovìdí, jiné neodpovídáním úplnì.
 
-Velkým oøí¹kem se mù¾ou jevit \texttt{GET} parametry, které jsou souèástí URL. Tyto parametry mají nejednoznaèný význam a pavouk nemù¾e vìdìt, zda-li jim má vìnovat pozornost. GET parametr mù¾e i nemusí mít ¾ádnou váhu na vykreslení dokumentu. 
-Mohou existovat i stránky obsahující odkazy s velkým mno¾stvím opakujících se GET parametrù. Pavouk by mìl být schopen tyto odkazy normalizovat a tím nevidìt rozdíl mezi
-$http://www.domain.com/index.php?param1=1&param2=2$
-a
-$htpp://www.domain.com/index.php?param2=2&param1=1$
-\subsection{Extrakce URL}
-\label{subsec:extraction}
-Extrakce adres je mo¾né analýzou HTML webových dokumentù. Prozkoumáním vybraných elementù, mù¾eme získat potøebné odkazy. Mezi zmiòované elementy patøí\footnote{Je potøeba brát v potaz, ¾e URL  mohou být v dokumentu vlo¾eny také jako pouhý text èi pøi zpracování události javascriptem. Tyto odkazy pavouk pochopitelnì nenajde.}.
+\section{Analýza URL}
+\label{sec:analysis}
+Uniform Resource Locator (dále jen URL, neboli té¾ adresa) jsou definovány v~\texttt{RFC 3986}\cite{rfc3986}. Je potøeba rozli¹it relativní a absolutní adresu. V~pøípadì relativní adresy se zohledòuje aktualní adresa dokumentu. Souèástí URL mù¾e být té¾ kotva, kotva je definována atributem \texttt{id} v~elementu \texttt{<a>}, kotvy nemají pro pavouka ¾ádný význam a jsou tedy ignorovány. V~pøípadì nalezení vìt¹ího mno¾ství odkazù se stejnou adresou v~dokumentu, pavouk se zachová jako by pracoval s~adresou jedinou.
+
+Pavouk by také mìl být pøipraven èelit generovaným hypertexovým odkazùm, jako jsou stránky s~dynamickým obsahem, které se mohou jevit z~pohledu pavouka jako nekoneèné.\cite{mining}
+
+Velkým oøí¹kem mohou být té¾ \texttt{GET} parametry, které jsou souèástí URL. Tyto parametry mají nejednoznaèný význam a pavouk nemù¾e vìdìt, zda-li jim má vìnovat pozornost. GET parametr mù¾e i nemusí mít ¾ádnou váhu na vykreslení dokumentu. 
+Mohou existovat i stránky obsahující odkazy s~velkým mno¾stvím opakujících se GET parametrù. Pavouk by mìl být schopen tyto odkazy normalizovat a tím nevidìt rozdíl mezi odkazem
+
+\begin{center}
+  \url{http://www.domain.com/index.php?param1=1&param2=2}\\
+  a odkazem\\
+  \url{htpp://www.domain.com/index.php?param2=2&param1=1}
+\end{center}
+\section{Extrakce URL}
+\label{sec:extraction}
+Extrakce adres je mo¾né analýzou HTML webových dokumentù. Prozkoumáním vybraných elementù, mù¾eme získat potøebné odkazy. Mezi zmiòované elementy patøí\footnote{Je potøeba brát v~potaz, ¾e URL  mohou být v~dokumentu vlo¾eny také jako pouhý text èi pøi zpracování události javascriptem. Tyto odkazy pavouk pochopitelnì nenajde.}.
 
 \begin{itemize}
 	\item \texttt{<a></a>} atribut \texttt{href}
@@ -42,121 +49,279 @@ Extrakce adres je mo¾né analýzou HTML webových dokumentù. Prozkoumáním vybraných
 	\item \texttt{<style></style>} atribut \texttt{src}
 \end{itemize}
 
-V závislosti na povaze atributu je mo¾no pøedpovídat na jaký mime typ webového objektu odkaz ukazuje. Jestli¾e extrahujeme atributy src z tagu \texttt{script} a \texttt{style}, mù¾eme si být jisti ¾e mime type bude text/css èi text/javascript.
+V~závislosti na povaze atributu je mo¾no pøedpovídat na jaký mime typ webového objektu odkaz ukazuje. Jestli¾e extrahujeme atributy src z~tagu \texttt{script} a \texttt{style}, mù¾eme si být jisti ¾e mime type bude text/css èi text/javascript. Takto mù¾eme konkrétizovat zpracování odkazù, jeliko¾ odkazy v~tìchto souborech hledat nebude.e
 
-\subsection{Zaznamenání èasových událostí}
+\section{Zaznamenání èasových událostí}
+\label{sec:time_events}
 Pro u¾ivatele je dùle¾itý co nejkrat¹í èas mezi odesláním po¾adavku na server a zobrazení stránky. Tento èas je mo¾né rozdìlit na dvì hlavní èásti a to:
 \begin{itemize}
- \item èas stráveny zpracováním po¾adavku na serveru - Backend
- \item èas strávený sta¾ení a zobrazení zdrojových dokumentù - Frontend
+ \item èas stráveny zpracováním po¾adavku na serveru - \texttt{Backend}
+ \item èas strávený sta¾ení a zobrazení zdrojových dokumentù - \texttt{Frontend}
 \end{itemize}
-Webová stránka, která se zobrazí u¾ivateli v prohlí¾eèi je mnohdy slo¾ena z více souborù. Jedná se jednak o HTML/XML dokument, ale také o obrázky, Kaskádove styly, Javascript a dal¹í soubory. Moderní prohlí¾eèe dnes doká¾í stahovat více souborù z jednoho serveru najednou aby èas strávený stahováním co nejvíce urychlily. Mno¾ství vláken se v¹ak u ka¾dého prohlí¾eèe li¹í a u¾ivatel mù¾e s touto hodnotou manipulovat. (zdro)
+Webová stránka, která se zobrazí u¾ivateli v~prohlí¾eèi je mnohdy slo¾ena z~více souborù. Jedná se jednak o~HTML/XML dokument, ale také o~obrázky, Kaskádove styly, Javascript a dal¹í soubory. Moderní prohlí¾eèe dnes doká¾í stahovat více souborù z~jednoho serveru najednou aby èas strávený stahováním co nejvíce urychlily. Mno¾ství vláken se v¹ak u~ka¾dého prohlí¾eèe li¹í a u¾ivatel mù¾e s~touto hodnotou manipulovat. (zdroj)
 
+Namìøené èasy musíme také pova¾ovat za nepøíli¹ prùkazné. Server mù¾e odpovídat rychleji èi pomaleji v~závislosti na souèasném zatí¾ení u¾ivatelskými po¾adavky. Prùkazné mìøení by se dalo dosáhnout pomocí pravidelného a dlouhodobého mìøení
 
 \newpage
 \chapter{Návrh aplikace}
-Aplikace je slo¾ena z nìkolika èástí. Jedná se o algoritmus pavouka, který stahuje a analyzuje dokumenty. Databázovým ulo¾i¹tìm, které uchovává analyzované data a grafická nadstavba (GUI) pøes kterou je aplikace øízena. Pro vykreslování dokumentù jsou vyu¾ity technologie Headless Browseru, v tomto pøípadì byl vyu¾it PhantomJS, který pracuje na vykreslovacím jádøe WebKit.
+\label{ch:plan}
+Aplikace je slo¾ena z~nìkolika èástí. Jedná se o~algoritmus pavouka, který stahuje a analyzuje dokumenty. Databázovým ulo¾i¹tìm, které uchovává analyzované data a grafická nadstavba (GUI) pøes kterou je aplikace øízena. Pro vykreslování dokumentù jsou vyu¾ity technologie Headless Browseru, v~tomto pøípadì byl vyu¾it PhantomJS, který pracuje na vykreslovacím jádøe WebKit.
 
-\subsection{Java}
-Byla vyu¾ita platforma Java s platformou JavaFX, která umo¾òuje tvorbu Rich Internet Applications (dále jen RIA). JavaFX aplikace je mo¾no vyu¾ít i jako desktopové aplikace. Aplikace vytvoøena souèástí této práce byla naprogramována pro Java 8, JavaFX 8.
+\section{Java}
+\label{sec:java}
+Byla vyu¾ita platforma Java s~platformou JavaFX, která umo¾òuje tvorbu Rich Internet Applications\cite{java}. JavaFX aplikace je mo¾no vyu¾ít i jako desktopové aplikace. Aplikace vytvoøena souèástí této práce byla naprogramována pro Java 8, JavaFX 8.
 
-\subsection{Omezení prohledání}
-Cílem aplikaci je analyzovat pouze jedinou doménu. Pøi prohledávání je tedy nutno zamezit zabloudìní pavouka na cizí domény a prohledávání zcela jiné èásti internetu. Toto je dosa¾eno kontrolou domény nejvy¹¹ího soukromého øádu spoleènì s veøejným suffixem. Pokud se doména tohoto øádu nebo suffix li¹í, adresa se neprohledává.
+\section{Modifikace prohledávaného prostoru}
+Cílem aplikaci je analyzovat pouze jedinou doménu. Pøi prohledávání je tedy nutno zamezit zabloudìní pavouka na cizí domény a prohledávání zcela jiné èásti internetu. Toto je dosa¾eno kontrolou domény nejvy¹¹ího soukromého øádu spoleènì s~veøejným suffixem. Pokud se doména tohoto øádu nebo suffix li¹í, adresa se neprohledává.
 
-Je tøeba také poèítat s tím, ¾e mno¾ství dokumentù a odkazù na doménì není pøedem známo. Doména mù¾e obsahovat nìkolik desítek dokumentù, ale i nìkolik stovek. Aplikace musí být na tuto skuteènost pøipravena a v pøípadì procházení takto velké domény zareagovat. Toto je uskuteènìno stanovením maximální hloubky prohledávání. Pøed prohledáním prvního dokumentu je aktualní hloubka 0 a ka¾dým dal¹ím dokumentem se hodnota zvý¹í o 1. V pøípadì dosa¾ení maximální hloubky prohledávání se z tohoto dokumentu neextraktují dal¹í adresy.
+Je tøeba také poèítat s~tím, ¾e mno¾ství dokumentù a odkazù na doménì není pøedem známo. Doména mù¾e obsahovat nìkolik desítek dokumentù, ale i nìkolik stovek. Aplikace musí být na tuto skuteènost pøipravena a v~pøípadì procházení takto velké domény zareagovat. Toto je uskuteènìno stanovením maximální hloubky prohledávání. Pøed prohledáním prvního dokumentu je aktualní hloubka 0 a ka¾dým dal¹ím dokumentem se hodnota zvý¹í o~1. V~pøípadì dosa¾ení maximální hloubky prohledávání se z~tohoto dokumentu neextraktují dal¹í adresy.
 
-Mno¾ství webových stránek obsahuje mnohdy èást s dynamicky generovaným obsahem, jeho¾ analýza by spotøebovala pøíli¹ velké mno¾ství prostøedkù, èi nás tato èást nezajímá. Mù¾e se jednat o blogy, fora, èi jiné aplikace kde obsah tvoøí pøevá¾nì u¾ivatelé stránek. Z tohoto dùvodu jsem se 
-\subsection{Analýza DOM objektu}
-Extrakce adres z HTML dokumentù je mo¾né za pomocí prohledání Document Object Modelu (dále jen DOM). V objektu se hledají elementy a atributy zmínìne v \ref{subsec:extraction}. Vyta¾ené adresy se musí dále zpracovat jak bylo popsáno v \ref{subsec:analysis}, k adrese se také pøídá záznam na kterém dokumentu byl nalezen a následnì se vlo¾í do fronty ke zpracování.
+Mno¾ství webových stránek obsahuje mnohdy èást s~dynamicky generovaným obsahem, jeho¾ analýza by spotøebovala pøíli¹ velké mno¾ství prostøedkù, èi nás tato èást nezajímá. Mù¾e se jednat o~blogy, fora, èi jiné aplikace kde obsah tvoøí pøevá¾nì u¾ivatelé stránek. V~opaèném pøípadì mohou být webové stránky pøítomny na nìkolika domén najednou. Z~tohoto dùvodu se prohledávání øídí taky podle u¾ivatelem definovaných pravidel. Pravidlo, které zamezí prohledávání èásti domény (subdomény) a omezí tak prohledávaný prostor a pravidlo, které naopak povolí prohledávání na dal¹ích doménách a zvìt¹í tím prohledávaný prostor.
 
-Pro práci s DOM objektem a extrakci adres je vyu¾it HTML parser \texttt{jsoup}.
+\section{Analýza DOM objektu}
+\label{sec:dom_analysis}
+Extrakce adres z~HTML dokumentù je mo¾né za pomocí prohledání Document Object Modelu (dále jen DOM). V~objektu se hledají elementy a atributy zmínìné v~\ref{sec:extraction}. Vyta¾ené adresy se musí dále zpracovat jak bylo popsáno v~\ref{sec:analysis}, k~adrese se také pøídá záznam na kterém dokumentu byl nalezen a následnì se vlo¾í do fronty ke zpracování.
+
+Pro práci s~DOM objektem a extrakci adres je vyu¾it HTML parser \texttt{jsoup}. Jedna z~vlastností tohoto parseru je umìt se vypoøádat s~nevalidním dokumentem. Chybným pou¾itím tagu apod. \cite{jsoup}
+
+\section{Ulo¾ení dat}
+\label{sec:data_storage}
+Jednou z~hlavních otázek bylo kam ulo¾it data vytvoøená analýzou. Pøi pøípravì aplikace jsem tuto otázku hluboce podcenila, první zku¹ební prototypy ukládaly v¹echny data do RAM pamìti. I~u~velice malých webových stránek se vytvoøilo velké mno¾ství objektù. Takové velké mno¾ství neustále ulo¾ených objektù zpùsobilo naalokování nìkolik GiB pamìti a následného pádu aplikace.
+
+Rozhodla jsem se vyu¾ít databázi pro ukládání vìt¹inu dat.
 
 \subsection{Databáze}
-Jako databáze byla zvolena \texttt{OrientDB 2.0.X\footnote{V prùbìhu vývoje aplikace byla verze nìkolikrát aktualizovaná} Community Eddition}, jedná se o hybridní NoSQL databáze umo¾òujíci pracovat jak v Dokument (MongoDB) tak Grafovém (Neo4j) modu.
+\label{subsec:data_database}
+Jako databáze byla zvolena \texttt{OrientDB 2.0.X Community Eddition\footnote{V prùbìhu vývoje aplikace byla verze nìkolikrát aktualizovaná}}, jedná se o~hybridní NoSQL databáze umo¾òujíci pracovat jak v~Dokument (\texttt{MongoDB}) tak Grafovém (\texttt{Neo4j}) modu.
 
-Aby aplikace nemusela skladovat v pamìti pøíli¹ velké mno¾ství dat, data se co nejdøíve po zpracování pøesunou do databáze. Jeliko¾ zpracované data ve své podstatì vytváøí orientovaný graf webových dokumentù, byla pro tuto potøebu zvolena grafová databáze. Zpùsob ulo¾ení dat v databázi tedy co nejvíce pøipomíná zpùsobu ulo¾ení dat na doménì. 
+Aby aplikace nemusela skladovat v~pamìti pøíli¹ velké mno¾ství dat, data se co nejdøíve po zpracování pøesunou do databáze. Jeliko¾ zpracované data ve své podstatì vytváøí orientovaný graf webových dokumentù, byla pro tuto potøebu zvolena grafová databáze. Zpùsob ulo¾ení dat v~databázi tedy co nejvíce pøipomíná zpùsobu ulo¾ení dat na doménì. 
 
-Grafová databáze je sestavena stejnì jako graf ze dvou základních stavebních prvkù. Vrcholy a hrany mezi vrcholy. Jako vrcholy si mù¾eme napøíklad pøedstavit samotné dokumenty. Hrany by poté mohly být odkazy mezi tìmito dokumenty. V sekci Implementace aplikace [doplnit] je vìnovaná èást návrhu databáze a její propojení s aplikací.
+Grafová databáze je sestavena stejnì jako graf ze dvou základních stavebních prvkù. Vrcholy a hrany mezi vrcholy. Jako vrcholy si mù¾eme napøíklad pøedstavi dokumenty. Hrany by poté mohly být odkazy mezi tìmito dokumenty. V~sekci Implementace databáze \ref{sec:impl_database} je vìnovaná èást návrhu databáze a její propojení s~aplikací.
 
-\subsection{Vykreslení dokumentu}
-Pro vykreslování webových dokumentu byl vyu¾it Headless browser \texttt{PhantomJS 2.0}. PhantomJS obsahuje vykreslovací jádro WebKit, lze s ním tedy emulovat vykreslování podobné prohlí¾eèùm se stejným jádrem jako je napø Google Chrome, Safari èi Opera. 
+\subsection{Souborový systém}
+\label{subsec:data_filesystem}
+Pokud se s~ka¾dým webovým objektem do databáze ulo¾í i identifikátor, je pak mo¾no tento identifikátor vyu¾ít k~sestavení struktury adresáøù na souborovém systému. Do tìchto adresáøù by se ukládala data, které by jednodu¹e nebylo praktické ukládat do databáze. Jedná se o~vykreslené webové snímky a dal¹í pøíli¹ velká data.
 
-PhantomJS je plnì ovladatelný Javascriptem.[Doplnit]
+Je nutno také podotknout, ¾e takto ulo¾ená data na více místì ztrácí integritu. Databáze mù¾e být pøítomná na vzdáleném serveru a staèí nám znát pouze adresu a pøístupové údaje ke zpøístupnìní jejich dat. V~pøípadì souborového systému musí být tento systém v¾dy nìjakým zpùsobem pøipojen k~systému na kterém bì¾í aplikace.
 
-[Diagram]
+\section{Vykreslení dokumentu}
+\label{sec:resource rendering}
+Pro vykreslování webových dokumentu byl vyu¾it Headless browser \texttt{PhantomJS 2.0}. PhantomJS obsahuje vykreslovací jádro WebKit, lze s~ním tedy emulovat vykreslování podobné prohlí¾eèùm se stejným jádrem jako je napø Google Chrome, Safari èi Opera \cite{phantomjs}. 
 
-\subsection{Návrh u¾ivatelského rozhraní}
-Pøi návrhu jsem se pokusila klást dùraz na jednoduché ovládání aby program byl schopen ovládat i mirné pokroèilý u¾ivatel internetu. Jako nejvìt¹í výzva se ukázal vymyslet zpùsob jak by u¾ivatel procházel výsledky analýzy. 
+PhantomJS je plnì ovladatelný Javascriptem. Program se spustí s~parametrem cesty k~javascriptovému souboru, který obsahuje ovládací skript prohlí¾eèe. Prohlí¾eè vykoná instrukce v~tomto skriptu a poté se ukonèí. Aplikace spou¹tí prohlí¾eè s~jednoduchým skriptem, který pøistoupí na adresu, obsah vykreslí do souboru a poté se ukonèí.
+
+\section{Projekty}
+\label{sec:projects}
+Aplikace by mìla být znovupou¾itelná pro vìt¹í poèet analýz domén a jejich procházení. Proto jsem se rozhodla analýzy rozdìlit na tzv. projekty. Jeden projekt je analýza jedné domény. Projekt je mo¾né vytvoøit, spustit analýzu, prohlí¾et výsledky a smazat.
+
+Projekt je primárnì ulo¾en v~databázi s~vìt¹inou dat. Data, nepøíli¹ vhodné ulo¾it do databáze jsou ulo¾ena v~souborovém systému, projekt by mìl být schopen je nalézt.
+
+\section{Návrh u¾ivatelského rozhraní}
+\label{sec:draft_gui}
+Pøi návrhu jsem se pokusila klást dùraz na jednoduché ovládání aby program byl schopen ovládat i mirné pokroèilý u¾ivatel internetu. 
+
+U¾ivatel by mìl být schopen v~aplikaci plnì pracovat s~projekty. Tedy mìl by mít mo¾nost vytvoøit nový projekt, nebo otevøít ji¾ vytvoøený. Spustit analýzu domény èi smazat ji¾ hotovou analýzu a hlavnì procházet výsledky analýzy. Toto se ukázalo jako nejslo¾itìj¹í problém, jeliko¾ u¾ivatel by mìl intuitivnì procházet grafem.
+Zvolila jsem zpùsob zobrazení právì procházeného uzlu a jeho nejbli¾¹í okolí v~orientovaném grafu. Po poklikání na kterýkoliv vrchol v~zobrazení se tento vrchol a jeho nejbli¾¹í okolí otevøe.
 
 \newpage
 \chapter{Implementace aplikace}
-Tato kapitola je vìnována implementace návrhu v pøedchozí kapitole a jak se závereèná implementace oproti návrhu zmìnila.
+\label{ch:implementation}
+Tato kapitola je vìnována implementace návrhu v~pøedchozí kapitole a jak se závereèná implementace oproti návrhu zmìnila.
 
-\subsection{Rozlo¾ení aplikace}
+Aplikace JavaFX podléhají MVC návrhu tedy \texttt{Model-View-Controller}. Jádro aplikace, tedy datový model je oddìlen od zobrazovací vrstvy. S~datovým modelem pøímo komunikuje Controller, tedy øídící prvek. Øídící prvek komunikuje takté¾ s~View, tedy pohledem, pøes mno¾inu komponent, která je v~pohledu definovaná. Øídící prvek sleduje reaguje na zprávy zaslané pohledem, které zpracovává a pøeposílá dále. Pokud se jedná o~vlastnosti èi parametry modelu, øídící prvek je mù¾e pevnì obou èi jednostranì svázat s~komponentou. Napø. vlastnost modelu datového typu String mù¾e být svázáná s~komponentou text v~pohledu. Pøi jakékoliv zmìny této vlastnosti v~modelu, je komponenta aktualizována.
 
-[Obrázek vláken, nebo tak nìco]
+V~datovém modelu je obsa¾ena hlavní funkcionalita aplikace. Jádro celé aplikace zastupuje tøída \texttt{Crawler}. Crawler je spu¹tìn ve stejném vláknì jako øídící prvky a pohledy. Funguje jako hlavní øídící jednotka. Pokud u¾ivatel zadá pøíkaz k~modifikaci projektu èi spu¹tìní analýzy Crawler pøepo¹le pøíkaz slu¾bám v~samostatných vláknech, nebo vytvoøí dedikované vlákno pro splnìní úlohy. Toto se provádí zejména pøi zpracovávání slo¾itých pøíkazù, které by èinily u¾ivatelské rozhraní neresponzivní.
 
-\subsection{Vyhledávání odkazù}
+Mezi slu¾by, které spravuje tøída crawler patøí sbìraè odkazù (sestavení grafu) a post analýza (vykreslování stránek obsahující DOM objekt).
+
+\section{Analýza domény}
+\label{sec:domain_analysis}
+
+Slu¾by, které zprostøedkovávají analýzu domény s~hlavní tøídou komunikují pouze omezenou mno¾inou zpráv oznamující úspìch èi neúspìch analýzy. Zpracovaná data jsou pøedána prostøednictvím databáze èi souborového systému.
+
+\subsection{První èást - tvorba grafu}
+\label{subsec:domain_analysis_graph}
+
+Slu¾ba, sestavující graf webových objektu pracuje jako fronta odkazu. Z~fronty slu¾ba odebere odkaz, u~kterého nejdøíve zjistí, zda-li se odkaz nachází v~prohledávaném prostoru. Pokud je objekt mimo prohledaný prostor do databáze se ulo¾í objekt s~minimálním mno¾stvím informací. V~opaèném pøípadì je objekt sta¾en a prozkoumám nástrojem \texttt{jsoup}. Nástrojem jsou prozkoumány tagy a jejich atributy zmínìne v~sekci \ref{sec:extraction}, ve¹keré nalezené odkazy jsou vlo¾eny do zpìt do fronty. Jestli-¾e se jedná o~objekt bez DOM èásti je objekt pova¾ován za soubor a do databáze vlo¾en jeho záznam. Po ulo¾ení objektu je do databáze vlo¾en také odkaz samotný v~podobì hrany. Slu¾ba si také udr¾uje v~pamìti objekty, které ji¾ jednou zpracovala. Nedochází tak k~opakovanému stahování a zpracování ji¾ hotových objektù.
+
+\begin{figure}[H]
+  \centering
+  \scriptsize
+  \includesvg[width=13cm]{miner}
+  \caption{Proces zpracování odkazu} \label{fig:miner}
+\end{figure}
 
 
-\subsection{Databáze}
+\subsection{Druhá èást - (post processing)}
+\label{subsec.domain_analysis_postprocessing}
 
-\subsubsection{Návrh schema databáze}
+V~èase spu¹tìní druhé èásti analýzy je v~databázi pøítomen ji¾ hotový graf objektu s~jejich základními informacemi. Slu¾ba z~databáze extrahuje objekty, které obsahují DOM (èást) a pro ka¾dý z~tìchto objektù nejdøíve vytvoøí své místo ve stromu souborového systému, kam bude slu¾ba pozdìji ukládat informace o~objektu. Cesta k~tomuto adresáøi se skládá z~názvu projektu a specialního identifáktoru pøiøazeného Orient databází. Po dokonèení pøípravy zapoène spou¹tìní externího webového prohlí¾eèe \texttt{PhantomJS} se skriptem, který webovou stránku vykreslí do obrázku a zároveò zaznamená Javascriptový konzolový výstup pøi zpracování stránky do soubory. V~konzolovém výstupu se èasto objevují chyby pøi vykreslování stránek.
 
-\begin{center}
-  \begin{tabular}{| c | c | l |}
-    \hline
-    \textbf{Název} & \textbf{Typ} & \textbf{Popis} \\
-    \hline
-    Resource & Vrchol & Webový dokument \\
-    \hline
-    Form & Vrchol & Formuláø \\
-    \hline
-    Project & Vrchol & Projekt \\
-    \hline
-    LinkTo & Hrana & Odkaz mezi dokumenty \\
-    \hline
-    Includes & Hrana & Pøipojení formuláøe k dokumentu \\
-    \hline
-    Root & Hrana & Odkaz na koøenový dokument prohledávané domény \\
-    \hline
-    LinkQue & Dokument & Fronta pro skladování je¹tì neprohledaných odkazù \\
-    \hline
-  \end{tabular}
-\end{center}
 
-[ER Diagram - je vùbec mo¾no udìlat ER diagram na graf?]
+\section{Databáze}
+\label{sec:impl_database}
 
-\subsection{Grafické rozhraní}
+Orient Databáze mù¾e pracovat s~objekty ve dvou modifikacích. Jako dokumenty a jako graf. Ka¾dý z~tìchto dvou modu se hodí pro jinou aplikaci. Jak ji¾ bylo zmínìno v~sekci \ref{subsec:data_database}, pro ukládání webových objektu je pøirozenìj¹í pou¾ít mod grafu. Naopak pro práci s~frontou zmínìnou v~sekci \ref{subsec:domain_analysis_graph} je výhodnìj¹í pracovat s~dokumenty. 
+Aplikace je propojena s~databází pøes nativní Java konektor. Konektor je schopen pracovat v~tìchto dvou modech. Nabízí pro to øadu konstrukcí a metod. Orient databáze umo¾òuje taky pou¾ít SQL jazyk, tento jazyk je narozdíl od napø. Oracle SQL jazyku znaènì omezený, ale obsahuje øadu základních agregaèních metod a klauzulí, které jsou pro aplikaci dostaèující.
+
+Orient Databáze nezná pojem tabulka, místo ní zavádí pojem tøída. Tøída mají schopnost dìdiènosti. Pokud chce u¾ivatel vytvoøit tøídu, která bude uzlem nebo hranou v~grafu, vytvoøí která bude dìdit vlastnosti abstraktních tøíd V~èi E. Tyto tøídy jsou ji¾ v~databázi pøítomny po jejím vytvoøení. V~pøípadì, ¾e u¾ivatel vytvoøí tøídu, která nebude dìdit vlastnosti z~jedné z~tìchto tøíd, bude tato tøída chápana jako dokument.
+
+Orient Databáze ukládá záznamy tøíd do tzv. clusteru. Ka¾dá tøída má alespoò jeden cluster do kterého ukládá své data. Clustery jsou od sebe fyzicky oddìleny. Clusteru mù¾e být více, vkládání do nich mù¾e být provádìno pøímo èi na základì algoritmu. Clustery jsou od sebe fyzicky oddìleny, tato vlastnost se vyu¾ívá obzvlá¹» pokud databáze bì¾í v~redistribuèním modu na nìkolika serverových jednotkách \cite{orient}. Spoustu databázi trpí pøi neustále rostoucím objemu dat, slo¾ité dotazy v~takovém pøípadì trvají mnohem déle ne¾ by trvaly v~malých databázích. Pøitom postupem èasu se v~databázi zaènou objevovat data, ke kterým se bude pøistupovat ménì èi témìø vbùec. Pokud se takové data pøesunou do jiných clusterù a databáze pracuje s~jednim clusterem, které má omezené mno¾ství dat, lze takto rychlost dostazù podstatnì navý¹it.
+
+\begin{figure}[H]
+  \centering
+  \tiny
+  \includesvg[width=5cm]{clusters}
+  \caption{Databázový cluster}
+\end{figure}
+
+Data, které aplikace ukládá do databáze jsou v~podstatì rozdìlená do projektù jak ji¾ bylo zmínìno v~sekci \ref{sec:projects}. Pokud ka¾dý projekt bude mít své clustery, které se vytvoøí v¹em tøídám se kterými projekt pracuje lze tak spolehlivì oddìlit data ka¾dé projektu a vyøe¹it tak problém, který by zpùsoboval rostoucí dobu vykonávaní dotazù s~vìt¹ím mno¾stvím ji¾ analyzovaných projektù.
+
+\subsection{Schema databáze}
+
+V~tabulce \ref{tab:db_classes} a diagramu \ref{fig:db_schema} je znázoròeno jak vypadá finální schema databáze. Projektové clustery se tvoøí v~tøídách \texttt{Resource, Form, BlackWhitelist, LinkTo, Includes, LinkQue}. Název tìchto clusteru se sestává spojením názvu tøídy a unikátnímu identifikátorù, který je ulo¾en jako vlastnost \texttt{cluster} ve tøídì \texttt{Project}.
+
+\begin{table}[H]
+  \begin{center}
+    \begin{tabular}{| c | c | l |}
+      \hline
+      \textbf{Název} & \textbf{Typ} & \textbf{Popis} \\
+      \hline
+      \texttt{Resource} & Vrchol & Webový objekt \\
+      \hline
+      \texttt{Form} & Vrchol & Formuláø \\
+      \hline
+      \texttt{Project} & Vrchol & Projekt \\
+      \hline
+      \texttt{LinkTo} & Hrana & Odkaz mezi dokumenty \\
+      \hline
+      \texttt{Includes} & Hrana & Pøipojení formuláøe k~dokumentu \\
+      \hline
+      \texttt{Root} & Hrana & Odkaz na koøenový dokument prohledávané domény \\
+      \hline
+      \texttt{BlackWhitelist} & Vrchol & Omezení prohledávaného prostoru \\
+      \hline
+      \texttt{LinkQue} & Dokument & Fronta pro skladování odkazù èekající na zpracování \\
+      \hline
+      \texttt{LinkSet} & Dokument & Mapa nav¹tívených objektù \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \caption{Tøídy databáze} \label{tab:db_classes}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \tiny
+  \includesvg[width=14cm]{db-schema}
+  \caption{Diagram databáze} \label{fig:db_schema}
+\end{figure}
+
+\section{Grafické rozhraní}
+\label{sec:gui}
 JavaFX umo¾òuje mo¾nost navrhnout design ve specialní XML konstrukci, která se jmenuje FXML. Designové komponenty se zapisují stejnì jako XML uzly. Uzly mají pøiøazené indetifikátory, které jsou pøedávány controlleru, tedy ovladaèi, co¾ mezivrstva mezi modelovací a zobrazovací vrstvou.
 
+V~návrhu jsem grafickému rozhraní nevìnovala pøíli¹ mnoho èasu, finální návrh aplikace vznikla mno¾stvím iterací a experimentù s~neustálou obmìnou designových komponent. Aplikace je rozdìlena do nìkolika zálo¾ek. Kromì zálo¾ek u¾ivatel ovládá aplikaci pøes menu panel v~horní èásti aplikace. Ve spoední èásti aplikace se nachází nìkolik zálo¾ek s~výpisy konzole programu a slu¾eb. Tyto výpisy slou¾í k~informování u¾ivatele o~èinnosti aplikace, jeliko¾ aplikace provádí velké mno¾ství operací na pozadí a u¾ivateli by se mohla zdát jako neresponzivní. Pravým tlaèítkem s~ikonou gumy u¾ivatel sma¾e obsah právì zvoleného výpisu.
+
+Úvodní okno obsahuje tabulku s~projekty. Projekt je mo¾no otevøít, smazat èi vytvoøit nový.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{reaper-projects}
+  \caption{Úvodní okno} \label{fig:reaper_projects}
+\end{figure}
+
+V~této zálo¾ce je u¾ivatel schopen zmìnit nastavení prohledávání a to konkrétnì cílovou doménu, hloubku, vymezení prohledávaného prostoru. Také je schopen smazat data z~ji¾ existující analýzy, anebo zahájit analýzu novou. Jak ji¾ bylo uvedeno v~kapitole (doplnit), analýza probíhá ve dvou fázích. Z~dùvodu èasové nároènosti je nutné spustit obì fáze manuálnì. Jeliko¾ druhá fáze zvy¹uje lineárnì nárok na prostøedky a èas k~její vyhotovení a informace získane v~teto fázi nemusí být pro u¾ivatele dùle¾ité.
+
+Po spu¹tìní analýzy aplikace uzamkne velké mno¾ství ovládacích prvkù dokud analýza není dokonèena. Bez tohoto zabezpeèovacího mechanismu by u¾ivatel byl schopen vydat pøíkaz k~napøíklad smazání dat zatímco jsou stahována a zapøíèinil tak nedefinovanému chování aplikace.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{reaper-projectoptions}
+  \caption{Ovládání analýzy} \label{fig:reaper_analysis}
+\end{figure}
 
 
-[Screenshot z aplikace]
+Pøi naètení projektu se v~zálo¾ce výsledky naète koøenový objekt analýzy. Procházení výsledkù je rozdìleno do zobrazení grafu vlevo a seznam právì zobrazených objektù vèetnì detailu procházeného objektu. 
+Graf vsazen do prohlí¾eèe, kde jej vykresluje Javascriptová knihovna \texttt{Vis.js} . Tato knihovna nabízí jednoduchou funkcionalitu pro vykreslování èasových diagramù a grafù. Graf je vykreslen nìkolika barevnì, ka¾dá z~barev oznaèuje typ webového objektu. U~hran mezi uzly je taky zobrazeno èíslo, toto èíslo reprezentuje kolik odkazù dohromady vede mezi dvìma webovými objekty. V~pravém horním rohu jsou pøítomny 3 checkboxy, pomoci kterých u¾ivatel ovládá, jaké typy webových objektù se v~grafu zobrazí.
+V~pravém panelu je ve dvou zálo¾kách umístìn seznam zobrazených objektù v~tabulce a takté¾ detail právì procházeného objektu. Mno¾ství informací zobraného v~detailu závisí na typu webového objektu. Napø. u~objektu, který nebyl skenován je zobrazeno pouze jeho adresa. Oproti tomu objekt s~DOM objektem obsahuje i seznam odkazù, formuláøù, které objekt obsahuje. Èi napø obrázek vykreslené stránky.
 
-\subsection{Webové rozhraní}
-Pùvodní plán této práce bylo také aplikaci v urèitém bodì pøenést do webového rozhraní. U¾ivatele by k aplikaci mohli pøistoupit prostøednictvím svého prohlí¾eèe. Tato mo¾nost bohu¾el v urèitìm bodì tohoto projektu ji¾ nebyla mo¾ná z dùvodu rychle rostoucími po¾adavky na zdroje, které aplikace potøebuje ke svému bìhu.
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.5]{reaper-results}
+  \caption{Výsledky analýzy} \label{fig:reaper_results}
+\end{figure}
 
-Dal¹í z problému, který se v této oblasti objevil je rozhodnutí ... stojícím za prohlí¾eèem Google Chrome o ukonèení podpory ... frameworku NPAPI. Toto rozhodnutí bylo stanoveno do konce roku 2015, po jeho vstupu do platnosti nebude mo¾né spustit Java kod v prohlí¾eèi Google Chrome, aplikace by tak byla podporována pouze v prohlí¾eèích Firefox, Internet Explorer a Safari.
+V~zálo¾ce statistik jsou zobrazeny dva grafy s~tabulkou jejich hodnot. Levý graf reprezentuje z~jakých webových objektù v~jakém mno¾ství je slo¾ena prohledaná oblast. V~pravém grafu je mo¾no vidìt jaké odpovìdi serveru byly vráceny. Nutno podotknout ¾e napø. chybu 404 mnohé webové stránky nevrací správnì, u¾ivateli je zobrazeno hlá¹ení, ¾e hledaný obsah nebyl nalezen, server ale ve skuteènosti odpoví kódem 200.
 
-Mo¾né øe¹ení tohoto problému by byl návrh èistì webové aplikace, která by mìla pøístup k vytvoøené databázi a zároveò k souborovému systému s ulo¾enými vykreslenými obrázky analýzy ...
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.5]{reaper-stats}
+  \caption{Statistiky} \label{fig:reaper_stats}
+\end{figure}
+
+
+\section{Webové rozhraní}
+\label{sec:web_interface}
+Pùvodní plán této práce bylo také aplikaci v~urèitém bodì pøenést do webového rozhraní. U¾ivatele by k~aplikaci mohli pøistoupit prostøednictvím svého prohlí¾eèe. Tato mo¾nost bohu¾el tohoto projektu ji¾ není mo¾ná z~dùvodu rychle rostoucími po¾adavky na zdroje, které aplikace potøebuje ke svému bìhu.
+
+Dal¹í z~problému, který se v~této oblasti objevil je rozhodnutí, spoleènosti Google stojícím za prohlí¾eèem Google Chrome, o~ukonèení podpory \texttt{NPAPI} pluginu. Toto rozhodnutí bylo stanoveno do konce roku 2015, po vstupu do úèinnosti nebude mo¾né spustit Java kod v~prohlí¾eèi Google Chrome, aplikace by tak byla podporována pouze v~prohlí¾eèích Firefox, Internet Explorer a Safari.
+
+Mo¾né øe¹ení tohoto problému by byl návrh èistì webové aplikace, která by mìla pøístup k~vytvoøené databázi a zároveò k~souborovému systému s~ulo¾enými vykreslenými snímky analýzy. Bohu¾el toto øe¹ení vy¾aduje pøíli¹ velké mno¾ství èasu a znaènì by tím utrpìli ostatní body této práce.
 \newpage
-\chapter{Experimenty}
+\chapter{Výsledky}
+\label{ch:experiments}
+Experimenty jsem provádìla na následující konfiguraci.
+\begin{table}[H]
+  \begin{center}
+    \begin{tabular}{| c | l |}
+      \hline
+      CPU & FX-6300 3,5GHz \\
+      \hline
+      RAM & 12GB DDR3 \\      
+      \hline
+      OS & Fedora 20 \\
+      \hline
+      Java & JDK 1.8.40 \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \caption{HW/SW konfigurace} \label{tab:db_classes}
+\end{table}
+
+Analýzy jsem provádìla na doménách s~rùzným poètem webovým objektù. Domény oznaèené jako men¹í oznaèuji ve¹keré domény jejich¾ analýza objevila ménì jak 1000 objektù. Domény jako vìt¹í oznaèuji v¹echny ty, které toto èíslo pøesáhly. 
+
+Spotøeba RAM pamìti aplikace po nìkolika hodinách spu¹tìné analýzy nepøekroèila 1 GiB. Toto pova¾uji za veliký úspìch, proto¾e se tím podaøilo vyøe¹it problémy prototypu zmínìnì v~kapitole návrhu aplikace \ref{ch:plan}. Na úkor spotøeby zdrojù aplikace se projevil potøebný èas k~dokonèení analýzy. U~domén skládajících se z~desítky tisíc odkazù je analýza velice pomalá, napø. analýza portálu seznam.cz se dostala do tøetí úrovnì odkazu a¾ po nìkolika hodinách. 
+
+®ádná analýza domén s~vìt¹ím poètem objektù nebyla dokonèena bìhem jednoho spu¹tìní. Stávalo se, ¾e bìhem analýzy vypadlo internetové pøipojení, èi doèasnì neodpovídala databáze. Z~tìchto dùvodu jsem provedla úpravy v~programu aby ve¹keré data bìhem analýzy se ukládaly do databáze, výsledkem tohoto sna¾ení jsou tøídy \texttt{LinkQue} a \texttt{LinkSet}. V~pøípadì opìtovné spu¹tìní analýzy, aplikace pokraèuje v~analýze kde pøedtím pøestala.
+
+I~pøesto tyto velké domény se mi nepodaøilo prozkoumat do vìt¹ích hloubek, se vzrùstajícím poètem záznamù v~databázi se rychlost zpracování dotazu èím dál víc zpomalovala a po nìkolika hodinách zpracovaný poèet odkazu se pohyboval kolem nìkolika tisíc a poèet odkazù ve frontì se neustále zvy¹oval k~nìkolika desítkám tisíc.
+
+Oproti tomu analýza obou èástí u~men¹ích domén trvá témìø v¾dy pod deset minut.
 
 \newpage
-\chapter{Dal¹í roz¹íøení}
+\chapter{Dal¹í mo¾ná roz¹íøení}
+\label{ch:enhacements}
+Nìkteré èásti této aplikace jsou zpracovány velice jednodu¹e a existuje mnoho mo¾ností jak by dál mohly roz¹íøit. Zde je uveden seznam vìcí, které jsem nestihla dotáhnout do finální podoby.
 
+Jak první tak i druhá èást analýzy probíhá synchronnì v~jednom vláknì. Tato vlastnost nevyu¾ívá dostateènì zdroje poèítaèe a analýza je z~tohoto dùvodu velmi pomalá. Prvním krokem k~napravení by bylo roz¹íøit první èást analýzy k~vyu¾ití nìkolika vláken. Druhá èást analýzy pøi ka¾dém spu¹tìní externího programu èeká na jeho ukonèení, spou¹tìní nìkolika procesù zároveò by se dosáhlo lep¹ích výsledkù.
+Dal¹í podstatnìj¹ nároènìj¹í mo¾nost by bylo rozdìlení slu¾eb provádìjící analýzu a sí» klientských programù na více zaøízeních. Tyto programy by pracovaly na jedné doménì souèasnì, jako svùj hlavní komunikaèní prostøedek by vyu¾ily databázi.
+
+Kromì chybìjícího webového rozhraní je napø. zálo¾ka statistik zmínìná v~sekci \ref{sec:gui} chudá na dùle¾ité informace. U¾ivatel se mù¾e prostøednictvím grafu dozvìdìt, ¾e se na doménì nachází objekty, jejich¾ pokus o~zpøístupnìní zpùsobil chybu 500, ale nedoví se, které objekty to byly.
+V~zálo¾ce statistik chybí také jakákoliv analýza rychlosti pøístupu na objekty a velikosti objektù. U¾ivatele aplikace by mohlo zajímat, které èásti webových stránek se ukázaly jako nejpomalej¹í a podrobit tyto èásti podrobnìj¹ím zkoumáním.
+
+Pøi vyhledávání a zkoumání formuláøù se do databáze ukládá jen velmi malé mno¾ství dat, informace o~polích formuláøe zcela chybí.
+
+Ka¾dý webový server je nìèím unikátní, tvoøit nástroje, které se sna¾í ``vyhovìt v¹em'' mù¾e být nároènì a¾ nemo¾né. Pokud by aplikace podporovala mo¾nost vlo¾ení u¾ivatelských skriptù pøi práci prohlí¾eèe ve druhé èásti analýzy, byl by u¾ivatel schopen dodefinovat chování pavouka pøi specifických pøípadech.
 
 \newpage
 \chapter{Závìr}
+\label{ch:closure}
 
-\chapter{Slovníèek pojmù}
-\begin{itemize}
-	\item Frontend - Klientská èást zpracování po¾adavku
-	\item Backend - Serverová èást zpracování po¾adavku
-	\item Crawler - pavouk
-	\item Resource - zdroj/webový objekt
-	\item Headless browser - Prohlí¾eè bì¾ící v pozadí
-\end{itemize}
+Podaøilo se mi vytvoøit aplikaci, která je schopna analyzovat doménou a vytvoøit její graf v~databázi spolu s~údaji o~zmapovaných objektech. Aplikace je postavena na frameworku JavaFX a jako úlo¾i¹tì vyu¾ívá databázi s~grafovým modelem OrientDB. Aplikace je také schopná výsledky analýzy prezentovat u¾ivateli. Data jsou ulo¾ena na u¾ivateli pøístupné místo k~dal¹ímu zpracování/vyu¾ití.
+
+Aplikace si neklade pøíli¹ velké nároky na dostupné prostøedky. Namísto toho zpomaluje celkový èas analýzy. Z~experimentù je mo¾né vyvodit, ¾e aplikace není vhodná na analýzu dynamických a obsahovì rozsáhlých domén. Pøesto se mù¾e projevit u¾iteèná pro domény s~men¹ím a hlavnì statickým obsahem. Pøi opakovaném spu¹tìní mù¾eme pozorovat zmìny v~struktuøe webových objektù i jejich mno¾ství.
+
+Webová prezentace dat v~aplikaci chybí, ale v~sekci \ref{sec:web_interface} bylo navrhnuto øe¹ení. Pøi implementaci aplikace mì napadlo mno¾ství dal¹ích roz¹íøení a smìrù, kam by vývoj aplikace mohl dále pokraèovat, tyto roz¹íøení jsou popsána v~kapitole \ref{ch:enhacements}.
 
 %=========================================================================

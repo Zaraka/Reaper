@@ -1,7 +1,7 @@
 package reaper.model;
 
 /**
- *
+ * Container for Database connection info.
  * @author nikita.vanku
  */
 public class DBConf {

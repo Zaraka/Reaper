@@ -6,3 +6,13 @@
 Label {
     -fx-font-family: Consolas;
 }
+
+/*For logger*/
+.tab-pane .tab-unread{
+    -fx-background-color: #8f3938;
+}
+
+.tab-pane .tab-unread > .tab-label {
+    -fx-alignment: CENTER;
+    -fx-text-fill: white;
+}

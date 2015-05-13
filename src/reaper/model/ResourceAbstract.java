@@ -32,13 +32,11 @@ public abstract class ResourceAbstract extends VertexAbstract implements Resourc
     private final StringProperty path;
     private final IntegerProperty code;
     private final IntegerProperty depth;
-    private final IntegerProperty maxDepth;
 
     ResourceAbstract() {
         this.url = null;
         this.state = ResourceState.UNITIALIZED;
         this.depth = new SimpleIntegerProperty(0);
-        this.maxDepth = new SimpleIntegerProperty(0);
         this.links = new HashMap();
         this.type = ResourceType.UNDEFINED;
         this.code = new SimpleIntegerProperty(0);
@@ -48,11 +46,10 @@ public abstract class ResourceAbstract extends VertexAbstract implements Resourc
         this.id = null;
     }
 
-    ResourceAbstract(URL url, int depth, int maxDepth) throws MalformedURLException {
+    ResourceAbstract(URL url, int depth) throws MalformedURLException {
         this.url = url;
         this.state = ResourceState.UNITIALIZED;
         this.depth = new SimpleIntegerProperty(depth);
-        this.maxDepth = new SimpleIntegerProperty(maxDepth);
         this.links = new HashMap();
         this.type = ResourceType.UNDEFINED;
         this.code = new SimpleIntegerProperty(0);
@@ -67,7 +64,6 @@ public abstract class ResourceAbstract extends VertexAbstract implements Resourc
 
         this.state = ResourceState.UNITIALIZED;
         this.depth = new SimpleIntegerProperty(0);
-        this.maxDepth = new SimpleIntegerProperty(0);
         this.links = new HashMap<>();
         this.type = ResourceType.UNDEFINED;
 
@@ -104,18 +100,10 @@ public abstract class ResourceAbstract extends VertexAbstract implements Resourc
     public IntegerProperty getDepthProperty() {
         return this.depth;
     }
-
-    public int getMaxDepth() {
-        return this.maxDepth.get();
-    }
-
-    public void setMaxDepth(int maxDepth) {
-        this.maxDepth.set(maxDepth);
-    }
-
+    
     @Override
     public ArrayList<Link> links() {
-        return new ArrayList<>(this.links.values());
+        return new ArrayList<>(links.values());
     }
 
     @Override

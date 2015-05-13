@@ -19,7 +19,6 @@ public class ResourceFactory {
                 return new ResourceOutside(vertex);
             default:
                 return new ResourceOutside(vertex);
-                
         }
     }
 }

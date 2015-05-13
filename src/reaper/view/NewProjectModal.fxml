@@ -8,7 +8,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="317.0" prefWidth="743.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="reaper.view.NewProjectModalController">
+<AnchorPane id="AnchorPane" prefHeight="392.0" prefWidth="743.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="reaper.view.NewProjectModalController">
    <children>
       <VBox layoutX="113.0" layoutY="38.0" prefHeight="478.0" prefWidth="941.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
@@ -16,13 +16,13 @@
                <children>
                   <TextField fx:id="hostname" prefHeight="25.0" prefWidth="244.0" text="http://" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                   <Label text="Domain" GridPane.rowIndex="1" />
-                  <Label text="Name" />
+                  <Label text="Name (only alfa numerical characters)" />
                   <TextField fx:id="name" GridPane.columnIndex="1" />
                   <Label text="Depth to mine" GridPane.rowIndex="2" />
                   <TextField fx:id="depth" text="5" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                </children>
                <columnConstraints>
-                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="30.0" prefWidth="100.0" />
                   <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                </columnConstraints>
                <rowConstraints>
@@ -34,7 +34,7 @@
                   <Insets />
                </VBox.margin>
             </GridPane>
-            <Accordion>
+            <Accordion VBox.vgrow="ALWAYS">
               <panes>
                 <TitledPane animated="false" text="Blacklist">
                   <content>

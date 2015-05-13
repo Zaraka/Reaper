@@ -8,6 +8,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import reaper.Reaper;
@@ -40,6 +41,8 @@ public class SettingsController implements Initializable {
     private Button deleteDatabaseButton;
     @FXML
     private Button truncateTablesButton;
+    @FXML
+    private CheckBox autoConnectCheckBox;
     //-------------SETTINGS TAB---------------
     @FXML
     private TextField galleryPathField;
@@ -90,6 +93,7 @@ public class SettingsController implements Initializable {
         this.databaseHost.textProperty().bindBidirectional(crawler.dbHost());
         this.databasePassword.textProperty().bindBidirectional(crawler.dbPassword());
         this.databaseUser.textProperty().bindBidirectional(crawler.dbUser());
+        this.autoConnectCheckBox.selectedProperty().bindBidirectional(crawler.autoConnectProperty());
         
         this.phantomPathField.textProperty().bindBidirectional(crawler.phantomPathProperty());
         this.galleryPathField.textProperty().bindBidirectional(crawler.galleryPathProperty());
