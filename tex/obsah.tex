@@ -71,7 +71,7 @@ Aplikace je slo¾ena z~nìkolika èástí. Jedná se o~algoritmus pavouka, který stahu
 \label{sec:java}
 Byla vyu¾ita platforma Java s~platformou JavaFX, která umo¾òuje tvorbu Rich Internet Applications\cite{java}. JavaFX aplikace je mo¾no vyu¾ít i jako desktopové aplikace. Aplikace vytvoøena souèástí této práce byla naprogramována pro Java 8, JavaFX 8.
 
-\section{Modifikace prohledávaného prostoru}
+\section{Specifikace prohledávaného prostoru}
 Cílem aplikaci je analyzovat pouze jedinou doménu. Pøi prohledávání je tedy nutno zamezit zabloudìní pavouka na cizí domény a prohledávání zcela jiné èásti internetu. Toto je dosa¾eno kontrolou domény nejvy¹¹ího soukromého øádu spoleènì s~veøejným suffixem. Pokud se doména tohoto øádu nebo suffix li¹í, adresa se neprohledává.
 
 Je tøeba také poèítat s~tím, ¾e mno¾ství dokumentù a odkazù na doménì není pøedem známo. Doména mù¾e obsahovat nìkolik desítek dokumentù, ale i nìkolik stovek. Aplikace musí být na tuto skuteènost pøipravena a v~pøípadì procházení takto velké domény zareagovat. Toto je uskuteènìno stanovením maximální hloubky prohledávání. Pøed prohledáním prvního dokumentu je aktualní hloubka 0 a ka¾dým dal¹ím dokumentem se hodnota zvý¹í o~1. V~pøípadì dosa¾ení maximální hloubky prohledávání se z~tohoto dokumentu neextraktují dal¹í adresy.
@@ -120,8 +120,7 @@ Projekt je primárnì ulo¾en v~databázi s~vìt¹inou dat. Data, nepøíli¹ vhodné ulo¾
 \label{sec:draft_gui}
 Pøi návrhu jsem se pokusila klást dùraz na jednoduché ovládání aby program byl schopen ovládat i mirné pokroèilý u¾ivatel internetu. 
 
-U¾ivatel by mìl být schopen v~aplikaci plnì pracovat s~projekty. Tedy mìl by mít mo¾nost vytvoøit nový projekt, nebo otevøít ji¾ vytvoøený. Spustit analýzu domény èi smazat ji¾ hotovou analýzu a hlavnì procházet výsledky analýzy. Toto se ukázalo jako nejslo¾itìj¹í problém, jeliko¾ u¾ivatel by mìl intuitivnì procházet grafem.
-Zvolila jsem zpùsob zobrazení právì procházeného uzlu a jeho nejbli¾¹í okolí v~orientovaném grafu. Po poklikání na kterýkoliv vrchol v~zobrazení se tento vrchol a jeho nejbli¾¹í okolí otevøe.
+U¾ivatel má být schopen v~aplikaci plnì pracovat s~projekty. Tedy má mo¾nost vytvoøit nový projekt, nebo otevøít ji¾ vytvoøený. Spustit analýzu domény èi smazat ji¾ hotovou analýzu a hlavnì procházet výsledky analýzy. Pro zobrazení a procházení výsledkù jsem se rozhodla výsledek analýzy graficky reprezentovat jako graf. Ov¹em graf s vìt¹ím mno¾stvím objektù se u¾ivateli mù¾e zdát nepøehledný. Z tohoto dùvodu jsem zvolila zpùsob zobrazení právì procházeného uzlu a jeho nejbli¾¹í okolí v~orientovaném grafu. Po poklikání na kterýkoliv vrchol v~zobrazení se tento vrchol a jeho nejbli¾¹í okolí otevøe.
 
 \newpage
 \chapter{Implementace aplikace}
@@ -139,7 +138,7 @@ Mezi slu¾by, které spravuje tøída crawler patøí sbìraè odkazù (sestavení grafu) 
 
 Slu¾by, které zprostøedkovávají analýzu domény s~hlavní tøídou komunikují pouze omezenou mno¾inou zpráv oznamující úspìch èi neúspìch analýzy. Zpracovaná data jsou pøedána prostøednictvím databáze èi souborového systému.
 
-\subsection{První èást - tvorba grafu}
+\subsection{Tvorba grafu}
 \label{subsec:domain_analysis_graph}
 
 Slu¾ba, sestavující graf webových objektu pracuje jako fronta odkazu. Z~fronty slu¾ba odebere odkaz, u~kterého nejdøíve zjistí, zda-li se odkaz nachází v~prohledávaném prostoru. Pokud je objekt mimo prohledaný prostor do databáze se ulo¾í objekt s~minimálním mno¾stvím informací. V~opaèném pøípadì je objekt sta¾en a prozkoumám nástrojem \texttt{jsoup}. Nástrojem jsou prozkoumány tagy a jejich atributy zmínìne v~sekci \ref{sec:extraction}, ve¹keré nalezené odkazy jsou vlo¾eny do zpìt do fronty. Jestli-¾e se jedná o~objekt bez DOM èásti je objekt pova¾ován za soubor a do databáze vlo¾en jeho záznam. Po ulo¾ení objektu je do databáze vlo¾en také odkaz samotný v~podobì hrany. Slu¾ba si také udr¾uje v~pamìti objekty, které ji¾ jednou zpracovala. Nedochází tak k~opakovanému stahování a zpracování ji¾ hotových objektù.
@@ -152,7 +151,7 @@ Slu¾ba, sestavující graf webových objektu pracuje jako fronta odkazu. Z~fronty s
 \end{figure}
 
 
-\subsection{Druhá èást - (post processing)}
+\subsection{Doplnìní dodateèných informací}
 \label{subsec.domain_analysis_postprocessing}
 
 V~èase spu¹tìní druhé èásti analýzy je v~databázi pøítomen ji¾ hotový graf objektu s~jejich základními informacemi. Slu¾ba z~databáze extrahuje objekty, které obsahují DOM (èást) a pro ka¾dý z~tìchto objektù nejdøíve vytvoøí své místo ve stromu souborového systému, kam bude slu¾ba pozdìji ukládat informace o~objektu. Cesta k~tomuto adresáøi se skládá z~názvu projektu a specialního identifáktoru pøiøazeného Orient databází. Po dokonèení pøípravy zapoène spou¹tìní externího webového prohlí¾eèe \texttt{PhantomJS} se skriptem, který webovou stránku vykreslí do obrázku a zároveò zaznamená Javascriptový konzolový výstup pøi zpracování stránky do soubory. V~konzolovém výstupu se èasto objevují chyby pøi vykreslování stránek.
