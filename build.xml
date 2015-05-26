@@ -50,4 +50,20 @@
     nbproject/build-impl.xml and nbproject/jfx-impl.xml.
 
     -->
+    <target name="-pre-compile">
+    <property file="build.properties"/>
+    <buildnumber file="build.version"/>
+    <tstamp>
+        <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss"/>
+    </tstamp>
+    <manifest file="manifest.mf">
+        <attribute name="MAJOR" value="${version.major}"/>
+        <attribute name="MINOR" value="${version.minor}"/>
+        <attribute name="RELEASE" value="${release}"/>
+        <attribute name="BUILD" value="${build.number}"/>
+        <attribute name="BUILD-DATE" value="${timestamp}"/>
+        <attribute name="PROTOCOL" value="${protocol}"/>
+        <attribute name="APPCODE" value="${appcode}"/>
+    </manifest>    
+</target>
 </project>

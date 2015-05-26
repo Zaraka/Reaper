@@ -11,19 +11,28 @@ import javafx.beans.property.StringProperty;
  * @author zaraka
  */
 public interface Resource {
-    public ArrayList<Link> links();
-    public String getPath();
-    public URL getURL();
-    public int getDepth();
-    public ResourceType getType();
-    public Link getLinkWithPath(String Path);
     public IntegerProperty codeProperty();
     public IntegerProperty depthProperty();
     public StringProperty pathProperty();
     public StringProperty mimeTypeProperty();
+    
+    
+    public ArrayList<Link> links();
+    public String getPath();
+    public void setPath(String path);
+    public URL getURL();
+    public void setURL(URL url);
+    public int getDepth();
+    public void setDepth(int depth);
+    public ResourceType getType();
+    public void setType(ResourceType type);
+    public Link getLinkWithPath(String Path);
     public int getCode();
+    public void setCode(int code);
     public String getMimeType();
+    public void setMimeType(String mimeType);
     public long getDownloadTime();
+    public void setDownloadTime(long downloadTime);
     public Object getVertexID();
     public void setVertexID(Object id);
     public void vertexTransaction(OrientGraph grapth, String cluster);

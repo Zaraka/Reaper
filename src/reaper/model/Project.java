@@ -1,6 +1,7 @@
 package reaper.model;
 
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
+import com.orientechnologies.orient.core.exception.ODatabaseException;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
@@ -67,11 +68,6 @@ public class Project extends VertexAbstract {
         this.date = dt;
         this.cluster = "p";
         this.cluster += UUID.randomUUID().toString();
-
-        
-        //TODO: fix!!!
-        this.blacklist = blacklist;
-        this.whitelist = whitelist;
     }
 
     Project(Vertex ver) throws MalformedURLException, ParseException {
@@ -84,8 +80,12 @@ public class Project extends VertexAbstract {
         this.domain = new URL(ver.getProperty("domain"));
 
         this.rootID = null;
-        for (Vertex root : ver.getVertices(Direction.OUT, "Root")) {
-            this.rootID = root.getId();
+        try {
+            for (Vertex root : ver.getVertices(Direction.OUT, "Root")) {
+                this.rootID = root.getId();
+            }
+        } catch (ODatabaseException ex) {
+
         }
 
         this.blacklist = new ArrayList<>();
@@ -234,15 +234,20 @@ public class Project extends VertexAbstract {
     @Override
     public void save(OrientGraph graph) {
         OrientVertex ver = graph.getVertex(getID());
-        ver.setProperties("name", name, "date", date,
-                "domain", domain.toString(), "cluster", cluster, "depth", depth);
+        ver.setProperties(
+                "name", name, 
+                "date", date,
+                "domain", domain.toString(), 
+                "cluster", cluster, 
+                "depth", depth
+        );
     }
 
     @Override
     public void remove(OrientGraph graph) {
-        
+
         OrientVertex ver = getVertex(graph);
-        for(Edge edge : ver.getEdges(Direction.OUT, DatabaseClasses.ROOT.getName())){
+        for (Edge edge : ver.getEdges(Direction.OUT, DatabaseClasses.ROOT.getName())) {
             edge.remove();
         }
 
@@ -281,7 +286,7 @@ public class Project extends VertexAbstract {
         graph.command(
                 new OCommandSQL("DROP CLUSTER " + DatabaseClasses.LINKQUE.getName() + getCluster())
         ).execute();
-        
+
         graph.command(
                 new OCommandSQL(
                         "ALTER CLASS " + DatabaseClasses.LINKSET.getName() + " REMOVECLUSTER "
@@ -308,13 +313,13 @@ public class Project extends VertexAbstract {
         graph.command(
                 new OCommandSQL("DROP CLUSTER " + DatabaseClasses.BLACWHITEKLIST.getName() + getCluster())
         ).execute();
-        
+
         try {
             FileUtils.deleteDirectory(new File(projectPath()));
         } catch (IOException ex) {
             //dont care
         }
-        
+
         super.remove(graph);
     }
 
@@ -345,7 +350,7 @@ public class Project extends VertexAbstract {
         graph.command(
                 new OCommandSQL("TRUNCATE CLUSTER " + DatabaseClasses.LINKSET.getName() + getCluster())
         ).execute();
-        
+
         try {
             FileUtils.deleteDirectory(new File(projectPath()));
         } catch (IOException ex) {
@@ -449,8 +454,8 @@ public class Project extends VertexAbstract {
         }
         return result;
     }
-    
-    public String projectPath(){
+
+    public String projectPath() {
         Preferences prefs = Preferences.userNodeForPackage(Reaper.class);
         String path = prefs.get(PreferenceKeys.GALLERY_PATH.getKey(), (String) PreferenceKeys.GALLERY_PATH.getKey());
         if (!path.endsWith("/")) {

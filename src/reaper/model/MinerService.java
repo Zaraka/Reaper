@@ -117,9 +117,13 @@ public class MinerService extends Service<Void> {
 
     private boolean blackWhiteCheck(String host) {
         InternetDomainName check = InternetDomainName.from(host);
-
+        InternetDomainName projectHost = InternetDomainName.from(project.getDomain().getHost());
+        
+        //loggerMiner.log(Level.INFO, check.toString() + " " +projectHost.toString());
+        
         //check main scanning domain or whitelist
-        if (!check.topPrivateDomain().equals(InternetDomainName.from(project.getDomain().getHost()))) {
+        if (!check.topPrivateDomain().equals(projectHost.topPrivateDomain())){
+            
             //loop by whitelist if result is found continue
             boolean whitelisted = false;
             for (URL whiteURL : project.getWhitelist()) {

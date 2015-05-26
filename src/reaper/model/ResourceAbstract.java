@@ -84,10 +84,12 @@ public abstract class ResourceAbstract extends VertexAbstract implements Resourc
         return this.url;
     }
 
+    @Override
     public void setPath(String path) {
         this.path.set(path);
     }
 
+    @Override
     public void setDepth(int depth) {
         this.depth.set(depth);
     }
@@ -111,6 +113,7 @@ public abstract class ResourceAbstract extends VertexAbstract implements Resourc
         return this.code.get();
     }
 
+    @Override
     public void setCode(int code) {
         this.code.set(code);
     }
@@ -140,6 +143,7 @@ public abstract class ResourceAbstract extends VertexAbstract implements Resourc
         return this.mimeType.get();
     }
 
+    @Override
     public void setMimeType(String type) {
         this.mimeType.set(type);
     }
@@ -212,5 +216,21 @@ public abstract class ResourceAbstract extends VertexAbstract implements Resourc
     @Override
     public String getNormalizedID(){
         return id.toString().replaceAll(":", "_");
+    }
+    
+    
+    @Override
+    public void setURL(URL url) {
+        this.url = url;
+    }
+
+    @Override
+    public void setType(ResourceType type) {
+        this.type = type;
+    }
+
+    @Override
+    public void setDownloadTime(long downloadTime) {
+        this.downloadTime = downloadTime;
     }
 }

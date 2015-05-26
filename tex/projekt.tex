@@ -32,6 +32,7 @@
 \usepackage{dirtree}
 \usepackage{float}
 \usepackage{svg}
+\usepackage{tablefootnote}
 \setsvg{svgpath = ./fig/}
 \graphicspath{ {./fig/} }
 \DeclareGraphicsExtensions{.pdf,.png,.jpg}
@@ -79,17 +80,19 @@
   %bud pomoci nasledujicich parametru nebo pomoci vyhrazenych maker (viz dale)
   %===========================================================================
   %Klicova slova
-  keywords.cs={Webový pavouk, HTML, analýza webových stránek, Jsoup}, %klicova slova v ceskem jazyce
-  keywords.en={Web crawling, HTML, web page analysis, Jsoup}, %klicova slova v anglickem jazyce
+  keywords.cs={Webový pavouk, HTML, analýza webových stránek, jsoup, PhantomJS, JavaFX, OrientDB}, %klicova slova v ceskem jazyce
+  keywords.en={Web crawling, HTML, web page analysis, jsoup, PhantomJS, JavaFX, OrientDB}, %klicova slova v anglickem jazyce
   %Abstract
   abstract.cs={Cílem této práce je vytvoøení aplikace na analýzu WWW stránek. 
   K implementaci aplikace byl zvolen jazyk Java, konkrétnì framework JavaFX s pou¾itím grafové databáze OrientDB. 
-  Vytvoøená aplikace doká¾e analyzovat WWW stránky men¹ího rozsahu. Aplikace je u¾iteèná jako nástroj k sestavení struktury WWW stránek. }, % abstrakt v ceskem jazyce
-  abstract.en={Výtah (abstrakt) práce v anglickém jazyce.}, % abstrakt v anglickem jazyce
+  Vytvoøená aplikace doká¾e procházet WWW domény men¹ího rozsahu. Aplikace je u¾iteèná jako nástroj k sestavení struktury WWW stránek. }, % abstrakt v ceskem jazyce
+  abstract.en={The aim of this thesis is to create an application for World Wide Web page analysis.
+  JavaFX framework with using of graph database OrientDB has been chosen as implementation language. 
+  Application is capable of analysis small to medium based web domain and creating their structure.}, % abstrakt v anglickem jazyce
   %Prohlaseni
-  declaration={Prohla¹uji, ¾e jsem tuto bakaláøskou práci vypracoval samostatnì pod vedením pana ...},
+  declaration={Prohla¹uji, ¾e jsem tuto bakaláøskou práci vypracovala samostatnì pod vedením pana Ing. Radka Burgeta Ph.D.},
   %Podekovani (nepovinne)
-  acknowledgment={Velice dìkuji mému vedoucímu práce Ing. Radku Burgetovi, Ph.D  za motivaci, vedení a mou podporu. Dìkuji také Mgr. Franti¹u Trosteru za nápad na tento nástroj.} % nepovinne
+  acknowledgment={Velice dìkuji mému vedoucímu práce Ing. Radkovi Burgetovi, Ph.D. za motivaci, vedení a mou podporu.} % nepovinne
 }
 
 %Abstrakt (cesky, anglicky)
@@ -114,7 +117,7 @@
   % ----------------------------------------------
   \maketitle
   % Obsah
-  % ----------------------------------------------
+  % ----------------------------------------------spí¹ fráze "T
   \tableofcontents
   
   % Seznam obrazku a tabulek (pokud prace obsahuje velke mnozstvi obrazku, tak se to hodi)
@@ -127,10 +130,11 @@
 
   % Pouzita literatura
   % ----------------------------------------------
-\ifczech
   \bibliographystyle{czechiso}
+\ifczech
+  
 \else 
-  \bibliographystyle{plain}
+  %\bibliographystyle{plain}
 %  \bibliographystyle{alpha}
 \fi
   \begin{flushleft}

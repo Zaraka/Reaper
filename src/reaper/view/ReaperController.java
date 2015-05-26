@@ -306,7 +306,13 @@ public class ReaperController implements Initializable {
         project.showAndWait();
         if (project.getAccepted()) {
             try {
-                reaper.getCrawler().createProject(project.getName(), project.getDomain(), project.getDepth(), project.getBlacklist(), project.getWhitelist());
+                reaper.getCrawler().createProject(
+                        project.getName(), 
+                        project.getDomain(), 
+                        project.getDepth(), 
+                        project.getBlacklist(), 
+                        project.getWhitelist()
+                );
                 refreshProjects();
             } catch (DatabaseNotConnectedException ex) {
                 loggerReaper.log(Level.SEVERE, ex.getMessage());
@@ -480,7 +486,7 @@ public class ReaperController implements Initializable {
         statsTypeCountColumn.setCellValueFactory((CellDataFeatures<PieChart.Data, Long> cellData) -> new ReadOnlyObjectWrapper<>((long) cellData.getValue().getPieValue()));
         
         //Tooltips
-        eraseCurrentLogButton.setTooltip(new Tooltip("Erase selected log output"));
+        eraseCurrentLogButton.setTooltip(new Tooltip("Erase selected log output"));        
     }
 
     public void setReaper(Reaper reaper) {

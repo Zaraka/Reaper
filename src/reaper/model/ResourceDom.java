@@ -266,5 +266,4 @@ public class ResourceDom extends ResourceAbstract {
     public List<Form> forms() {
         return forms;
     }
-
 }
