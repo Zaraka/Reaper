@@ -1,7 +1,0 @@
-title Application threads
-
-GUI->DB: Create project
-GUI->Miner: Start mining on domain
-Miner->GUI: Mining is finished
-GUI->PostScanner: Start analyzing on domain
-PostScanner->GUI: Analyzing finished
