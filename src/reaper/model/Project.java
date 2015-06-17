@@ -1,3 +1,27 @@
+/*
+ * The MIT License
+ *
+ * Copyright 2015 Reaper.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 package reaper.model;
 
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
@@ -22,7 +46,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import org.apache.commons.io.FileUtils;
@@ -41,8 +64,8 @@ public class Project extends VertexAbstract {
     private String name;
     private String cluster;
     private Object rootID;
-    private List<URL> blacklist;
-    private List<URL> whitelist;
+    private List<String> blacklist;
+    private List<String> whitelist;
     private int depth;
 
     public static SimpleDateFormat clusterDate = new SimpleDateFormat("yyyy_MM_dd");
@@ -98,11 +121,7 @@ public class Project extends VertexAbstract {
                         + DatabaseClasses.BLACWHITEKLIST.getName()
                         + cluster + " WHERE type = 'BLACKLIST'")
         ).execute()) {
-            try {
-                blacklist.add(new URL(ver.getProperty("url")));
-            } catch (MalformedURLException ex) {
-                logger.log(Level.WARNING, "Invalid blacklisted link in database");
-            }
+            blacklist.add(ver.getProperty("url"));
         }
     }
 
@@ -112,11 +131,7 @@ public class Project extends VertexAbstract {
                         + DatabaseClasses.BLACWHITEKLIST.getName()
                         + cluster + " WHERE type = 'WHITELIST'")
         ).execute()) {
-            try {
-                whitelist.add(new URL(ver.getProperty("url")));
-            } catch (MalformedURLException ex) {
-                logger.log(Level.WARNING, "Invalid whitelisted link in database");
-            }
+            whitelist.add(ver.getProperty("url"));
         }
     }
 
@@ -235,10 +250,10 @@ public class Project extends VertexAbstract {
     public void save(OrientGraph graph) {
         OrientVertex ver = graph.getVertex(getID());
         ver.setProperties(
-                "name", name, 
+                "name", name,
                 "date", date,
-                "domain", domain.toString(), 
-                "cluster", cluster, 
+                "domain", domain.toString(),
+                "cluster", cluster,
                 "depth", depth
         );
     }
@@ -394,19 +409,19 @@ public class Project extends VertexAbstract {
         );
     }
 
-    public List<URL> getBlacklist() {
+    public List<String> getBlacklist() {
         return blacklist;
     }
 
-    public List<URL> getWhitelist() {
+    public List<String> getWhitelist() {
         return whitelist;
     }
 
-    public void setBlacklist(List<URL> blacklist) {
+    public void setBlacklist(List<String> blacklist) {
         this.blacklist = blacklist;
     }
 
-    public void setWhitelist(List<URL> whitelist) {
+    public void setWhitelist(List<String> whitelist) {
         this.whitelist = whitelist;
     }
 

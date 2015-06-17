@@ -27,7 +27,7 @@
                   <Hyperlink fx:id="resourceURL" prefHeight="23.0" prefWidth="150.0" GridPane.columnIndex="1" />
                </children>
                <columnConstraints>
-                  <ColumnConstraints hgrow="SOMETIMES" percentWidth="20.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="100.0" percentWidth="20.0" />
                   <ColumnConstraints hgrow="SOMETIMES" percentWidth="80.0" />
                </columnConstraints>
                <rowConstraints>

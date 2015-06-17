@@ -1,3 +1,26 @@
+/*
+ * The MIT License
+ *
+ * Copyright 2015 Reaper.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package reaper.view;
 
 import com.orientechnologies.orient.core.exception.OStorageException;
@@ -97,13 +120,13 @@ public class ReaperController implements Initializable {
     @FXML
     private TableColumn<Resource, String> resourceTypeColumn;
     @FXML
-    private TableView<URL> blacklistTable;
+    private TableView<String> blacklistTable;
     @FXML
-    private TableColumn<URL, String> blacklistColumn;
+    private TableColumn<String, String> blacklistColumn;
     @FXML
-    private TableView<URL> whitelistTable;
+    private TableView<String> whitelistTable;
     @FXML
-    private TableColumn<URL, String> whitelistColumn;
+    private TableColumn<String, String> whitelistColumn;
     @FXML
     private TableView<Project> projectTable;
     @FXML
@@ -268,12 +291,8 @@ public class ReaperController implements Initializable {
                 url = "http://" + url;
                 loggerReaper.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
             }
-            try {
-                //TODO
-                this.reaper.getCrawler().blacklistProperty().add(new URL(url));
-            } catch (MalformedURLException ex) {
-                loggerReaper.log(Level.SEVERE, null, ex);
-            }
+            //TODO
+            this.reaper.getCrawler().blacklistProperty().add(url);
         });
     }
 
@@ -291,12 +310,8 @@ public class ReaperController implements Initializable {
                 url = "http://" + url;
                 loggerReaper.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
             }
-            try {
-                //TODO
-                this.reaper.getCrawler().blacklistProperty().add(new URL(url));
-            } catch (MalformedURLException ex) {
-                loggerReaper.log(Level.SEVERE, null, ex);
-            }
+            //TODO
+            this.reaper.getCrawler().blacklistProperty().add(url);
         });
     }
 
@@ -307,10 +322,10 @@ public class ReaperController implements Initializable {
         if (project.getAccepted()) {
             try {
                 reaper.getCrawler().createProject(
-                        project.getName(), 
-                        project.getDomain(), 
-                        project.getDepth(), 
-                        project.getBlacklist(), 
+                        project.getName(),
+                        project.getDomain(),
+                        project.getDepth(),
+                        project.getBlacklist(),
                         project.getWhitelist()
                 );
                 refreshProjects();
@@ -413,20 +428,20 @@ public class ReaperController implements Initializable {
     public void closeProject() {
         reaper.getCrawler().closeProject();
     }
-    
+
     @FXML
-    public void eraseCurrentLog(){
-        switch(consoleTabPane.getSelectionModel().getSelectedIndex()){
-            case 0 :
+    public void eraseCurrentLog() {
+        switch (consoleTabPane.getSelectionModel().getSelectedIndex()) {
+            case 0:
                 consoleReaper.getChildren().clear();
                 break;
-            case 1 :
+            case 1:
                 consoleMiner.getChildren().clear();
                 break;
             case 2:
                 consolePostScanner.getChildren().clear();
                 break;
-            default:  
+            default:
         }
     }
 
@@ -484,9 +499,9 @@ public class ReaperController implements Initializable {
 
         statsTypeTypeColumn.setCellValueFactory((CellDataFeatures<PieChart.Data, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().getName()));
         statsTypeCountColumn.setCellValueFactory((CellDataFeatures<PieChart.Data, Long> cellData) -> new ReadOnlyObjectWrapper<>((long) cellData.getValue().getPieValue()));
-        
+
         //Tooltips
-        eraseCurrentLogButton.setTooltip(new Tooltip("Erase selected log output"));        
+        eraseCurrentLogButton.setTooltip(new Tooltip("Erase selected log output"));
     }
 
     public void setReaper(Reaper reaper) {
@@ -623,7 +638,7 @@ public class ReaperController implements Initializable {
         //blacklistTable
         blacklistTable.setEditable(false);
         blacklistTable.setItems(crawler.blacklistProperty());
-        blacklistColumn.setCellValueFactory((CellDataFeatures<URL, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().toString()));
+        blacklistColumn.setCellValueFactory((CellDataFeatures<String, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue()));
         MenuItem removeBlacklistItem = new MenuItem("Remove Item");
         removeBlacklistItem.setOnAction((ActionEvent event) -> {
             //TODO
@@ -635,7 +650,7 @@ public class ReaperController implements Initializable {
         //whitelistTable
         whitelistTable.setEditable(false);
         whitelistTable.setItems(crawler.whitelistProperty());
-        blacklistColumn.setCellValueFactory((CellDataFeatures<URL, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue().toString()));
+        whitelistColumn.setCellValueFactory((CellDataFeatures<String, String> p) -> new ReadOnlyObjectWrapper<>(p.getValue()));
         MenuItem removeWhitelistItem = new MenuItem("Remove Item");
         removeWhitelistItem.setOnAction((ActionEvent event) -> {
             //TODO

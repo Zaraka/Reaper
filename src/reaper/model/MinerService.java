@@ -1,6 +1,28 @@
+/*
+ * The MIT License
+ *
+ * Copyright 2015 Reaper.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package reaper.model;
 
-import com.google.common.net.InternetDomainName;
 import com.orientechnologies.orient.core.exception.OStorageException;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
@@ -8,12 +30,15 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraphFactory;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import org.jsoup.UnsupportedMimeTypeException;
@@ -35,6 +60,9 @@ public class MinerService extends Service<Void> {
     private LinkSet linkSet;
     private Project project;
 
+    private List<Pattern> whiteRules;
+    private List<Pattern> blackRules;
+
     public void init() {
         this.resources = new HashMap<>();
         this.resourceCount = 0;
@@ -47,7 +75,17 @@ public class MinerService extends Service<Void> {
     }
 
     public void prepare(Project proj) {
-        this.project = proj;
+        project = proj;
+
+        //compile sets of regex rules
+        whiteRules = new ArrayList<>();
+        for (String white : project.getWhitelist()) {
+            whiteRules.add(Pattern.compile(white));
+        }
+        blackRules = new ArrayList<>();
+        for (String black : project.getBlacklist()) {
+            blackRules.add(Pattern.compile(black));
+        }
     }
 
     public void databaseConnect(String host, String user, String pass) {
@@ -115,36 +153,29 @@ public class MinerService extends Service<Void> {
         }
     }
 
-    private boolean blackWhiteCheck(String host) {
-        InternetDomainName check = InternetDomainName.from(host);
-        InternetDomainName projectHost = InternetDomainName.from(project.getDomain().getHost());
-        
-        //loggerMiner.log(Level.INFO, check.toString() + " " +projectHost.toString());
-        
-        //check main scanning domain or whitelist
-        if (!check.topPrivateDomain().equals(projectHost.topPrivateDomain())){
-            
-            //loop by whitelist if result is found continue
-            boolean whitelisted = false;
-            for (URL whiteURL : project.getWhitelist()) {
-                if (check.equals(InternetDomainName.from(whiteURL.getHost()))) {
-                    whitelisted = true;
-                    break;
-                }
+    private boolean blackWhiteCheck(String url) {
+        //loop by whitelist if result is found continue
+        boolean whitelisted = false;
+        for (Pattern whiteRule : whiteRules) {
+            Matcher m = whiteRule.matcher(url);
+            if (m.matches()) {
+                whitelisted = true;
+                break;
             }
+        }
 
-            if (!whitelisted) {
+        if (!whitelisted) {
+            return false;
+        }
+
+        //Loop  by blacklist
+        for (Pattern blackRule : blackRules) {
+            Matcher m = blackRule.matcher(url);
+            if (m.matches()) {
                 return false;
             }
         }
 
-        for (URL blackURL : project.getBlacklist()) {
-            if (check.equals(InternetDomainName.from(blackURL.getHost()))) {
-                return false;
-            }
-        }
-
-        //loop by blacklist if result is found deny 
         return true;
     }
 
@@ -162,7 +193,7 @@ public class MinerService extends Service<Void> {
 
                 //Grab unfinished data from database
                 linkSet.fillMap(resources, project.getCluster());
-                
+
                 //If root is missing, start new minning
                 if (linkScrambler.queLength(project.getCluster()) == 0) {
                     try {
@@ -206,7 +237,7 @@ public class MinerService extends Service<Void> {
                         }
 
                         //First check if resource is in domain
-                        if (blackWhiteCheck(linkUrl.getHost())) {
+                        if (blackWhiteCheck(linkUrl.toString())) {
                             //If so try to create DOM or FILE
 
                             try {
