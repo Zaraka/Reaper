@@ -77,11 +77,11 @@ public class NewProjectModal extends Stage{
         return controller.getName();
     }
     
-    public ArrayList<URL> getBlacklist(){
+    public ArrayList<String> getBlacklist(){
         return controller.getBlacklist();
     }
     
-    public ArrayList<URL> getWhitelist(){
+    public ArrayList<String> getWhitelist(){
         return controller.getWhitelist();
     }
     

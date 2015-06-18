@@ -344,7 +344,7 @@ public class ReaperDatabase {
         return project;
     }
     
-    public void insertBlackWhiteList(Project proj, List<URL> blacklist, List<URL> whitelist){
+    public void insertBlackWhiteList(Project proj, List<String> blacklist, List<String> whitelist){
         OrientGraph graph = factory.getTx();
         try {
                 proj.saveBlackWhiteList(graph, blacklist, proj.getCluster(), "BLACKLIST");

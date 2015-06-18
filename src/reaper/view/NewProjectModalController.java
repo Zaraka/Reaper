@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package reaper.view;
 
 import java.net.MalformedURLException;
@@ -59,8 +58,8 @@ public class NewProjectModalController implements Initializable {
 
     private static final Logger logger = Logger.getLogger(Reaper.class.getName());
 
-    private ObservableList<URL> blacklist;
-    private ObservableList<URL> whitelist;
+    private ObservableList<String> blacklist;
+    private ObservableList<String> whitelist;
     private URL domain;
     private boolean modalAccepted;
 
@@ -71,39 +70,46 @@ public class NewProjectModalController implements Initializable {
     @FXML
     private TextField depth;
     @FXML
-    private TableView<URL> blacklistTable;
+    private TableView<String> blacklistTable;
     @FXML
-    private TableView<URL> whitelistTable;
+    private TableView<String> whitelistTable;
     @FXML
-    private TableColumn<URL, String> blacklistColumn;
+    private TableColumn<String, String> blacklistColumn;
     @FXML
-    private TableColumn<URL, String> whitelistColumn;
+    private TableColumn<String, String> whitelistColumn;
 
     @FXML
     private void addBlacklistItem() {
         TextInputDialog dialog = new TextInputDialog("http://subdomain.example.com");
-        dialog.setTitle("Add blacklisted domain");
-        dialog.setHeaderText("Add blacklisted domain");
-        dialog.setContentText("Please enter domain you want to blacklist");
+        dialog.setTitle("Add whitelist rule");
+        dialog.setHeaderText("Add whitelist regex");
+        dialog.setContentText("Please enter valid regex");
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(domain -> {
             String url = domain;
-            if (!url.matches("^.*:\\/\\/.*$")) {
-                url = "http://" + url;
-                logger.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
-            }
-            try {
-                blacklist.add(new URL(url));
-            } catch (MalformedURLException ex) {
-                logger.log(Level.SEVERE, null, ex);
-            }
+            blacklist.add(url);
+
+        });
+    }
+
+    @FXML
+    private void addWhitelistItem() {
+        TextInputDialog dialog = new TextInputDialog("http://subdomain.example.com");
+        dialog.setTitle("Add whitelist rule");
+        dialog.setHeaderText("Add whitelist regex");
+        dialog.setContentText("Please enter valid regex");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(domain -> {
+            String url = domain;
+            whitelist.add(url);
         });
     }
 
     @FXML
     private void createNewProject(ActionEvent event) {
-        if(depth.getText().isEmpty()){
+        if (depth.getText().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Error!");
             alert.setHeaderText("Depth canot be empty");
@@ -111,7 +117,7 @@ public class NewProjectModalController implements Initializable {
             alert.show();
             return;
         }
-        
+
         if (hostname.getText().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Error!");
@@ -120,8 +126,8 @@ public class NewProjectModalController implements Initializable {
             alert.show();
             return;
         }
-        
-        if(!name.getText().matches("^[a-zA-Z0-9]*$")){
+
+        if (!name.getText().matches("^[a-zA-Z0-9]*$")) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Error!");
             alert.setHeaderText("Name can contain only alfanumerical characters");
@@ -149,7 +155,7 @@ public class NewProjectModalController implements Initializable {
             alert.show();
             return;
         }
-        
+
         modalAccepted = true;
         Stage stage = (Stage) hostname.getScene().getWindow();
         stage.close();
@@ -175,27 +181,40 @@ public class NewProjectModalController implements Initializable {
         modalAccepted = false;
 
         blacklistTable.setItems(blacklist);
-        blacklistColumn.setCellValueFactory((TableColumn.CellDataFeatures<URL, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().toString()));
-        ContextMenu blacklistMenu = new ContextMenu();
+        blacklistColumn.setCellValueFactory((TableColumn.CellDataFeatures<String, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
+        //Context menu
         MenuItem removeBlacklistItem = new MenuItem("Remove");
         removeBlacklistItem.setOnAction((ActionEvent event) -> {
             blacklist.remove(blacklistTable.getSelectionModel().getSelectedIndex());
         });
-        blacklistMenu.getItems().add(removeBlacklistItem);
-        blacklistTable.setContextMenu(blacklistMenu);
-        
+        MenuItem addBlacklistMenuItem = new MenuItem("Add new");
+        addBlacklistMenuItem.setOnAction((ActionEvent event) -> {
+            addBlacklistItem();
+        });
+        blacklistTable.setContextMenu(new ContextMenu(
+                addBlacklistMenuItem,
+                removeBlacklistItem
+        ));
+
         whitelistTable.setItems(whitelist);
-        whitelistColumn.setCellValueFactory((TableColumn.CellDataFeatures<URL, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue().toString()));
-        ContextMenu whitelistMenu = new ContextMenu();
+        whitelistColumn.setCellValueFactory((TableColumn.CellDataFeatures<String, String> cellData) -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
+
+        //Context menu
         MenuItem removeWhitelistItem = new MenuItem("Remove");
-        removeBlacklistItem.setOnAction((ActionEvent event) -> {
+        removeWhitelistItem.setOnAction((ActionEvent event) -> {
             whitelist.remove(whitelistTable.getSelectionModel().getSelectedIndex());
         });
-        whitelistMenu.getItems().add(removeWhitelistItem);
-        whitelistTable.setContextMenu(whitelistMenu);
-        
+        MenuItem addWhitelistMenuItem = new MenuItem("Add new");
+        addWhitelistMenuItem.setOnAction((ActionEvent event) -> {
+            addWhitelistItem();
+        });
+        whitelistTable.setContextMenu(new ContextMenu(
+                addWhitelistMenuItem,
+                removeWhitelistItem
+        ));
+
         depth.setTextFormatter(new TextFormatter<>(new NumberStringConverter(NumberFormat.getIntegerInstance())));
-    }   
+    }
 
     public URL getDomain() {
         return domain;
@@ -205,19 +224,19 @@ public class NewProjectModalController implements Initializable {
         return name.getText();
     }
 
-    public ArrayList<URL> getBlacklist() {
+    public ArrayList<String> getBlacklist() {
         return new ArrayList<>(blacklist);
     }
-    
-    public ArrayList<URL> getWhitelist() {
+
+    public ArrayList<String> getWhitelist() {
         return new ArrayList<>(whitelist);
     }
-    
-    public boolean getAccepted(){
+
+    public boolean getAccepted() {
         return modalAccepted;
     }
-    
-    public int getDepth(){
+
+    public int getDepth() {
         return Integer.valueOf(depth.getText());
     }
 }

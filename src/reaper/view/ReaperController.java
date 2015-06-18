@@ -66,6 +66,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -215,6 +217,8 @@ public class ReaperController implements Initializable {
     private Tab consoleTabPostScanner;
     @FXML
     private Button eraseCurrentLogButton;
+    @FXML
+    private TreeView<TreeProjectNode> projectsTree;
 
     @FXML
     private void clearProjectData(ActionEvent event) {
@@ -278,40 +282,31 @@ public class ReaperController implements Initializable {
     }
 
     @FXML
-    private void addBlacklistItem(ActionEvent event) {
+    private void addBlacklistItem() {
         TextInputDialog dialog = new TextInputDialog("http://subdomain.example.com");
-        dialog.setTitle("Add blacklisted domain");
-        dialog.setHeaderText("Add blacklisted domain");
-        dialog.setContentText("Please enter domain you want add to blacklist");
+        dialog.setTitle("Add whitelist rule");
+        dialog.setHeaderText("Add whitelist regex");
+        dialog.setContentText("Please enter valid regex");
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(domain -> {
             String url = domain;
-            if (!url.matches("^.*:\\/\\/.*$")) {
-                url = "http://" + url;
-                loggerReaper.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
-            }
-            //TODO
-            this.reaper.getCrawler().blacklistProperty().add(url);
+            reaper.getCrawler().blacklistProperty().add(url);
+
         });
     }
 
     @FXML
-    private void addWhitelistItem(ActionEvent event) {
-        TextInputDialog dialog = new TextInputDialog("http://anotherdomain.com");
-        dialog.setTitle("Add whitelisted domain");
-        dialog.setHeaderText("Add whitelisteddomain");
-        dialog.setContentText("Please enter domain you want add to whitelist");
+    private void addWhitelistItem() {
+        TextInputDialog dialog = new TextInputDialog("http://subdomain.example.com");
+        dialog.setTitle("Add whitelist rule");
+        dialog.setHeaderText("Add whitelist regex");
+        dialog.setContentText("Please enter valid regex");
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(domain -> {
             String url = domain;
-            if (!url.matches("^.*:\\/\\/.*$")) {
-                url = "http://" + url;
-                loggerReaper.log(Level.WARNING, "You should provide protocol as well. Default proctol http is used.");
-            }
-            //TODO
-            this.reaper.getCrawler().blacklistProperty().add(url);
+            reaper.getCrawler().whitelistProperty().add(url);
         });
     }
 
@@ -610,6 +605,30 @@ public class ReaperController implements Initializable {
                 projectDeleteItem,
                 projectTruncateItem
         ));
+        
+        //ProjectTree
+        TreeItem<TreeProjectNode> rootNode = new TreeItem<>(new TreeProjectNode(null, ProjectNode.ROOT));
+        
+        crawler.projects().addListener((ListChangeListener.Change<? extends Project> c) -> {
+            if(c.wasAdded()){
+                for(Project proj : c.getAddedSubList()){
+                    TreeItem<TreeProjectNode> node = new TreeItem<>(new TreeProjectNode(proj));
+                    //node.getChildren().addAll(node.getValue().getChildren());
+                    rootNode.getChildren().add(node);
+                }
+            } else if (c.wasRemoved()) {
+                for(Project proj : c.getRemoved()){
+                    for(TreeItem<TreeProjectNode> node : rootNode.getChildren()){
+                        if(proj == node.getValue().getProject()){
+                            rootNode.getChildren().remove(node);
+                        }
+                    }
+                }
+            }
+        });
+        
+        projectsTree.setRoot(rootNode);
+        projectsTree.setShowRoot(false);
 
         //resourceTable
         resourceTable.setItems(crawler.activeResources());

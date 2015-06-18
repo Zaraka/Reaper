@@ -135,12 +135,12 @@ public class Project extends VertexAbstract {
         }
     }
 
-    public void saveBlackWhiteList(OrientGraph graph, List<URL> blackWhiteList, String cluster, String type) {
-        for (URL url : blackWhiteList) {
+    public void saveBlackWhiteList(OrientGraph graph, List<String> blackWhiteList, String cluster, String type) {
+        for (String url : blackWhiteList) {
             Vertex item = graph.addVertex(
                     DatabaseClasses.BLACWHITEKLIST.getName(),
                     DatabaseClasses.BLACWHITEKLIST.getName() + cluster);
-            item.setProperty("url", url.toString());
+            item.setProperty("url", url);
             item.setProperty("type", type);
         }
     }
@@ -151,9 +151,13 @@ public class Project extends VertexAbstract {
      * @param graph
      */
     public void vertexTransaction(OrientGraph graph) {
-        Vertex ver = graph.addVertex("class:" + DatabaseClasses.PROJECT.getName(),
-                "name", name, "date", date,
-                "domain", domain.toString(), "cluster", cluster, "depth", depth);
+        Vertex ver = graph.addVertex(
+                "class:" + DatabaseClasses.PROJECT.getName(),
+                "name", name, 
+                "date", date,
+                "domain", domain.toString(), 
+                "cluster", cluster, 
+                "depth", depth);
         graph.commit();
         setID(ver.getId());
 

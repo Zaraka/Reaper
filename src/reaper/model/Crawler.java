@@ -354,7 +354,7 @@ public class Crawler {
         activeResources.setAll(resources.values()); //LOL
     }
 
-    public void createProject(String name, URL domain, int depth, List<URL> blacklist, List<URL> whitelist) throws DatabaseNotConnectedException {
+    public void createProject(String name, URL domain, int depth, List<String> blacklist, List<String> whitelist) throws DatabaseNotConnectedException {
         if (!database.isConnected()) {
             throw new DatabaseNotConnectedException("Database is not connected");
         }
