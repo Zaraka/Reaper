@@ -4,8 +4,8 @@ Created-By: 1.8.0_40-b26 (Oracle Corporation)
 MAJOR: ${version.major}
 MINOR: ${version.minor}
 RELEASE: ${release}
-BUILD: 39
-BUILD-DATE: 2015-05-26 12:48:39
+BUILD: 71
+BUILD-DATE: 2015-06-19 16:43:36
 PROTOCOL: ${protocol}
 APPCODE: ${appcode}
 

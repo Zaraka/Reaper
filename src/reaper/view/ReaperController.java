@@ -605,28 +605,31 @@ public class ReaperController implements Initializable {
                 projectDeleteItem,
                 projectTruncateItem
         ));
-        
+
         //ProjectTree
         TreeItem<TreeProjectNode> rootNode = new TreeItem<>(new TreeProjectNode(null, ProjectNode.ROOT));
-        
-        crawler.projects().addListener((ListChangeListener.Change<? extends Project> c) -> {
-            if(c.wasAdded()){
-                for(Project proj : c.getAddedSubList()){
-                    TreeItem<TreeProjectNode> node = new TreeItem<>(new TreeProjectNode(proj));
-                    //node.getChildren().addAll(node.getValue().getChildren());
-                    rootNode.getChildren().add(node);
-                }
-            } else if (c.wasRemoved()) {
-                for(Project proj : c.getRemoved()){
-                    for(TreeItem<TreeProjectNode> node : rootNode.getChildren()){
-                        if(proj == node.getValue().getProject()){
-                            rootNode.getChildren().remove(node);
+       
+        crawler.projects().addListener((ListChangeListener.Change<? extends Project> change) -> {
+            while (change.next()) {
+                if (change.wasAdded()) {
+                    for (Project proj : change.getAddedSubList()) {
+                        TreeItem<TreeProjectNode> node = new TreeItem<>(new TreeProjectNode(proj));
+                        node.getChildren().addAll(node.getValue().getChildren());
+                        rootNode.getChildren().add(node);
+                    }
+                } else if (change.wasRemoved()) {
+                    for (Project proj : change.getRemoved()) {
+                        for (TreeItem<TreeProjectNode> node : rootNode.getChildren()) {
+                            if (proj == node.getValue().getProject()) {
+                                rootNode.getChildren().remove(node);
+                            }
                         }
                     }
                 }
             }
         });
         
+        projectsTree.setCellFactory((TreeView<TreeProjectNode> param) -> new TreeProjectNodeCell());
         projectsTree.setRoot(rootNode);
         projectsTree.setShowRoot(false);
 
@@ -702,7 +705,7 @@ public class ReaperController implements Initializable {
                 databaseConnectMenuItem.setText("Connect");
             }
         });
-
+        
         //--------------------------ON STARTUP----------------------------
         if (crawler.getAutoConnect()) {
             databaseConnect();

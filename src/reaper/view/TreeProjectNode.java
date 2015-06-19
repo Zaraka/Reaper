@@ -23,8 +23,11 @@
  */
 package reaper.view;
 
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.scene.control.TreeItem;
 import reaper.model.Project;
 
 /**
@@ -32,22 +35,23 @@ import reaper.model.Project;
  * @author nikita.vanku
  */
 public class TreeProjectNode {
+
     private Project project;
     private ProjectNode nodeType;
-    private List<TreeProjectNode> children;
+    private List<TreeItem<TreeProjectNode>> children;
 
     public TreeProjectNode(Project proj, ProjectNode type) {
         project = proj;
         nodeType = type;
     }
-    
-    public TreeProjectNode(Project proj){
+
+    public TreeProjectNode(Project proj) {
         project = proj;
         nodeType = ProjectNode.PROJECT;
-        
+
         children = new ArrayList<>();
-        children.add(new TreeProjectNode(proj, ProjectNode.VIEW));
-        children.add(new TreeProjectNode(proj, ProjectNode.STATISTICS));
+        children.add(new TreeItem<>(new TreeProjectNode(proj, ProjectNode.VIEW)));
+        children.add(new TreeItem<>(new TreeProjectNode(proj, ProjectNode.STATISTICS)));
     }
 
     public ProjectNode getNodeType() {
@@ -66,15 +70,31 @@ public class TreeProjectNode {
         this.project = project;
     }
 
-    public List<TreeProjectNode> getChildren() {
+    public List<TreeItem<TreeProjectNode>> getChildren() {
         return children;
     }
-    
-    public Boolean isLeaf(){
-        if(nodeType.equals(ProjectNode.PROJECT) || nodeType.equals(ProjectNode.ROOT)){
+
+    public Boolean isLeaf() {
+        if (nodeType.equals(ProjectNode.PROJECT) || nodeType.equals(ProjectNode.ROOT)) {
             return false;
         } else {
             return true;
+        }
+    }
+
+    @Override
+    public String toString() {
+        switch (nodeType) {
+            case PROJECT:
+                return project.getName();
+            case ROOT:
+                return "root";
+            case STATISTICS:
+                return "Statistics";
+            case VIEW:
+                return "View";
+            default:
+                return "undefined";
         }
     }
 }

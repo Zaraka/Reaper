@@ -48,7 +48,7 @@
                                           <Button fx:id="setupDatabaseButton" mnemonicParsing="false" onAction="#setupDatabase" text="Setup Tables" />
                                           <Button fx:id="deleteDatabaseButton" mnemonicParsing="false" onAction="#teardownDatabase" text="Drop Tables">
                                              <graphic>
-                                                <FontAwesomeIcon fill="RED" glyphName="TIMES" />
+                                                <FontAwesomeIconView fill="RED" glyphName="TIMES" />
                                              </graphic>
                                           </Button>
                                           <Button fx:id="truncateTablesButton" mnemonicParsing="false" onAction="#clearData" text="Truncate Tables" />

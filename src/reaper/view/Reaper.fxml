@@ -15,7 +15,7 @@
 
 <AnchorPane id="AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="reaper.view.ReaperController">
    <children>
-      <VBox>
+      <VBox prefHeight="893.0" prefWidth="1298.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <MenuBar>
                <menus>
@@ -47,16 +47,16 @@
                   </Menu>
                </menus>
             </MenuBar>
-            <SplitPane dividerPositions="0.29797979797979796">
+            <SplitPane dividerPositions="0.15" VBox.vgrow="ALWAYS">
               <items>
                 <AnchorPane>
                      <children>
-                        <TreeView fx:id="projectsTree" prefHeight="870.0" prefWidth="248.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                        <TreeView fx:id="projectsTree" prefHeight="866.0" prefWidth="383.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                      </children>
                   </AnchorPane>
                 <AnchorPane>
                      <children>
-                        <SplitPane dividerPositions="0.766721044045677" orientation="VERTICAL">
+                        <SplitPane dividerPositions="0.766721044045677" orientation="VERTICAL" prefHeight="866.0" prefWidth="1042.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <items>
                               <AnchorPane>
                                  <children>
@@ -82,14 +82,12 @@
                                                                <children>
                                                                   <Button mnemonicParsing="false" onAction="#refreshProjects" text="Refresh Projects">
                                                                      <graphic>
-                                                                        <FontAwesomeIcon glyphName="REFRESH" />
-                                                                     </graphic>
-                                                                  </Button>
+                                                                        <FontAwesomeIconView glyphName="REFRESH" />
+                                                                     </graphic></Button>
                                                                   <Button fx:id="createNewProjectButton" mnemonicParsing="false" onAction="#createNewProject" text="Create New Project">
                                                                      <graphic>
-                                                                        <FontAwesomeIcon glyphName="FILE" />
-                                                                     </graphic>
-                                                                  </Button>
+                                                                        <FontAwesomeIconView glyphName="FILE" />
+                                                                     </graphic></Button>
                                                                </children>
                                                             </HBox>
                                                          </children>
@@ -147,30 +145,14 @@
                                                                         </HBox>
                                                                         <HBox>
                                                                            <children>
-                                                                              <Button fx:id="startMiningButton" mnemonicParsing="false" onAction="#startMining" text="Start Mining">
-                                                                                 <graphic>
-                                                                                    <FontAwesomeIcon fill="#06dd2a" glyphName="PLAY" />
-                                                                                 </graphic>
-                                                                              </Button>
-                                                                              <Button fx:id="stopMiningButton" mnemonicParsing="false" onAction="#stopMining" text="Stop Mining">
-                                                                                 <graphic>
-                                                                                    <FontAwesomeIcon fill="RED" glyphName="STOP" />
-                                                                                 </graphic>
-                                                                              </Button>
+                                                                              <Button fx:id="startMiningButton" mnemonicParsing="false" onAction="#startMining" text="Start Mining" />
+                                                                              <Button fx:id="stopMiningButton" mnemonicParsing="false" onAction="#stopMining" text="Stop Mining" />
                                                                            </children>
                                                                         </HBox>
                                                                         <HBox>
                                                                            <children>
-                                                                              <Button fx:id="startPostScannerButton" mnemonicParsing="false" onAction="#startPostScanner" text="Start PostScanner">
-                                                                                 <graphic>
-                                                                                    <FontAwesomeIcon fill="#06dd2a" glyphName="PLAY" />
-                                                                                 </graphic>
-                                                                              </Button>
-                                                                              <Button fx:id="stopPostScannerButton" mnemonicParsing="false" onAction="#stopPostScanner" text="Stop PostScanner">
-                                                                                 <graphic>
-                                                                                    <FontAwesomeIcon fill="RED" glyphName="STOP" />
-                                                                                 </graphic>
-                                                                              </Button>
+                                                                              <Button fx:id="startPostScannerButton" mnemonicParsing="false" onAction="#startPostScanner" text="Start PostScanner" />
+                                                                              <Button fx:id="stopPostScannerButton" mnemonicParsing="false" onAction="#stopPostScanner" text="Stop PostScanner" />
                                                                            </children>
                                                                         </HBox>
                                                                      </children>
@@ -214,7 +196,7 @@
                                                                                                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                                                                                              </columnResizePolicy>
                                                                                              <columns>
-                                                                                                <TableColumn fx:id="blacklistColumn1" prefWidth="926.0" text="Whitelist" />
+                                                                                                <TableColumn fx:id="whitelistColumn" prefWidth="926.0" text="Whitelist" />
                                                                                              </columns>
                                                                                           </TableView>
                                                                                           <HBox prefHeight="100.0" prefWidth="200.0">
@@ -367,15 +349,14 @@
                               </AnchorPane>
                               <AnchorPane>
                                  <children>
-                                    <HBox prefHeight="213.0" prefWidth="1040.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                    <HBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                        <children>
                                           <VBox>
                                              <children>
                                                 <Button fx:id="eraseCurrentLogButton" mnemonicParsing="false" onAction="#eraseCurrentLog">
                                                    <graphic>
-                                                      <FontAwesomeIcon glyphName="ERASER" />
-                                                   </graphic>
-                                                </Button>
+                                                      <FontAwesomeIconView glyphName="ERASER" />
+                                                   </graphic></Button>
                                              </children>
                                           </VBox>
                                           <TabPane fx:id="consoleTabPane" tabClosingPolicy="UNAVAILABLE" HBox.hgrow="ALWAYS">
